@@ -4,6 +4,7 @@ public class Fighter
 {
     public Vector2 position;
     public Vector2 velocity;
+    public float PushboxHalfWidth => config.pushboxHalfWidth;
 
     private FighterConfig config;
     private FighterView view;

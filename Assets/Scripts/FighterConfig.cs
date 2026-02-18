@@ -12,4 +12,8 @@ public class FighterConfig : ScriptableObject
     [Header("Advanced")]
     public float maxFallSpeed = -25f;
     public float groundFriction = 20f;
+
+    [Header("Pushbox")]
+    public float pushboxHalfWidth = 0.5f;
+
 }
