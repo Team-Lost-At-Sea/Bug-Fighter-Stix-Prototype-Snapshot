@@ -2,8 +2,11 @@ using UnityEngine;
 
 public class FighterView : MonoBehaviour
 {
-    [SerializeField] private FighterConfig config;
-    [SerializeField] private float depth = 0f;
+    [SerializeField]
+    private FighterConfig config;
+
+    [SerializeField]
+    private float depth = 0f;
 
     public FighterConfig Config => config;
 
