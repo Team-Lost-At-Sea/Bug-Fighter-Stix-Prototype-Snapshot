@@ -18,3 +18,4 @@ MonoBehaviour:
   gravity: -120
   maxFallSpeed: -400
   groundFriction: 9999
+  pushboxHalfWidth: 1.3
