@@ -21,6 +21,9 @@ public class Simulation
     {
         player1 = new Fighter(1, p1View, new Vector2(-FIGHTER_START_POSITION_OFFSET, 0f));
         player2 = new Fighter(2, p2View, new Vector2(FIGHTER_START_POSITION_OFFSET, 0f));
+
+        player1.SetOpponent(player2);
+        player2.SetOpponent(player1);
     }
 
     public void Tick()
@@ -42,27 +45,24 @@ public class Simulation
 
     private void ResolvePushboxes()
     {
-        float p1Left = player1.position.x - player1.PushboxHalfWidth;
-        float p1Right = player1.position.x + player1.PushboxHalfWidth;
+        // Compute horizontal overlap
+        float distance = Mathf.Abs(player2.Position.x - player1.Position.x);
+        float minDistance = player1.PushboxHalfWidth + player2.PushboxHalfWidth;
 
-        float p2Left = player2.position.x - player2.PushboxHalfWidth;
-        float p2Right = player2.position.x + player2.PushboxHalfWidth;
-
-        float overlap = Mathf.Min(p1Right, p2Right) - Mathf.Max(p1Left, p2Left);
-
-        if (overlap > 0f)
+        if (distance < minDistance)
         {
+            float overlap = minDistance - distance;
             float separation = overlap * 0.5f;
 
-            if (player1.position.x < player2.position.x)
+            if (player1.Position.x < player2.Position.x)
             {
-                player1.position.x -= separation;
-                player2.position.x += separation;
+                player1.MoveHorizontal(-separation);
+                player2.MoveHorizontal(separation);
             }
             else
             {
-                player1.position.x += separation;
-                player2.position.x -= separation;
+                player1.MoveHorizontal(separation);
+                player2.MoveHorizontal(-separation);
             }
         }
     }
@@ -74,10 +74,10 @@ public class Simulation
     {
         float half = fighter.PushboxHalfWidth;
 
-        if (fighter.position.x - half < stageLeft)
-            fighter.position.x = stageLeft + half;
+        if (fighter.Position.x - half < stageLeft)
+            fighter.SetHorizontal(stageLeft + half);
 
-        if (fighter.position.x + half > stageRight)
-            fighter.position.x = stageRight - half;
+        if (fighter.Position.x + half > stageRight)
+            fighter.SetHorizontal(stageRight - half);
     }
 }
