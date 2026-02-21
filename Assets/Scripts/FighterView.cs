@@ -22,7 +22,7 @@ public class FighterView : MonoBehaviour
         this.fighter = fighter;
 
         if (animator == null)
-            animator = GetComponent<Animator>();
+            Debug.LogWarning("FighterView is missing animator reference.");
     }
 
     public void SetPosition(Vector2 simPosition)
@@ -40,7 +40,13 @@ public class FighterView : MonoBehaviour
     void Update()
     {
         if (fighter == null || animator == null)
+        {
+            if (fighter == null)
+                Debug.LogWarning("FighterView is missing fighter reference.");
+            if (animator == null)
+                Debug.LogWarning("FighterView is missing animator reference.");
             return;
+        }
 
         UpdateAnimatorParameters();
         SetFacing(fighter.FacingRight);
@@ -48,9 +54,22 @@ public class FighterView : MonoBehaviour
 
     private void UpdateAnimatorParameters()
     {
-        animator.SetFloat("ForwardMovementSpeed", fighter.ForwardMovementSpeed);
+        ConsoleLogAnimatorParams();
+
+        animator.SetFloat("ForwardMoveSpeed", fighter.ForwardMoveSpeed);
+        animator.SetBool("FacingRight", fighter.FacingRight);
         animator.SetBool("IsJumping", fighter.IsJumping);
         animator.SetBool("IsAttacking", fighter.IsAttacking);
         animator.SetInteger("AttackType", (int)fighter.CurrentAttack);
+    }
+
+    private void ConsoleLogAnimatorParams()
+    {
+        Debug.Log(
+            $"Fighter State - ForwardMoveSpeed: {fighter.ForwardMoveSpeed}, "
+                + $"IsJumping: {fighter.IsJumping}, "
+                + $"IsAttacking: {fighter.IsAttacking}, "
+                + $"AttackType: {fighter.CurrentAttack}"
+        );
     }
 }

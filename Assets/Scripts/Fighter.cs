@@ -12,6 +12,15 @@ public class Fighter
     public float PushboxHalfWidth => config.pushboxHalfWidth;
     public bool IsJumping => position.y > 0f;
 
+    public float ForwardMoveSpeed
+    {
+        get
+        {
+            // If facing right, forward is +X
+            // If facing left, forward is -X
+            return facingRight ? velocity.x : -velocity.x;
+        }
+    }
 
     // --- Private Simulation Data ---
     private Vector2 position;
@@ -135,16 +144,6 @@ public class Fighter
     private void Integrate()
     {
         position += velocity * GameLoop.FIXED_DT;
-    }
-
-    public float ForwardMovementSpeed
-    {
-        get
-        {
-            // If facing right, forward is +X
-            // If facing left, forward is -X
-            return facingRight ? velocity.x : -velocity.x;
-        }
     }
 
     private void ClampToGround()

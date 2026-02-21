@@ -24,6 +24,10 @@ public class Simulation
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
+
+        // Connect views to fighters
+        p1View.Initialize(player1);
+        p2View.Initialize(player2);
     }
 
     public void Tick()
