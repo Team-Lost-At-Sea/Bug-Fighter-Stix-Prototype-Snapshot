@@ -3,14 +3,28 @@ using UnityEngine;
 public class Fighter
 {
     // --- Public Simulation State (Read-Only for View) ---
+
+    // Public Positional and movement data
     public Vector2 Position => position;
     public Vector2 Velocity => velocity;
-    public bool IsAttacking => state == FighterState.Attacking;
-    public AttackType CurrentAttack => currentAttack;
     public bool FacingRight => facingRight;
-
     public float PushboxHalfWidth => config.pushboxHalfWidth;
     public bool IsJumping => position.y > 0f;
+
+    // Public Attack state properties
+    public bool IsAttacking => state == FighterState.Attacking;
+    public AttackType CurrentAttack => currentAttack;
+
+    // Tracks whether this attack was just triggered
+    public bool AttackTriggered { get; private set; }
+
+    // Future Lockdown states (not implemented yet)
+    public bool IsInHitstun = false;
+    public bool IsInBlockstun = false;
+    public bool IsKnockdown = false;
+
+    // Computed property
+    public bool IsActionable => !IsAttacking && !IsInHitstun && !IsInBlockstun && !IsKnockdown;
 
     public float ForwardMoveSpeed
     {
@@ -34,8 +48,9 @@ public class Fighter
     private FighterState state = FighterState.Idle;
     private AttackType currentAttack = AttackType.None;
 
-    private int attackTimer;
+    private float attackTimer;
     private bool facingRight = true;
+    private const int TICKS_PER_SECOND = 60;
 
     public Fighter(int playerIndex, FighterView view, Vector2 startPosition)
     {
@@ -47,16 +62,14 @@ public class Fighter
         this.velocity = Vector2.zero;
     }
 
-    public void Tick()
+    public void Tick(InputFrame input)
     {
-        InputFrame input = GameInput.Instance.GetInputForPlayer(playerIndex);
-
         HandleMovement(input);
         HandleAttacks(input);
         ApplyGravity();
-        Integrate();
-        ClampToGround();
-        UpdateFacing(opponent);
+        Integrate(); // Update position based on velocity
+        ClampToGround(); // Prevent going below ground level
+        UpdateFacing(opponent); // Update facing direction based on opponent position
     }
 
     private void HandleMovement(InputFrame input)
@@ -69,18 +82,18 @@ public class Fighter
 
         if (position.y == 0f)
         {
-            if (input.left)
+            if (input.moveX == -1)
                 velocity.x = -config.moveSpeed;
-            else if (input.right)
+            else if (input.moveX == 1)
                 velocity.x = config.moveSpeed;
             else
                 ApplyFriction();
 
-            if (input.jump)
+            if (input.moveY == 1)
             {
-                if (input.left)
+                if (input.moveX == -1)
                     velocity.x = -config.moveSpeed * config.jumpHorizontalBoostScale;
-                else if (input.right)
+                else if (input.moveX == 1)
                     velocity.x = config.moveSpeed * config.jumpHorizontalBoostScale;
 
                 velocity.y = config.jumpForce;
@@ -90,19 +103,34 @@ public class Fighter
 
     private void HandleAttacks(InputFrame input)
     {
+        // --- Handle ongoing attack ---
         if (state == FighterState.Attacking)
         {
-            attackTimer--;
+            // Reduce timer in seconds per tick
+            attackTimer -= GameLoop.FIXED_DT;
 
-            if (attackTimer <= 0)
+            // --- DEBUG LINE START ---
+            var info = view.Animator.GetCurrentAnimatorStateInfo(0);
+            Debug.Log(
+                $"AttackTimer: {attackTimer:F2}s, State: {state}, CurrentAttack: {currentAttack}, AnimatorState: {info.shortNameHash}"
+            );
+            // --- DEBUG LINE END ---
+
+            // Attack finished
+            if (attackTimer <= 0f)
             {
                 state = FighterState.Idle;
                 currentAttack = AttackType.None;
             }
 
+            // Once the attack has started, we can reset the trigger so Animator won't retrigger
+            AttackTriggered = false;
+
+            // Keep currentAttack set until timer hits 0
             return;
         }
 
+        // --- Start a new attack if any button pressed ---
         if (input.punchLight)
             StartAttack(AttackType.Light);
         else if (input.punchMedium)
@@ -115,22 +143,36 @@ public class Fighter
     {
         state = FighterState.Attacking;
         currentAttack = type;
-        attackTimer = GetAttackDuration(type);
+
+        // Convert animation frames to seconds
+        attackTimer = GetAttackDurationSeconds(type);
+
+        // Set the triggered flag for the Animator
+        AttackTriggered = true;
     }
 
-    private int GetAttackDuration(AttackType type)
+    private float GetAttackDurationSeconds(AttackType type)
     {
+        int animationFrames = 0;
+        int animationSampleRate = 24; // FPS of your animation clip
+
         switch (type)
         {
             case AttackType.Light:
-                return 18;
+                animationFrames = 6;
+                break;
             case AttackType.Medium:
-                return 24;
+                animationFrames = 10;
+                break;
             case AttackType.Heavy:
-                return 32;
+                animationFrames = 14;
+                break;
             default:
-                return 0;
+                return 0f;
         }
+
+        // Duration in seconds = frames / clip FPS
+        return animationFrames / (float)animationSampleRate;
     }
 
     private void ApplyGravity()

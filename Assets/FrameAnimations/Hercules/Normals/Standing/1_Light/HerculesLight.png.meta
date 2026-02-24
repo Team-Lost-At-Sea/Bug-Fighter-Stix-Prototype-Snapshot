@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 528b6a5e4fc3976429488f0af916e176
+guid: f6cf752f1606d184a872f30c1a5735e8
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesHeavy_0
+      name: HerculesLight_0
       rect:
         serializedVersion: 2
         x: 81
@@ -112,184 +112,140 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 02fb71b13e0abd3498c0fa8267233e71
-      internalID: -516839456
+      spriteID: 6473648afa61f8441a90b86339b23fb5
+      internalID: 983762319
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_1
+      name: HerculesLight_1
       rect:
         serializedVersion: 2
-        x: 337
-        y: 660
-        width: 256
-        height: 159
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 381
+        y: 615
+        width: 144
+        height: 278
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a9e0c078156af91409c40638b0c5e96b
-      internalID: -1822593856
+      spriteID: f869a769a98f4b74fb98f2f515d5b14a
+      internalID: 1442817315
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_2
+      name: HerculesLight_2
       rect:
         serializedVersion: 2
-        x: 637
-        y: 660
-        width: 246
-        height: 159
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 681
+        y: 615
+        width: 138
+        height: 278
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9f13448aab721384eb6dacad09687c27
-      internalID: -1464657063
+      spriteID: 15165441c9bc52a45b2cf6786108fac1
+      internalID: -700984626
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_3
+      name: HerculesLight_3
       rect:
         serializedVersion: 2
-        x: 37
-        y: 360
-        width: 255
-        height: 159
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 78
+        y: 315
+        width: 139
+        height: 276
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8f610e2e70d06744ca55ef8e9879278e
-      internalID: 683552314
+      spriteID: 6730329d8d5ca234b81ff78cc4d1cadc
+      internalID: -593535251
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_4
+      name: HerculesLight_4
       rect:
         serializedVersion: 2
-        x: 337
-        y: 360
-        width: 261
-        height: 199
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 378
+        y: 315
+        width: 170
+        height: 276
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 182b832b632e6cf408b15c581bbe6907
-      internalID: -2117078846
+      spriteID: 56ce37bf825785943bc1bd70d47f6fe9
+      internalID: 788985667
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_5
+      name: HerculesLight_5
       rect:
         serializedVersion: 2
-        x: 642
-        y: 360
-        width: 251
-        height: 231
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 683
+        y: 315
+        width: 172
+        height: 275
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9bb2af1d30eeb3b4d9be44cb0599b46c
-      internalID: -1779231161
+      spriteID: 64bca28d31add4b499abb619ab43879c
+      internalID: -1302144550
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHeavy_6
+      name: HerculesLight_6
       rect:
         serializedVersion: 2
-        x: 42
-        y: 60
-        width: 251
-        height: 231
-      alignment: 6
-      pivot: {x: 0, y: 0}
+        x: 83
+        y: 15
+        width: 172
+        height: 275
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3e257313b9a05564aba1a695cb610a8b
-      internalID: -1694407966
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HerculesHeavy_7
-      rect:
-        serializedVersion: 2
-        x: 337
-        y: 60
-        width: 251
-        height: 227
-      alignment: 6
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 4cdaf9ed9b195814f84924fc55d67f4c
-      internalID: -863587845
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HerculesHeavy_8
-      rect:
-        serializedVersion: 2
-        x: 637
-        y: 60
-        width: 251
-        height: 227
-      alignment: 6
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: fd1587a828523cb4da918a259e96d07c
-      internalID: 754055833
+      spriteID: 56c6dcc9f96936941b459b76543442c8
+      internalID: 602179438
       vertices: []
       indices: 
       edges: []
@@ -308,15 +264,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      HerculesHeavy_0: -516839456
-      HerculesHeavy_1: -1822593856
-      HerculesHeavy_2: -1464657063
-      HerculesHeavy_3: 683552314
-      HerculesHeavy_4: -2117078846
-      HerculesHeavy_5: -1779231161
-      HerculesHeavy_6: -1694407966
-      HerculesHeavy_7: -863587845
-      HerculesHeavy_8: 754055833
+      HerculesLight_0: 983762319
+      HerculesLight_1: 1442817315
+      HerculesLight_2: -700984626
+      HerculesLight_3: -593535251
+      HerculesLight_4: 788985667
+      HerculesLight_5: -1302144550
+      HerculesLight_6: 602179438
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

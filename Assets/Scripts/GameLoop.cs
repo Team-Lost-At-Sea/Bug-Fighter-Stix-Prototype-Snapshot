@@ -20,15 +20,18 @@ public class GameLoop : MonoBehaviour
         accumulator += Time.deltaTime;
 
         int safety = 0;
-
         while (accumulator >= FIXED_DT && safety < 5)
         {
-            GameInput.Instance.CaptureInput();
-            Simulation.Instance.Tick();
+            // Tick the simulation with the next buffered input
+            InputFrame p1Input = GameInput.Instance.ConsumeNextInput();
+
+            Simulation.Instance.Tick(p1Input);
+
             accumulator -= FIXED_DT;
             safety++;
         }
 
+        // Render after simulation updates
         Simulation.Instance.Render();
     }
 }

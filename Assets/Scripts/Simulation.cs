@@ -30,14 +30,19 @@ public class Simulation
         p2View.Initialize(player2);
     }
 
-    public void Tick()
+    public void Tick(InputFrame input_p1)
     {
-        player1.Tick();
-        player2.Tick();
+        // Get input for the fighters on this simulation tick
+        // Player 2 is still neutral for now
+        InputFrame input_p2 = InputFrame.Neutral; // placeholder for P2
 
-        ResolvePushboxes(); // Prevents fighters from overlapping
+        // Update each fighter with their input
+        player1.Tick(input_p1);
+        player2.Tick(input_p2);
 
-        ClampToStage(player1); // Keeps fighters within stage bounds
+        // Simulation-specific logic
+        ResolvePushboxes(); // Prevent overlapping
+        ClampToStage(player1);
         ClampToStage(player2);
     }
 

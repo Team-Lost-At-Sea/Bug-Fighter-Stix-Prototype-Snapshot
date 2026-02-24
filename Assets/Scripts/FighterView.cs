@@ -12,7 +12,7 @@ public class FighterView : MonoBehaviour
     [Header("References")]
     [SerializeField]
     private Animator animator;
-
+    public Animator Animator => animator;
     private Fighter fighter;
 
     public FighterConfig Config => config;
@@ -61,14 +61,15 @@ public class FighterView : MonoBehaviour
         animator.SetBool("IsJumping", fighter.IsJumping);
         animator.SetBool("IsAttacking", fighter.IsAttacking);
         animator.SetInteger("AttackType", (int)fighter.CurrentAttack);
+        animator.SetBool("AttackTriggered", fighter.AttackTriggered);
     }
 
     private void ConsoleLogAnimatorParams()
     {
         Debug.Log(
             $"Fighter State - ForwardMoveSpeed: {fighter.ForwardMoveSpeed}, "
-                + $"IsJumping: {fighter.IsJumping}, "
-                + $"IsAttacking: {fighter.IsAttacking}, "
+                + $"IsJumping: {fighter.IsJumping},"
+                + $"IsAttacking: {fighter.IsAttacking},"
                 + $"AttackType: {fighter.CurrentAttack}"
         );
     }
