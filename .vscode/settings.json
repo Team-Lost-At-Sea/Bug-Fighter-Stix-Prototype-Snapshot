@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Bug-Fighter-Stix.sln"
+    "dotnet.defaultSolution": "Bug-Fighter-Stix.slnx"
 }
