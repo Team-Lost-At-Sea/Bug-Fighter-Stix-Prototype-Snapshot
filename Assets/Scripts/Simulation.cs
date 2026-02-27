@@ -1,5 +1,8 @@
 using UnityEngine;
 
+// Simulation.cs is the core of the game loop, responsible for updating the state of 
+// all fighters and handling interactions between them.
+// It encapsulates the main fighting match simulation logic for the game loop.
 public class Simulation
 {
     private static Simulation _instance;

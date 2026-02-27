@@ -1,5 +1,7 @@
 using UnityEngine;
 
+// Fighter.cs drives the simulation state for a single fighter.
+// The class encapsulates the simulation work done for a single fighter character.
 public class Fighter
 {
     // --- Public Simulation State (Read-Only for View) ---
@@ -9,22 +11,31 @@ public class Fighter
     public Vector2 Velocity => velocity;
     public bool FacingRight => facingRight;
     public float PushboxHalfWidth => config.pushboxHalfWidth;
-    public bool IsJumping => position.y > 0f;
+    public bool IsGrounded => isGrounded;
+    public bool IsInPrejump => IsInJumpStartup;
+    public int PrejumpFramesRemaining => jumpStartupTicksRemaining;
+    public bool JustBecameAirborne { get; private set; }
+    public float VerticalSpeed => velocity.y;
 
     // Public Attack state properties
-    public bool IsAttacking => state == FighterState.Attacking;
+    public bool IsAttacking =>
+        controlState == FighterControlState.AttackStartup
+        || controlState == FighterControlState.AttackRecovery;
     public AttackType CurrentAttack => currentAttack;
+    public FighterControlState CurrentControlState => controlState;
 
     // Tracks whether this attack was just triggered
     public bool AttackTriggered { get; private set; }
+    // One-tick pulse when a grounded jump input is accepted.
+    public bool JustJumped { get; private set; }
 
-    // Future Lockdown states (not implemented yet)
-    public bool IsInHitstun = false;
-    public bool IsInBlockstun = false;
-    public bool IsKnockdown = false;
+    // Future lockdown states mapped to action state for compatibility.
+    public bool IsInHitstun => controlState == FighterControlState.Hitstun;
+    public bool IsInBlockstun => controlState == FighterControlState.Blockstun;
+    public bool IsKnockdown => controlState == FighterControlState.Knockdown;
 
     // Computed property
-    public bool IsActionable => !IsAttacking && !IsInHitstun && !IsInBlockstun && !IsKnockdown;
+    public bool IsActionable => controlState == FighterControlState.Neutral && !IsInJumpStartup;
 
     public float ForwardMoveSpeed
     {
@@ -45,12 +56,17 @@ public class Fighter
     private int playerIndex;
     private Fighter opponent; // Reference to opponent for facing direction
 
-    private FighterState state = FighterState.Idle;
+    private bool isGrounded = true;
+    // Action state remains explicit; locomotion substates are derived from kinematics.
+    private FighterControlState controlState = FighterControlState.Neutral;
     private AttackType currentAttack = AttackType.None;
 
     private float attackTimer;
     private bool facingRight = true;
     private const int TICKS_PER_SECOND = 60;
+    private const int JUMP_STARTUP_TICKS = 4;
+    private int jumpStartupTicksRemaining;
+    private int queuedJumpMoveX;
 
     public Fighter(int playerIndex, FighterView view, Vector2 startPosition)
     {
@@ -64,23 +80,54 @@ public class Fighter
 
     public void Tick(InputFrame input)
     {
+        AttackTriggered = false;
+        JustJumped = false;
+        JustBecameAirborne = false;
+        // Re-evaluate grounded state at tick start from current kinematics.
+        RefreshGroundedState();
+        bool wasGroundedAtTickStart = isGrounded;
+        HandleJumpStartup(input);
+
+        // Simulation step order: input -> attacks -> physics -> contacts -> facing.
         HandleMovement(input);
         HandleAttacks(input);
         ApplyGravity();
         Integrate(); // Update position based on velocity
-        ClampToGround(); // Prevent going below ground level
+        ResolveGroundContact(); // Prevent going below ground level and emit transitions
+        if (wasGroundedAtTickStart && !isGrounded)
+            JustBecameAirborne = true;
         UpdateFacing(opponent); // Update facing direction based on opponent position
+    }
+
+    private void RefreshGroundedState()
+    {
+        if (position.y <= 0f && velocity.y <= 0f)
+            isGrounded = true;
+        else
+            isGrounded = false;
     }
 
     private void HandleMovement(InputFrame input)
     {
-        if (state == FighterState.Attacking)
+        if (IsInJumpStartup)
         {
             velocity.x = 0f;
             return;
         }
 
-        if (position.y == 0f)
+        // Grounded attacks lock horizontal movement by default.
+        if (
+            (
+                controlState == FighterControlState.AttackStartup
+                || controlState == FighterControlState.AttackRecovery
+            ) && isGrounded
+        )
+        {
+            velocity.x = 0f;
+            return;
+        }
+
+        if (isGrounded)
         {
             if (input.moveX == -1)
                 velocity.x = -config.moveSpeed;
@@ -89,112 +136,49 @@ public class Fighter
             else
                 ApplyFriction();
 
-            if (input.moveY == 1)
+            if (input.moveY == 1 && IsActionable)
             {
-                if (input.moveX == -1)
-                    velocity.x = -config.moveSpeed * config.jumpHorizontalBoostScale;
-                else if (input.moveX == 1)
-                    velocity.x = config.moveSpeed * config.jumpHorizontalBoostScale;
-
-                velocity.y = config.jumpForce;
+                StartJumpStartup(input.moveX);
             }
         }
     }
 
-    private void HandleAttacks(InputFrame input)
+    private bool IsInJumpStartup => jumpStartupTicksRemaining > 0;
+
+    private void StartJumpStartup(float moveX)
     {
-        // --- Handle ongoing attack ---
-        if (state == FighterState.Attacking)
-        {
-            // Reduce timer in seconds per tick
-            attackTimer -= GameLoop.FIXED_DT;
-
-            // --- DEBUG LINE START ---
-            var info = view.Animator.GetCurrentAnimatorStateInfo(0);
-            Debug.Log(
-                $"AttackTimer: {attackTimer:F2}s, State: {state}, CurrentAttack: {currentAttack}, AnimatorState: {info.shortNameHash}"
-            );
-            // --- DEBUG LINE END ---
-
-            // Attack finished
-            if (attackTimer <= 0f)
-            {
-                state = FighterState.Idle;
-                currentAttack = AttackType.None;
-            }
-
-            // Once the attack has started, we can reset the trigger so Animator won't retrigger
-            AttackTriggered = false;
-
-            // Keep currentAttack set until timer hits 0
+        if (!isGrounded || IsInJumpStartup)
             return;
-        }
 
-        // --- Start a new attack if any button pressed ---
-        if (input.punchLight)
-            StartAttack(AttackType.Light);
-        else if (input.punchMedium)
-            StartAttack(AttackType.Medium);
-        else if (input.punchHeavy)
-            StartAttack(AttackType.Heavy);
+        // Only keep -1/0/1 directions for launch decision.
+        queuedJumpMoveX = Mathf.RoundToInt(Mathf.Clamp(moveX, -1f, 1f));
+        jumpStartupTicksRemaining = JUMP_STARTUP_TICKS;
+        JustJumped = true;
     }
 
-    private void StartAttack(AttackType type)
+    private void HandleJumpStartup(InputFrame input)
     {
-        state = FighterState.Attacking;
-        currentAttack = type;
+        if (!IsInJumpStartup)
+            return;
 
-        // Convert animation frames to seconds
-        attackTimer = GetAttackDurationSeconds(type);
+        int moveX = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f));
+        // Neutral jump can be redirected to diagonal during pre-jump.
+        // Diagonal jump cannot be redirected back to neutral.
+        if (queuedJumpMoveX == 0 && moveX != 0)
+            queuedJumpMoveX = moveX;
 
-        // Set the triggered flag for the Animator
-        AttackTriggered = true;
-    }
+        jumpStartupTicksRemaining--;
+        if (jumpStartupTicksRemaining > 0)
+            return;
 
-    private float GetAttackDurationSeconds(AttackType type)
-    {
-        int animationFrames = 0;
-        int animationSampleRate = 24; // FPS of your animation clip
+        if (queuedJumpMoveX == -1)
+            velocity.x = -config.moveSpeed * config.jumpHorizontalBoostScale;
+        else if (queuedJumpMoveX == 1)
+            velocity.x = config.moveSpeed * config.jumpHorizontalBoostScale;
 
-        switch (type)
-        {
-            case AttackType.Light:
-                animationFrames = 6;
-                break;
-            case AttackType.Medium:
-                animationFrames = 10;
-                break;
-            case AttackType.Heavy:
-                animationFrames = 14;
-                break;
-            default:
-                return 0f;
-        }
-
-        // Duration in seconds = frames / clip FPS
-        return animationFrames / (float)animationSampleRate;
-    }
-
-    private void ApplyGravity()
-    {
-        velocity.y += config.gravity * GameLoop.FIXED_DT;
-
-        if (velocity.y < config.maxFallSpeed)
-            velocity.y = config.maxFallSpeed;
-    }
-
-    private void Integrate()
-    {
-        position += velocity * GameLoop.FIXED_DT;
-    }
-
-    private void ClampToGround()
-    {
-        if (position.y < 0f)
-        {
-            position.y = 0f;
-            velocity.y = 0f;
-        }
+        // Jump launches once startup frames complete.
+        velocity.y = config.jumpForce;
+        isGrounded = false;
     }
 
     private void ApplyFriction()
@@ -213,8 +197,141 @@ public class Fighter
         }
     }
 
+    private void HandleAttacks(InputFrame input)
+    {
+        // Continue current attack until its timer expires.
+        if (controlState == FighterControlState.AttackStartup)
+        {
+            attackTimer -= GameLoop.FIXED_DT;
+
+            if (attackTimer <= 0f)
+            {
+                controlState = FighterControlState.AttackRecovery;
+                attackTimer = GetAttackRecoveryDurationSeconds(currentAttack);
+            }
+            return;
+        }
+
+        if (controlState == FighterControlState.AttackRecovery)
+        {
+            attackTimer -= GameLoop.FIXED_DT;
+
+            if (attackTimer <= 0f)
+            {
+                controlState = FighterControlState.Neutral;
+                currentAttack = AttackType.None;
+            }
+            return;
+        }
+
+        // No grounded attack starts while airborne or during non-actionable states.
+        if (!isGrounded || !IsActionable)
+            return;
+
+        // Priority order if multiple attack inputs are true in one frame.
+        if (input.punchLight)
+            StartAttack(AttackType.Light);
+        else if (input.punchMedium)
+            StartAttack(AttackType.Medium);
+        else if (input.punchHeavy)
+            StartAttack(AttackType.Heavy);
+    }
+
+    private void StartAttack(AttackType type)
+    {
+        controlState = FighterControlState.AttackStartup;
+        currentAttack = type;
+
+        // Startup then recovery are modeled separately for future combat rules.
+        attackTimer = GetAttackStartupDurationSeconds(type);
+
+        // One-frame pulse consumed by the view/animator layer.
+        AttackTriggered = true;
+    }
+
+    private float GetAttackStartupDurationSeconds(AttackType type)
+    {
+        int startupFrames = 0;
+        int animationSampleRate = 24; // FPS of your animation clip
+
+        switch (type)
+        {
+            case AttackType.Light:
+                startupFrames = 2;
+                break;
+            case AttackType.Medium:
+                startupFrames = 4;
+                break;
+            case AttackType.Heavy:
+                startupFrames = 6;
+                break;
+            default:
+                return 0f;
+        }
+
+        return startupFrames / (float)animationSampleRate;
+    }
+
+    private float GetAttackRecoveryDurationSeconds(AttackType type)
+    {
+        int recoveryFrames = 0;
+        int animationSampleRate = 24; // FPS of your animation clip
+
+        switch (type)
+        {
+            case AttackType.Light:
+                recoveryFrames = 4;
+                break;
+            case AttackType.Medium:
+                recoveryFrames = 6;
+                break;
+            case AttackType.Heavy:
+                recoveryFrames = 8;
+                break;
+            default:
+                return 0f;
+        }
+
+        return recoveryFrames / (float)animationSampleRate;
+    }
+
+    private void ApplyGravity()
+    {
+        if (isGrounded)
+        {
+            velocity.y = 0f;
+            return;
+        }
+
+        velocity.y += config.gravity * GameLoop.FIXED_DT;
+
+        if (velocity.y < config.maxFallSpeed)
+            velocity.y = config.maxFallSpeed;
+    }
+
+    private void Integrate()
+    {
+        position += velocity * GameLoop.FIXED_DT;
+    }
+
+    private void ResolveGroundContact()
+    {
+        if (position.y <= 0f)
+        {
+            position.y = 0f;
+            velocity.y = 0f;
+
+            isGrounded = true;
+        }
+        else
+            isGrounded = false;
+    }
+
     public void UpdateFacing(Fighter opponent)
     {
+        if (opponent == null)
+            return;
+
         facingRight = opponent.position.x > position.x;
     }
 
@@ -242,10 +359,14 @@ public class Fighter
     }
 }
 
-public enum FighterState
+public enum FighterControlState
 {
-    Idle,
-    Attacking,
+    Neutral,
+    AttackStartup,
+    AttackRecovery,
+    Hitstun,
+    Blockstun,
+    Knockdown,
 }
 
 public enum AttackType
