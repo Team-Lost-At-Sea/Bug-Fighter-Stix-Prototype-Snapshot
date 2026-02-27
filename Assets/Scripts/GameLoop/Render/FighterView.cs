@@ -76,6 +76,9 @@ public class FighterView : MonoBehaviour
         SetIntegerIfExists("PrejumpFramesRemaining", fighter.PrejumpFramesRemaining);
         SetBoolIfExists("JustJumped", fighter.JustJumped);
         SetBoolIfExists("JustBecameAirborne", fighter.JustBecameAirborne);
+        SetBoolIfExists("IsInLandingRecovery", fighter.IsInLandingRecovery);
+        SetIntegerIfExists("LandingRecoveryFramesRemaining", fighter.LandingRecoveryFramesRemaining);
+        SetBoolIfExists("JustLanded", fighter.JustLanded);
         SetIntegerIfExists("ActiveAttackType", (int)fighter.CurrentAttack);
         SetBoolIfExists("AttackTriggered", fighter.AttackTriggered);
         SetIntegerIfExists("ControlState", (int)fighter.CurrentControlState);

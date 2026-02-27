@@ -15,17 +15,19 @@ public class Fighter
     public bool IsInPrejump => IsInJumpStartup;
     public int PrejumpFramesRemaining => jumpStartupTicksRemaining;
     public bool JustBecameAirborne { get; private set; }
+    public bool IsInLandingRecovery => landingRecoveryTicksRemaining > 0;
+    public int LandingRecoveryFramesRemaining => landingRecoveryTicksRemaining;
+    public bool JustLanded { get; private set; }
     public float VerticalSpeed => velocity.y;
 
     // Public Attack state properties
-    public bool IsAttacking =>
-        controlState == FighterControlState.AttackStartup
-        || controlState == FighterControlState.AttackRecovery;
+    public bool IsAttacking => IsInAttackCommitment;
     public AttackType CurrentAttack => currentAttack;
     public FighterControlState CurrentControlState => controlState;
 
     // Tracks whether this attack was just triggered
     public bool AttackTriggered { get; private set; }
+
     // One-tick pulse when a grounded jump input is accepted.
     public bool JustJumped { get; private set; }
 
@@ -35,7 +37,8 @@ public class Fighter
     public bool IsKnockdown => controlState == FighterControlState.Knockdown;
 
     // Computed property
-    public bool IsActionable => controlState == FighterControlState.Neutral && !IsInJumpStartup;
+    public bool IsActionable =>
+        controlState == FighterControlState.Neutral && !IsInJumpStartup && !IsInLandingRecovery;
 
     public float ForwardMoveSpeed
     {
@@ -57,16 +60,21 @@ public class Fighter
     private Fighter opponent; // Reference to opponent for facing direction
 
     private bool isGrounded = true;
+
     // Action state remains explicit; locomotion substates are derived from kinematics.
     private FighterControlState controlState = FighterControlState.Neutral;
     private AttackType currentAttack = AttackType.None;
 
     private float attackTimer;
     private bool facingRight = true;
-    private const int TICKS_PER_SECOND = 60;
     private const int JUMP_STARTUP_TICKS = 4;
+    private const int LANDING_RECOVERY_TICKS = 3;
     private int jumpStartupTicksRemaining;
+    private int landingRecoveryTicksRemaining;
     private int queuedJumpMoveX;
+
+    // Placeholder for future air-normal landing rules.
+    private bool usedAirNormalThisJump;
 
     public Fighter(int playerIndex, FighterView view, Vector2 startPosition)
     {
@@ -80,26 +88,28 @@ public class Fighter
 
     public void Tick(InputFrame input)
     {
+        bool wasGroundedAtTickStart = BeginTick();
+        SimulateTick(input);
+        EndTick(wasGroundedAtTickStart);
+    }
+
+    private bool BeginTick()
+    {
+        ResetTickPulses();
+        // Re-evaluate grounded state at tick start from current kinematics.
+        RefreshGroundedStateFromKinematics();
+        return isGrounded;
+    }
+
+    private void ResetTickPulses()
+    {
         AttackTriggered = false;
         JustJumped = false;
         JustBecameAirborne = false;
-        // Re-evaluate grounded state at tick start from current kinematics.
-        RefreshGroundedState();
-        bool wasGroundedAtTickStart = isGrounded;
-        HandleJumpStartup(input);
-
-        // Simulation step order: input -> attacks -> physics -> contacts -> facing.
-        HandleMovement(input);
-        HandleAttacks(input);
-        ApplyGravity();
-        Integrate(); // Update position based on velocity
-        ResolveGroundContact(); // Prevent going below ground level and emit transitions
-        if (wasGroundedAtTickStart && !isGrounded)
-            JustBecameAirborne = true;
-        UpdateFacing(opponent); // Update facing direction based on opponent position
+        JustLanded = false;
     }
 
-    private void RefreshGroundedState()
+    private void RefreshGroundedStateFromKinematics()
     {
         if (position.y <= 0f && velocity.y <= 0f)
             isGrounded = true;
@@ -107,53 +117,16 @@ public class Fighter
             isGrounded = false;
     }
 
-    private void HandleMovement(InputFrame input)
+    private void SimulateTick(InputFrame input)
     {
-        if (IsInJumpStartup)
-        {
-            velocity.x = 0f;
-            return;
-        }
-
-        // Grounded attacks lock horizontal movement by default.
-        if (
-            (
-                controlState == FighterControlState.AttackStartup
-                || controlState == FighterControlState.AttackRecovery
-            ) && isGrounded
-        )
-        {
-            velocity.x = 0f;
-            return;
-        }
-
-        if (isGrounded)
-        {
-            if (input.moveX == -1)
-                velocity.x = -config.moveSpeed;
-            else if (input.moveX == 1)
-                velocity.x = config.moveSpeed;
-            else
-                ApplyFriction();
-
-            if (input.moveY == 1 && IsActionable)
-            {
-                StartJumpStartup(input.moveX);
-            }
-        }
-    }
-
-    private bool IsInJumpStartup => jumpStartupTicksRemaining > 0;
-
-    private void StartJumpStartup(float moveX)
-    {
-        if (!isGrounded || IsInJumpStartup)
-            return;
-
-        // Only keep -1/0/1 directions for launch decision.
-        queuedJumpMoveX = Mathf.RoundToInt(Mathf.Clamp(moveX, -1f, 1f));
-        jumpStartupTicksRemaining = JUMP_STARTUP_TICKS;
-        JustJumped = true;
+        HandleJumpStartup(input);
+        // Simulation step order: input -> attacks -> physics -> contacts.
+        HandleMovement(input);
+        HandleAttacks(input);
+        ApplyGravity();
+        Integrate(); // Update position based on velocity
+        ResolveGroundContact(); // Prevent going below ground level and emit transitions
+        AdvanceLandingRecovery();
     }
 
     private void HandleJumpStartup(InputFrame input)
@@ -179,6 +152,58 @@ public class Fighter
         // Jump launches once startup frames complete.
         velocity.y = config.jumpForce;
         isGrounded = false;
+    }
+
+    private void HandleMovement(InputFrame input)
+    {
+        if (ShouldLockMovement())
+        {
+            velocity.x = 0f;
+            return;
+        }
+
+        if (isGrounded)
+        {
+            if (input.moveX == -1)
+                velocity.x = -config.moveSpeed;
+            else if (input.moveX == 1)
+                velocity.x = config.moveSpeed;
+            else
+                ApplyFriction();
+
+            if (input.moveY == 1 && IsActionable)
+            {
+                StartJumpStartup(input.moveX);
+            }
+        }
+    }
+
+    private bool IsInJumpStartup => jumpStartupTicksRemaining > 0;
+    private bool IsInAttackCommitment =>
+        controlState == FighterControlState.AttackStartup
+        || controlState == FighterControlState.AttackRecovery;
+
+    private bool ShouldLockMovement()
+    {
+        if (IsInJumpStartup)
+            return true;
+        if (IsInLandingRecovery)
+            return true;
+
+        // Grounded attack commitment locks horizontal movement.
+        return isGrounded && IsInAttackCommitment;
+    }
+
+    private void StartJumpStartup(float moveX)
+    {
+        if (!isGrounded || IsInJumpStartup)
+            return;
+
+        // Only keep -1/0/1 directions for launch decision.
+        queuedJumpMoveX = Mathf.RoundToInt(Mathf.Clamp(moveX, -1f, 1f));
+        usedAirNormalThisJump = false;
+        jumpStartupTicksRemaining = JUMP_STARTUP_TICKS;
+        JustJumped = true;
     }
 
     private void ApplyFriction()
@@ -224,8 +249,7 @@ public class Fighter
             return;
         }
 
-        // No grounded attack starts while airborne or during non-actionable states.
-        if (!isGrounded || !IsActionable)
+        if (!CanStartAttack())
             return;
 
         // Priority order if multiple attack inputs are true in one frame.
@@ -237,10 +261,24 @@ public class Fighter
             StartAttack(AttackType.Heavy);
     }
 
+    private bool CanStartAttack()
+    {
+        if (!isGrounded)
+            return controlState == FighterControlState.Neutral && !IsInJumpStartup;
+
+        if (IsInLandingRecovery)
+            return CanCancelLandingRecoveryIntoAttack();
+
+        return IsActionable;
+    }
+
     private void StartAttack(AttackType type)
     {
         controlState = FighterControlState.AttackStartup;
         currentAttack = type;
+        landingRecoveryTicksRemaining = 0;
+        if (!isGrounded)
+            usedAirNormalThisJump = true;
 
         // Startup then recovery are modeled separately for future combat rules.
         attackTimer = GetAttackStartupDurationSeconds(type);
@@ -251,48 +289,48 @@ public class Fighter
 
     private float GetAttackStartupDurationSeconds(AttackType type)
     {
-        int startupFrames = 0;
-        int animationSampleRate = 24; // FPS of your animation clip
+        GetAttackTimingFrames(type, out int startupFrames, out _);
+        if (startupFrames <= 0)
+            return 0f;
 
-        switch (type)
-        {
-            case AttackType.Light:
-                startupFrames = 2;
-                break;
-            case AttackType.Medium:
-                startupFrames = 4;
-                break;
-            case AttackType.Heavy:
-                startupFrames = 6;
-                break;
-            default:
-                return 0f;
-        }
-
+        int animationSampleRate = 60; // FPS of your animation clip
         return startupFrames / (float)animationSampleRate;
     }
 
     private float GetAttackRecoveryDurationSeconds(AttackType type)
     {
-        int recoveryFrames = 0;
-        int animationSampleRate = 24; // FPS of your animation clip
+        GetAttackTimingFrames(type, out _, out int recoveryFrames);
+        if (recoveryFrames <= 0)
+            return 0f;
+
+        int animationSampleRate = 60; // FPS of your animation clip
+        return recoveryFrames / (float)animationSampleRate;
+    }
+
+    private void GetAttackTimingFrames(
+        AttackType type,
+        out int startupFrames,
+        out int recoveryFrames
+    )
+    {
+        startupFrames = 0;
+        recoveryFrames = 0;
 
         switch (type)
         {
             case AttackType.Light:
-                recoveryFrames = 4;
+                startupFrames = 4;
+                recoveryFrames = 14;
                 break;
             case AttackType.Medium:
-                recoveryFrames = 6;
+                startupFrames = 10;
+                recoveryFrames = 19;
                 break;
             case AttackType.Heavy:
-                recoveryFrames = 8;
+                startupFrames = 16;
+                recoveryFrames = 24;
                 break;
-            default:
-                return 0f;
         }
-
-        return recoveryFrames / (float)animationSampleRate;
     }
 
     private void ApplyGravity()
@@ -316,15 +354,68 @@ public class Fighter
 
     private void ResolveGroundContact()
     {
+        bool wasAirborne = !isGrounded;
         if (position.y <= 0f)
         {
             position.y = 0f;
             velocity.y = 0f;
 
             isGrounded = true;
+            if (wasAirborne)
+            {
+                // Air attack startup/recovery is cut short on landing.
+                if (IsInAttackCommitment)
+                {
+                    controlState = FighterControlState.Neutral;
+                    currentAttack = AttackType.None;
+                    attackTimer = 0f;
+                }
+                landingRecoveryTicksRemaining = LANDING_RECOVERY_TICKS;
+                JustLanded = true;
+            }
         }
         else
+        {
             isGrounded = false;
+            landingRecoveryTicksRemaining = 0;
+        }
+    }
+
+    private void AdvanceLandingRecovery()
+    {
+        if (!isGrounded || landingRecoveryTicksRemaining <= 0 || JustLanded)
+            return;
+
+        landingRecoveryTicksRemaining--;
+    }
+
+    private int CurrentLandingRecoveryFrame
+    {
+        get
+        {
+            if (landingRecoveryTicksRemaining <= 0)
+                return 0;
+
+            return LANDING_RECOVERY_TICKS - landingRecoveryTicksRemaining + 1;
+        }
+    }
+
+    private bool CanCancelLandingRecoveryIntoAttack()
+    {
+        // Air normals are not implemented yet, so this stays false for now.
+        if (usedAirNormalThisJump)
+            return false;
+
+        int frame = CurrentLandingRecoveryFrame;
+        return frame == 2 || frame == 3;
+    }
+
+    private void EndTick(bool wasGroundedAtTickStart)
+    {
+        if (wasGroundedAtTickStart && !isGrounded)
+            JustBecameAirborne = true;
+
+        UpdateFacing(opponent); // Update facing direction based on opponent position
     }
 
     public void UpdateFacing(Fighter opponent)
