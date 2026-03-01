@@ -1334,6 +1334,9 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1155164311}
+  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.25}
+  hitboxColor: {r: 1, g: 0, b: 0, a: 0.25}
+  showBoxes: 1
 --- !u!1 &1485743783
 GameObject:
   m_ObjectHideFlags: 0
@@ -1430,6 +1433,9 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1096896761}
+  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.25}
+  hitboxColor: {r: 1, g: 0, b: 0, a: 0.25}
+  showBoxes: 1
 --- !u!1 &1571372352
 GameObject:
   m_ObjectHideFlags: 0

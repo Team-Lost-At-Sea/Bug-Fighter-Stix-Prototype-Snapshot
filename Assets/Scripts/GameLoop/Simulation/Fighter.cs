@@ -19,10 +19,13 @@ public class Fighter
     public int LandingRecoveryFramesRemaining => landingRecoveryTicksRemaining;
     public bool JustLanded { get; private set; }
     public float VerticalSpeed => velocity.y;
+    public bool HasActiveUnspentHitbox => hitbox.active && !hitbox.hasHit;
+    public Hitbox CurrentHitbox => hitbox;
+    public Box CurrentHurtbox => new Box(position, hurtbox.halfSize);
 
     // Public Attack state properties
     public bool IsAttacking => IsInAttackCommitment;
-    public AttackType CurrentAttack => currentAttack;
+    public AttackType CurrentAttack => currentAttackType;
     public FighterControlState CurrentControlState => controlState;
 
     // Tracks whether this attack was just triggered
@@ -54,6 +57,8 @@ public class Fighter
     private Vector2 position;
     private Vector2 velocity;
 
+    public AttackData currentAttack;
+
     private FighterConfig config;
     private FighterView view;
     private int playerIndex;
@@ -63,9 +68,14 @@ public class Fighter
 
     // Action state remains explicit; locomotion substates are derived from kinematics.
     private FighterControlState controlState = FighterControlState.Neutral;
-    private AttackType currentAttack = AttackType.None;
+    private AttackType currentAttackType = AttackType.None;
+    private Hitbox hitbox;
+    private Box hurtbox;
 
     private float attackTimer;
+    private int attackFrame;
+    private bool isAttacking;
+    private int hitstunRemaining;
     private bool facingRight = true;
     private const int JUMP_STARTUP_TICKS = 4;
     private const int LANDING_RECOVERY_TICKS = 3;
@@ -84,6 +94,7 @@ public class Fighter
 
         this.position = startPosition;
         this.velocity = Vector2.zero;
+        hurtbox = new Box(position, config.hurtboxHalfSize);
     }
 
     public void Tick(InputFrame input)
@@ -119,14 +130,33 @@ public class Fighter
 
     private void SimulateTick(InputFrame input)
     {
+        if (AdvanceHitstun())
+        {
+            ApplyGravity();
+            Integrate(); // Update position based on velocity
+            ResolveGroundContact(); // Prevent going below ground level and emit transitions
+            AdvanceLandingRecovery();
+            return; // prevent actions
+        }
+
         HandleJumpStartup(input);
         // Simulation step order: input -> attacks -> physics -> contacts.
         HandleMovement(input);
         HandleAttacks(input);
+        UpdateAttackDataAttack();
         ApplyGravity();
         Integrate(); // Update position based on velocity
         ResolveGroundContact(); // Prevent going below ground level and emit transitions
         AdvanceLandingRecovery();
+    }
+
+    private bool AdvanceHitstun()
+    {
+        if (hitstunRemaining <= 0)
+            return false;
+
+        hitstunRemaining--;
+        return true;
     }
 
     private void HandleJumpStartup(InputFrame input)
@@ -224,6 +254,10 @@ public class Fighter
 
     private void HandleAttacks(InputFrame input)
     {
+        // Data-driven attacks use a separate state path; do not retrigger while active.
+        if (isAttacking)
+            return;
+
         // Continue current attack until its timer expires.
         if (controlState == FighterControlState.AttackStartup)
         {
@@ -232,7 +266,7 @@ public class Fighter
             if (attackTimer <= 0f)
             {
                 controlState = FighterControlState.AttackRecovery;
-                attackTimer = GetAttackRecoveryDurationSeconds(currentAttack);
+                attackTimer = GetAttackRecoveryDurationSeconds(currentAttackType);
             }
             return;
         }
@@ -244,7 +278,7 @@ public class Fighter
             if (attackTimer <= 0f)
             {
                 controlState = FighterControlState.Neutral;
-                currentAttack = AttackType.None;
+                currentAttackType = AttackType.None;
             }
             return;
         }
@@ -254,7 +288,12 @@ public class Fighter
 
         // Priority order if multiple attack inputs are true in one frame.
         if (input.punchLight)
-            StartAttack(AttackType.Light);
+        {
+            if (config.lightAttackData != null)
+                StartAttack(config.lightAttackData);
+            else
+                StartAttack(AttackType.Light);
+        }
         else if (input.punchMedium)
             StartAttack(AttackType.Medium);
         else if (input.punchHeavy)
@@ -275,7 +314,7 @@ public class Fighter
     private void StartAttack(AttackType type)
     {
         controlState = FighterControlState.AttackStartup;
-        currentAttack = type;
+        currentAttackType = type;
         landingRecoveryTicksRemaining = 0;
         if (!isGrounded)
             usedAirNormalThisJump = true;
@@ -285,6 +324,68 @@ public class Fighter
 
         // One-frame pulse consumed by the view/animator layer.
         AttackTriggered = true;
+    }
+
+    public void StartAttack(AttackData attack)
+    {
+        if (attack == null)
+            return;
+
+        currentAttack = attack;
+        isAttacking = true;
+        attackFrame = 0;
+        hitbox.Reset();
+        currentAttackType = AttackType.Light;
+        controlState = FighterControlState.AttackStartup;
+        landingRecoveryTicksRemaining = 0;
+        if (!isGrounded)
+            usedAirNormalThisJump = true;
+        AttackTriggered = true;
+    }
+
+    private void UpdateAttackDataAttack()
+    {
+        if (!isAttacking || currentAttack == null)
+            return;
+
+        attackFrame++;
+
+        if (attackFrame == currentAttack.startupFrames)
+        {
+            hitbox.box = new Box(position + currentAttack.hitboxOffset, currentAttack.hitboxSize * 0.5f);
+            hitbox.damage = currentAttack.damage;
+            hitbox.hitstunFrames = currentAttack.hitstunFrames;
+            hitbox.active = true;
+        }
+
+        if (attackFrame >= currentAttack.startupFrames + currentAttack.activeFrames)
+        {
+            hitbox.active = false;
+            controlState = FighterControlState.AttackRecovery;
+        }
+
+        if (
+            attackFrame
+            >= currentAttack.startupFrames
+                + currentAttack.activeFrames
+                + currentAttack.recoveryFrames
+        )
+        {
+            isAttacking = false;
+            currentAttack = null;
+            currentAttackType = AttackType.None;
+            controlState = FighterControlState.Neutral;
+        }
+    }
+
+    public void ApplyHit(Hitbox hit)
+    {
+        hitstunRemaining = hit.hitstunFrames;
+    }
+
+    public void MarkCurrentHitboxAsSpent()
+    {
+        hitbox.hasHit = true;
     }
 
     private float GetAttackStartupDurationSeconds(AttackType type)
@@ -367,7 +468,7 @@ public class Fighter
                 if (IsInAttackCommitment)
                 {
                     controlState = FighterControlState.Neutral;
-                    currentAttack = AttackType.None;
+                    currentAttackType = AttackType.None;
                     attackTimer = 0f;
                 }
                 landingRecoveryTicksRemaining = LANDING_RECOVERY_TICKS;

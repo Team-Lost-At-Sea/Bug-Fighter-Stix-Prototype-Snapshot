@@ -6,6 +6,8 @@ using UnityEngine;
 // It represents what is seen in the Render stage of the game loop for a single fighter character.
 public class FighterView : MonoBehaviour
 {
+    private static Transform debugBoxRoot;
+
     [Header("Config")]
     [SerializeField]
     private FighterConfig config;
@@ -19,6 +21,19 @@ public class FighterView : MonoBehaviour
     public Animator Animator => animator;
     private Fighter fighter;
 
+    [Header("Box Visuals")]
+    [SerializeField]
+    private Color hurtboxColor = new Color(0f, 1f, 0f, 0.25f);
+
+    [SerializeField]
+    private Color hitboxColor = new Color(1f, 0f, 0f, 0.25f);
+
+    private DebugBoxVisual hurtboxVisual;
+    private DebugBoxVisual hitboxVisual;
+
+    [SerializeField]
+    private bool showBoxes = true;
+
     // Cache animator params by hash so updates can validate existence and type in O(1).
     private readonly Dictionary<int, AnimatorControllerParameterType> animatorParameterTypes =
         new Dictionary<int, AnimatorControllerParameterType>();
@@ -31,6 +46,7 @@ public class FighterView : MonoBehaviour
     public void Initialize(Fighter fighter)
     {
         this.fighter = fighter;
+        EnsureBoxVisuals();
 
         if (animator == null)
             Debug.LogWarning("FighterView is missing animator reference.");
@@ -50,19 +66,28 @@ public class FighterView : MonoBehaviour
         transform.localScale = scale;
     }
 
+    private void Start()
+    {
+        EnsureBoxVisuals();
+        hurtboxVisual.SetVisible(false);
+        hitboxVisual.SetVisible(false);
+    }
+
     void Update()
     {
-        if (fighter == null || animator == null)
+        if (fighter == null)
         {
-            if (fighter == null)
-                Debug.LogWarning("FighterView is missing fighter reference.");
-            if (animator == null)
-                Debug.LogWarning("FighterView is missing animator reference.");
+            Debug.LogWarning("FighterView is missing fighter reference.");
             return;
         }
 
-        UpdateAnimatorParameters();
+        if (animator == null)
+            Debug.LogWarning("FighterView is missing animator reference.");
+        else
+            UpdateAnimatorParameters();
+
         SetFacing(fighter.FacingRight);
+        UpdateBoxVisuals();
     }
 
     private void UpdateAnimatorParameters()
@@ -162,5 +187,65 @@ public class FighterView : MonoBehaviour
     {
         if (TryValidateAnimatorParameter(parameterName, AnimatorControllerParameterType.Int))
             animator.SetInteger(parameterName, value);
+    }
+
+    private void EnsureBoxVisuals()
+    {
+        if (hurtboxVisual == null)
+            hurtboxVisual = CreateBoxVisual("HurtboxVisual", hurtboxColor);
+        if (hitboxVisual == null)
+            hitboxVisual = CreateBoxVisual("HitboxVisual", hitboxColor);
+    }
+
+    private DebugBoxVisual CreateBoxVisual(string visualName, Color color)
+    {
+        GameObject visualObject = new GameObject(visualName);
+        visualObject.transform.SetParent(GetOrCreateDebugBoxRoot(), false);
+
+        DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
+        visual.Initialize(color);
+        visual.SetVisible(false);
+        return visual;
+    }
+
+    private Transform GetOrCreateDebugBoxRoot()
+    {
+        if (debugBoxRoot != null)
+            return debugBoxRoot;
+
+        GameObject rootObject = GameObject.Find("DebugBoxRoot");
+        if (rootObject == null)
+            rootObject = new GameObject("DebugBoxRoot");
+
+        debugBoxRoot = rootObject.transform;
+        return debugBoxRoot;
+    }
+
+    private void UpdateBoxVisuals()
+    {
+        EnsureBoxVisuals();
+        Box hurtbox = fighter.CurrentHurtbox;
+        Hitbox hitbox = fighter.CurrentHitbox;
+
+        if (showBoxes)
+        {
+            hurtboxVisual.SetBox(hurtbox);
+            hurtboxVisual.SetVisible(true);
+
+            if (hitbox.active)
+            {
+                hitboxVisual.SetBox(hitbox.box);
+                hitboxVisual.SetVisible(true);
+            }
+            else
+            {
+                hitboxVisual.SetVisible(false);
+            }
+        }
+        else
+        {
+            hurtboxVisual.SetVisible(false);
+            hitboxVisual.SetVisible(false);
+        }
     }
 }

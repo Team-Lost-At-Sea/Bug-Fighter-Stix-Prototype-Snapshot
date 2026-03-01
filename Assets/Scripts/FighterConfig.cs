@@ -16,4 +16,10 @@ public class FighterConfig : ScriptableObject
     [Header("Pushbox")]
     public float pushboxHalfWidth = 0.5f;
 
+    [Header("Hurtbox")]
+    public Vector2 hurtboxHalfSize = new Vector2(0.5f, 1.0f);
+
+    [Header("Attacks")]
+    public AttackData lightAttackData;
+
 }

@@ -44,6 +44,7 @@ public class Simulation
         player2.Tick(input_p2);
 
         // Simulation-specific logic
+        ResolveHitDetection();
         ResolvePushboxes(); // Prevent overlapping
         ClampToStage(player1);
         ClampToStage(player2);
@@ -77,6 +78,24 @@ public class Simulation
                 player2.MoveHorizontal(-separation);
             }
         }
+    }
+
+    private void ResolveHitDetection()
+    {
+        ResolveHitForPair(player1, player2);
+        ResolveHitForPair(player2, player1);
+    }
+
+    private void ResolveHitForPair(Fighter attacker, Fighter defender)
+    {
+        if (!attacker.HasActiveUnspentHitbox)
+            return;
+
+        if (!attacker.CurrentHitbox.box.Overlaps(defender.CurrentHurtbox))
+            return;
+
+        defender.ApplyHit(attacker.CurrentHitbox);
+        attacker.MarkCurrentHitboxAsSpent();
     }
 
     private float stageLeft = -80f;
