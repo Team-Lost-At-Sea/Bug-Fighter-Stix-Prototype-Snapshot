@@ -1330,12 +1330,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ffd7e0fbb853524884086ce9c96ba67, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterView
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1155164311}
-  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.25}
-  hitboxColor: {r: 1, g: 0, b: 0, a: 0.25}
+  idleStateName: Idle
+  walkForwardStateName: Walk Forward
+  walkBackwardStateName: Walk Backward
+  jumpStartupStateName: Jumpsquat
+  airborneStateName: Rising
+  landingStateName: Landing
+  hitstunStateName: Hitstun
+  blockstunStateName: Blockstun
+  knockdownStateName: Knockdown
+  standingLightAttackStateName: s_LP
+  standingMediumAttackStateName: s_MP
+  standingHeavyAttackStateName: s_HP
+  jumpingLightAttackStateName: j_LP
+  jumpingMediumAttackStateName: j_MP
+  jumpingHeavyAttackStateName: j_HP
+  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.75}
+  hitboxColor: {r: 1, g: 0, b: 0, a: 0.75}
   showBoxes: 1
 --- !u!1 &1485743783
 GameObject:
@@ -1429,12 +1444,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9ffd7e0fbb853524884086ce9c96ba67, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Assembly-CSharp::FighterView
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1096896761}
-  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.25}
-  hitboxColor: {r: 1, g: 0, b: 0, a: 0.25}
+  idleStateName: Idle
+  walkForwardStateName: Walk Forward
+  walkBackwardStateName: Walk Backward
+  jumpStartupStateName: Jumpsquat
+  airborneStateName: Rising
+  landingStateName: Landing
+  hitstunStateName: Hitstun
+  blockstunStateName: Blockstun
+  knockdownStateName: Knockdown
+  standingLightAttackStateName: s_LP
+  standingMediumAttackStateName: s_MP
+  standingHeavyAttackStateName: s_HP
+  jumpingLightAttackStateName: j_LP
+  jumpingMediumAttackStateName: j_MP
+  jumpingHeavyAttackStateName: j_HP
+  hurtboxColor: {r: 0, g: 1, b: 0, a: 0.75}
+  hitboxColor: {r: 1, g: 0, b: 0, a: 0.75}
   showBoxes: 1
 --- !u!1 &1571372352
 GameObject:

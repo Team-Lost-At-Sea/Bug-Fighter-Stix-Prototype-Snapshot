@@ -20,6 +20,16 @@ public class FighterConfig : ScriptableObject
     public Vector2 hurtboxHalfSize = new Vector2(0.5f, 1.0f);
 
     [Header("Attacks")]
+    public AttackData groundedLightAttackData;
+    public AttackData groundedMediumAttackData;
+    public AttackData groundedHeavyAttackData;
+
+    [Header("Air Attacks")]
+    public AttackData jumpingLightAttackData;
+    public AttackData jumpingMediumAttackData;
+    public AttackData jumpingHeavyAttackData;
+
+    [Header("Legacy Attack Data")]
     public AttackData lightAttackData;
 
 }

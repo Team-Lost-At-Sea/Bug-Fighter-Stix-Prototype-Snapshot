@@ -22,8 +22,8 @@ public class Simulation
 
     public void Initialize(FighterView p1View, FighterView p2View)
     {
-        player1 = new Fighter(1, p1View, new Vector2(-FIGHTER_START_POSITION_OFFSET, 0f));
-        player2 = new Fighter(2, p2View, new Vector2(FIGHTER_START_POSITION_OFFSET, 0f));
+        player1 = new Fighter(p1View, new Vector2(-FIGHTER_START_POSITION_OFFSET, 0f));
+        player2 = new Fighter(p2View, new Vector2(FIGHTER_START_POSITION_OFFSET, 0f));
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
@@ -95,6 +95,7 @@ public class Simulation
             return;
 
         defender.ApplyHit(attacker.CurrentHitbox);
+        attacker.ApplySuccessfulHitstopAsAttacker();
         attacker.MarkCurrentHitboxAsSpent();
     }
 

@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Fighterview is responsible for visual representation of a Fighter,
-// including syncing Animator parameters with the Fighter's simulation state.
-// It represents what is seen in the Render stage of the game loop for a single fighter character.
+// FighterView is responsible for visual representation of a Fighter.
+// Animator state playback is command-driven from deterministic simulation snapshots.
 public class FighterView : MonoBehaviour
 {
     private static Transform debugBoxRoot;
@@ -18,28 +17,95 @@ public class FighterView : MonoBehaviour
     [Header("References")]
     [SerializeField]
     private Animator animator;
+
     public Animator Animator => animator;
     private Fighter fighter;
 
+    [Header("Animator State Names")]
+    [SerializeField]
+    private string idleStateName = "Idle";
+
+    [SerializeField]
+    private string crouchStateName = "Crouch";
+
+    [SerializeField]
+    private string walkForwardStateName = "Walk Forward";
+
+    [SerializeField]
+    private string walkBackwardStateName = "Base Layer.Walk Backward";
+
+    [SerializeField]
+    private string jumpStartupStateName = "Jumpsquat";
+
+    [SerializeField]
+    private string airborneStateName = "Airborne";
+
+    [SerializeField]
+    private string landingStateName = "Landing";
+
+    [SerializeField]
+    private string hitstunStateName = "Hitstun";
+
+    [SerializeField]
+    private string blockstunStateName = "Blockstun";
+
+    [SerializeField]
+    private string knockdownStateName = "Knockdown";
+
+    [Header("Attack State Names")]
+    [SerializeField]
+    private string standingLightAttackStateName = "s_LP";
+
+    [SerializeField]
+    private string standingMediumAttackStateName = "s_MP";
+
+    [SerializeField]
+    private string standingHeavyAttackStateName = "s_HP";
+
+    [SerializeField]
+    private string jumpingLightAttackStateName = "j_LP";
+
+    [SerializeField]
+    private string jumpingMediumAttackStateName = "j_MP";
+
+    [SerializeField]
+    private string jumpingHeavyAttackStateName = "j_HP";
+
     [Header("Box Visuals")]
     [SerializeField]
-    private Color hurtboxColor = new Color(0f, 1f, 0f, 0.25f);
+    private Color hurtboxColor = new Color(0f, 1f, 0f, 0.75f);
 
     [SerializeField]
-    private Color hitboxColor = new Color(1f, 0f, 0f, 0.25f);
-
-    private DebugBoxVisual hurtboxVisual;
-    private DebugBoxVisual hitboxVisual;
+    private Color hitboxColor = new Color(1f, 0f, 0f, 0.75f);
 
     [SerializeField]
     private bool showBoxes = true;
 
-    // Cache animator params by hash so updates can validate existence and type in O(1).
-    private readonly Dictionary<int, AnimatorControllerParameterType> animatorParameterTypes =
-        new Dictionary<int, AnimatorControllerParameterType>();
+    private DebugBoxVisual hurtboxVisual;
+    private DebugBoxVisual hitboxVisual;
 
-    // Tracks already-reported issues so missing/mismatched parameters only log once.
-    private readonly HashSet<int> reportedAnimatorParameterIssues = new HashSet<int>();
+    private readonly HashSet<string> reportedMissingStateNames = new HashSet<string>();
+
+    private int idleHash;
+    private int crouchHash;
+    private int walkForwardHash;
+    private int walkBackwardHash;
+    private int jumpStartupHash;
+    private int airborneHash;
+    private int landingHash;
+    private int hitstunHash;
+    private int blockstunHash;
+    private int knockdownHash;
+
+    private int standingLightAttackHash;
+    private int standingMediumAttackHash;
+    private int standingHeavyAttackHash;
+    private int jumpingLightAttackHash;
+    private int jumpingMediumAttackHash;
+    private int jumpingHeavyAttackHash;
+
+    private int lastPlayedHash = -1;
+    private uint lastAnimationSerial;
 
     public FighterConfig Config => config;
 
@@ -49,9 +115,14 @@ public class FighterView : MonoBehaviour
         EnsureBoxVisuals();
 
         if (animator == null)
+        {
             Debug.LogWarning("FighterView is missing animator reference.");
-        else
-            CacheAnimatorParameters();
+            return;
+        }
+
+        CacheAnimationHashes();
+        lastPlayedHash = -1;
+        lastAnimationSerial = 0;
     }
 
     public void SetPosition(Vector2 simPosition)
@@ -73,7 +144,7 @@ public class FighterView : MonoBehaviour
         hitboxVisual.SetVisible(false);
     }
 
-    void Update()
+    private void Update()
     {
         if (fighter == null)
         {
@@ -84,109 +155,148 @@ public class FighterView : MonoBehaviour
         if (animator == null)
             Debug.LogWarning("FighterView is missing animator reference.");
         else
-            UpdateAnimatorParameters();
+            UpdateAnimationPlayback();
 
         SetFacing(fighter.FacingRight);
         UpdateBoxVisuals();
     }
 
-    private void UpdateAnimatorParameters()
+    private void CacheAnimationHashes()
     {
-        // Keep Animator in sync with simulation state each frame.
-        SetFloatIfExists("ForwardMoveSpeed", fighter.ForwardMoveSpeed);
-        SetFloatIfExists("VerticalSpeed", fighter.VerticalSpeed);
-        SetBoolIfExists("FacingRight", fighter.FacingRight);
-        SetBoolIfExists("IsGrounded", fighter.IsGrounded);
-        SetBoolIfExists("IsInPrejump", fighter.IsInPrejump);
-        SetIntegerIfExists("PrejumpFramesRemaining", fighter.PrejumpFramesRemaining);
-        SetBoolIfExists("JustJumped", fighter.JustJumped);
-        SetBoolIfExists("JustBecameAirborne", fighter.JustBecameAirborne);
-        SetBoolIfExists("IsInLandingRecovery", fighter.IsInLandingRecovery);
-        SetIntegerIfExists("LandingRecoveryFramesRemaining", fighter.LandingRecoveryFramesRemaining);
-        SetBoolIfExists("JustLanded", fighter.JustLanded);
-        SetIntegerIfExists("ActiveAttackType", (int)fighter.CurrentAttack);
-        SetBoolIfExists("AttackTriggered", fighter.AttackTriggered);
-        SetIntegerIfExists("ControlState", (int)fighter.CurrentControlState);
+        idleHash = CacheHash(idleStateName);
+        crouchHash = CacheHash(crouchStateName);
+        walkForwardHash = CacheHash(walkForwardStateName);
+        walkBackwardHash = CacheHash(walkBackwardStateName);
+        jumpStartupHash = CacheHash(jumpStartupStateName);
+        airborneHash = CacheHash(airborneStateName);
+        landingHash = CacheHash(landingStateName);
+        hitstunHash = CacheHash(hitstunStateName);
+        blockstunHash = CacheHash(blockstunStateName);
+        knockdownHash = CacheHash(knockdownStateName);
+
+        standingLightAttackHash = CacheHash(standingLightAttackStateName);
+        standingMediumAttackHash = CacheHash(standingMediumAttackStateName);
+        standingHeavyAttackHash = CacheHash(standingHeavyAttackStateName);
+        jumpingLightAttackHash = CacheHash(jumpingLightAttackStateName);
+        jumpingMediumAttackHash = CacheHash(jumpingMediumAttackStateName);
+        jumpingHeavyAttackHash = CacheHash(jumpingHeavyAttackStateName);
     }
 
-    private void CacheAnimatorParameters()
+    private int CacheHash(string stateName)
     {
-        animatorParameterTypes.Clear();
-        reportedAnimatorParameterIssues.Clear();
+        if (string.IsNullOrWhiteSpace(stateName))
+            return 0;
 
-        // Snapshot current Animator parameter schema for validation during updates.
-        foreach (AnimatorControllerParameter parameter in animator.parameters)
-            animatorParameterTypes[parameter.nameHash] = parameter.type;
-    }
-
-    private bool TryValidateAnimatorParameter(
-        string parameterName,
-        AnimatorControllerParameterType expectedType
-    )
-    {
-        int parameterHash = Animator.StringToHash(parameterName);
-
-        // Re-cache once on miss/type mismatch to handle runtime controller swaps
-        // and parameter edits while in play mode.
-        if (!animatorParameterTypes.TryGetValue(parameterHash, out AnimatorControllerParameterType actualType))
+        string trimmedName = stateName.Trim();
+        string[] candidates;
+        if (trimmedName.StartsWith("Base Layer."))
         {
-            CacheAnimatorParameters();
-            if (!animatorParameterTypes.TryGetValue(parameterHash, out actualType))
+            candidates = new string[] { trimmedName };
+        }
+        else
+        {
+            candidates = new string[]
             {
-                ReportAnimatorParameterIssueOnce(
-                    parameterName,
-                    $"Missing Animator parameter '{parameterName}' (expected type: {expectedType}) on controller '{animator.runtimeAnimatorController?.name}'."
-                );
-                return false;
-            }
+                trimmedName,
+                $"Base Layer.{trimmedName}",
+                $"Base Layer.Grounded.{trimmedName}",
+                $"Base Layer.Airborne.{trimmedName}",
+            };
         }
 
-        if (actualType != expectedType)
+        for (int i = 0; i < candidates.Length; i++)
         {
-            CacheAnimatorParameters();
-            if (
-                animatorParameterTypes.TryGetValue(parameterHash, out actualType)
-                && actualType != expectedType
-            )
-            {
-                ReportAnimatorParameterIssueOnce(
-                    parameterName,
-                    $"Animator parameter '{parameterName}' has type {actualType}, expected {expectedType} on controller '{animator.runtimeAnimatorController?.name}'."
-                );
-                return false;
-            }
+            int candidateHash = Animator.StringToHash(candidates[i]);
+            if (animator.HasState(0, candidateHash))
+                return candidateHash;
         }
 
-        return true;
+        ReportMissingStateOnce(
+            $"Animator state '{trimmedName}' was not found in layer 0. Tried: {string.Join(", ", candidates)}"
+        );
+        return 0;
     }
 
-    private void ReportAnimatorParameterIssueOnce(string parameterName, string message)
+    private void UpdateAnimationPlayback()
     {
-        // De-duplicate log entries to avoid frame-by-frame spam.
-        int issueHash = Animator.StringToHash(parameterName + message);
-        if (reportedAnimatorParameterIssues.Contains(issueHash))
+        FighterRenderSnapshot snapshot = fighter.RenderSnapshot;
+        animator.speed = snapshot.freezeAnimation ? 0f : 1f;
+
+        int targetHash = GetAnimationHash(snapshot);
+        if (targetHash == 0)
             return;
 
-        reportedAnimatorParameterIssues.Add(issueHash);
+        bool shouldPlay =
+            snapshot.restartAnimation
+            || snapshot.animationSerial != lastAnimationSerial
+            || targetHash != lastPlayedHash;
+
+        if (!shouldPlay)
+            return;
+
+        animator.Play(targetHash, 0, 0f);
+        lastPlayedHash = targetHash;
+        lastAnimationSerial = snapshot.animationSerial;
+    }
+
+    private int GetAnimationHash(FighterRenderSnapshot snapshot)
+    {
+        switch (snapshot.visualState)
+        {
+            case FighterVisualState.Idle:
+                return idleHash;
+            case FighterVisualState.Crouching:
+                return crouchHash != 0 ? crouchHash : idleHash;
+            case FighterVisualState.WalkForward:
+                return walkForwardHash;
+            case FighterVisualState.WalkBackward:
+                return walkBackwardHash;
+            case FighterVisualState.JumpStartup:
+                return jumpStartupHash;
+            case FighterVisualState.Airborne:
+                return airborneHash;
+            case FighterVisualState.Landing:
+                return landingHash;
+            case FighterVisualState.Hitstun:
+                return hitstunHash;
+            case FighterVisualState.Blockstun:
+                return blockstunHash;
+            case FighterVisualState.Knockdown:
+                return knockdownHash;
+            case FighterVisualState.AttackStartup:
+                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
+            case FighterVisualState.AttackActive:
+                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
+            case FighterVisualState.AttackRecovery:
+                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
+            default:
+                ReportMissingStateOnce($"No animation mapped for visual state '{snapshot.visualState}'.");
+                return 0;
+        }
+    }
+
+    private int GetAttackHash(AttackType attackType, bool isAirborne)
+    {
+        if (attackType == AttackType.Light)
+            return isAirborne ? jumpingLightAttackHash : standingLightAttackHash;
+
+        if (attackType == AttackType.Medium)
+            return isAirborne ? jumpingMediumAttackHash : standingMediumAttackHash;
+
+        if (attackType == AttackType.Heavy)
+            return isAirborne ? jumpingHeavyAttackHash : standingHeavyAttackHash;
+
+        ReportMissingStateOnce($"No attack animation mapped for attack type '{attackType}'.");
+        return 0;
+    }
+
+    private void ReportMissingStateOnce(string message)
+    {
+        if (reportedMissingStateNames.Contains(message))
+            return;
+
+        reportedMissingStateNames.Add(message);
         Debug.LogError($"{name}: {message}", this);
-    }
-
-    private void SetBoolIfExists(string parameterName, bool value)
-    {
-        if (TryValidateAnimatorParameter(parameterName, AnimatorControllerParameterType.Bool))
-            animator.SetBool(parameterName, value);
-    }
-
-    private void SetFloatIfExists(string parameterName, float value)
-    {
-        if (TryValidateAnimatorParameter(parameterName, AnimatorControllerParameterType.Float))
-            animator.SetFloat(parameterName, value);
-    }
-
-    private void SetIntegerIfExists(string parameterName, int value)
-    {
-        if (TryValidateAnimatorParameter(parameterName, AnimatorControllerParameterType.Int))
-            animator.SetInteger(parameterName, value);
     }
 
     private void EnsureBoxVisuals()

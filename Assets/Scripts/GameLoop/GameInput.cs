@@ -6,13 +6,24 @@ public class GameInput : MonoBehaviour
 {
     public static GameInput Instance { get; private set; }
 
+    private const string INVERT_Y_PREF_KEY = "input.invert_y";
+
     private InputSystem_Actions inputActions;
 
     // Simple queue of inputs for the next simulation ticks
     private Queue<InputFrame> inputBuffer = new Queue<InputFrame>();
 
     // Maximum number of frames to buffer
-    [SerializeField] private int maxBufferedFrames = 5;
+    [SerializeField]
+    private int maxBufferedFrames = 5;
+
+    [Header("Invert Y")]
+    [SerializeField]
+    private bool invertYDefault;
+
+    private bool invertYEnabled;
+
+    public bool InvertYEnabled => invertYEnabled;
 
     void Awake()
     {
@@ -26,17 +37,47 @@ public class GameInput : MonoBehaviour
 
         inputActions = new InputSystem_Actions();
         inputActions.Enable();
+
+        int defaultValue = invertYDefault ? 1 : 0;
+        invertYEnabled = PlayerPrefs.GetInt(INVERT_Y_PREF_KEY, defaultValue) == 1;
     }
 
     void Update()
     {
+        HandleInvertYToggleInput();
         CapturePlayer1Input();
+    }
+
+    private void HandleInvertYToggleInput()
+    {
+        Gamepad gamepad = Gamepad.current;
+        if (gamepad == null)
+            return;
+
+        if (!gamepad.startButton.wasPressedThisFrame)
+            return;
+
+        SetInvertYEnabled(!invertYEnabled);
+    }
+
+    public void SetInvertYEnabled(bool enabled)
+    {
+        if (invertYEnabled == enabled)
+            return;
+
+        invertYEnabled = enabled;
+        PlayerPrefs.SetInt(INVERT_Y_PREF_KEY, invertYEnabled ? 1 : 0);
+        PlayerPrefs.Save();
+        Debug.Log($"Invert Y: {(invertYEnabled ? "ON" : "OFF")}");
     }
 
     private void CapturePlayer1Input()
     {
         float rawMoveX = inputActions.Gameplay.P1_MoveX.ReadValue<float>();
         float rawMoveY = inputActions.Gameplay.P1_MoveY.ReadValue<float>();
+
+        if (invertYEnabled)
+            rawMoveY = -rawMoveY;
 
         int moveX = 0;
         int moveY = 0;
@@ -55,7 +96,7 @@ public class GameInput : MonoBehaviour
         bool medium = inputActions.Gameplay.P1_MediumAttack.IsPressed();
         bool heavy = inputActions.Gameplay.P1_HeavyAttack.IsPressed();
 
-        // Only buffer if there’s actual input
+        // Only buffer if there is actual input.
         if (moveX != 0 || moveY != 0 || light || medium || heavy)
         {
             InputFrame frame = new InputFrame
@@ -67,7 +108,7 @@ public class GameInput : MonoBehaviour
                 punchHeavy = heavy
             };
 
-            // Limit buffer size to avoid “ghost inputs”
+            // Limit buffer size to avoid ghost inputs.
             if (inputBuffer.Count >= maxBufferedFrames)
                 inputBuffer.Dequeue();
 
