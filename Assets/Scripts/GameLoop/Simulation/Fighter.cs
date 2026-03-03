@@ -147,7 +147,13 @@ public class Fighter
             return;
 
         bool holdingDown = input.moveY < 0f;
-        if (holdingDown && CanEnterCrouch())
+        if (holdingDown && state == FighterState.Crouching)
+        {
+            velocity.x = 0f;
+            return;
+        }
+
+        if (holdingDown && CanEnterCrouchFromIdle())
         {
             velocity.x = 0f;
             EnterState(FighterState.Crouching);
@@ -196,9 +202,9 @@ public class Fighter
 
     private bool IsActionableGrounded => state == FighterState.NeutralGround;
 
-    private bool CanEnterCrouch()
+    private bool CanEnterCrouchFromIdle()
     {
-        return state == FighterState.NeutralGround || state == FighterState.Crouching;
+        return isGrounded && state == FighterState.NeutralGround;
     }
 
     private void StartJumpStartup(float moveX)
