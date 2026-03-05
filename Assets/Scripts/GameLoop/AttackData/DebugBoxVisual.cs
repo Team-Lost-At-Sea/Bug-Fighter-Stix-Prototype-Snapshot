@@ -3,13 +3,24 @@ using UnityEngine;
 public class DebugBoxVisual : MonoBehaviour
 {
     private SpriteRenderer sprite;
+    private Color currentColor;
 
     public void Initialize(Color color)
     {
         sprite = gameObject.AddComponent<SpriteRenderer>();
         sprite.sprite = GenerateSprite();
+        currentColor = color;
         sprite.color = color;
         sprite.sortingOrder = 100; // Always on top
+    }
+
+    public void SetColor(Color color)
+    {
+        if (sprite == null || color == currentColor)
+            return;
+
+        currentColor = color;
+        sprite.color = color;
     }
 
     public void SetBox(Box box)

@@ -26,7 +26,10 @@ public class FighterView : MonoBehaviour
     private string idleStateName = "Idle";
 
     [SerializeField]
-    private string crouchStateName = "Crouch";
+    private string crouchStateName = "Crouching";
+
+    [SerializeField]
+    private string crouchTransitionStateName = "Crouch Transition";
 
     [SerializeField]
     private string walkForwardStateName = "Walk Forward";
@@ -63,6 +66,15 @@ public class FighterView : MonoBehaviour
     private string standingHeavyAttackStateName = "s_HP";
 
     [SerializeField]
+    private string crouchingLightAttackStateName = "c_LP";
+
+    [SerializeField]
+    private string crouchingMediumAttackStateName = "c_MP";
+
+    [SerializeField]
+    private string crouchingHeavyAttackStateName = "c_HP";
+
+    [SerializeField]
     private string jumpingLightAttackStateName = "j_LP";
 
     [SerializeField]
@@ -76,10 +88,17 @@ public class FighterView : MonoBehaviour
     private Color hurtboxColor = new Color(0f, 1f, 0f, 0.75f);
 
     [SerializeField]
+    private Color blockingHurtboxColor = new Color(0.05f, 0.2f, 0.6f, 0.75f);
+
+    [SerializeField]
     private Color hitboxColor = new Color(1f, 0f, 0f, 0.75f);
 
     [SerializeField]
     private bool showBoxes = true;
+
+    [Header("Debug")]
+    [SerializeField]
+    private bool logVisualStateChanges;
 
     private DebugBoxVisual hurtboxVisual;
     private DebugBoxVisual hitboxVisual;
@@ -87,6 +106,7 @@ public class FighterView : MonoBehaviour
     private readonly HashSet<string> reportedMissingStateNames = new HashSet<string>();
 
     private int idleHash;
+    private int crouchTransitionHash;
     private int crouchHash;
     private int walkForwardHash;
     private int walkBackwardHash;
@@ -100,12 +120,17 @@ public class FighterView : MonoBehaviour
     private int standingLightAttackHash;
     private int standingMediumAttackHash;
     private int standingHeavyAttackHash;
+    private int crouchingLightAttackHash;
+    private int crouchingMediumAttackHash;
+    private int crouchingHeavyAttackHash;
     private int jumpingLightAttackHash;
     private int jumpingMediumAttackHash;
     private int jumpingHeavyAttackHash;
 
     private int lastPlayedHash = -1;
     private uint lastAnimationSerial;
+    private FighterVisualState lastLoggedVisualState = FighterVisualState.None;
+    private int lastLoggedVisualHash = -1;
 
     public FighterConfig Config => config;
 
@@ -164,6 +189,7 @@ public class FighterView : MonoBehaviour
     private void CacheAnimationHashes()
     {
         idleHash = CacheHash(idleStateName);
+        crouchTransitionHash = CacheHash(crouchTransitionStateName);
         crouchHash = CacheHash(crouchStateName);
         walkForwardHash = CacheHash(walkForwardStateName);
         walkBackwardHash = CacheHash(walkBackwardStateName);
@@ -177,6 +203,9 @@ public class FighterView : MonoBehaviour
         standingLightAttackHash = CacheHash(standingLightAttackStateName);
         standingMediumAttackHash = CacheHash(standingMediumAttackStateName);
         standingHeavyAttackHash = CacheHash(standingHeavyAttackStateName);
+        crouchingLightAttackHash = CacheHash(crouchingLightAttackStateName);
+        crouchingMediumAttackHash = CacheHash(crouchingMediumAttackStateName);
+        crouchingHeavyAttackHash = CacheHash(crouchingHeavyAttackStateName);
         jumpingLightAttackHash = CacheHash(jumpingLightAttackStateName);
         jumpingMediumAttackHash = CacheHash(jumpingMediumAttackStateName);
         jumpingHeavyAttackHash = CacheHash(jumpingHeavyAttackStateName);
@@ -223,6 +252,7 @@ public class FighterView : MonoBehaviour
         animator.speed = snapshot.freezeAnimation ? 0f : 1f;
 
         int targetHash = GetAnimationHash(snapshot);
+        LogVisualStateChangeIfNeeded(snapshot, targetHash);
         if (targetHash == 0)
             return;
 
@@ -239,14 +269,33 @@ public class FighterView : MonoBehaviour
         lastAnimationSerial = snapshot.animationSerial;
     }
 
+    private void LogVisualStateChangeIfNeeded(FighterRenderSnapshot snapshot, int targetHash)
+    {
+        if (!logVisualStateChanges)
+            return;
+
+        if (snapshot.visualState == lastLoggedVisualState && targetHash == lastLoggedVisualHash)
+            return;
+
+        Debug.Log(
+            $"[FighterView] {name} visualState={snapshot.visualState} hash={targetHash} " +
+            $"attackType={snapshot.attackType} air={snapshot.attackIsAirborne} crouch={snapshot.attackIsCrouching}",
+            this
+        );
+        lastLoggedVisualState = snapshot.visualState;
+        lastLoggedVisualHash = targetHash;
+    }
+
     private int GetAnimationHash(FighterRenderSnapshot snapshot)
     {
         switch (snapshot.visualState)
         {
             case FighterVisualState.Idle:
                 return idleHash;
+            case FighterVisualState.CrouchTransition:
+                return crouchTransitionHash;
             case FighterVisualState.Crouching:
-                return crouchHash != 0 ? crouchHash : idleHash;
+                return crouchHash;
             case FighterVisualState.WalkForward:
                 return walkForwardHash;
             case FighterVisualState.WalkBackward:
@@ -263,28 +312,48 @@ public class FighterView : MonoBehaviour
                 return blockstunHash;
             case FighterVisualState.Knockdown:
                 return knockdownHash;
-            case FighterVisualState.AttackStartup:
-                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
-            case FighterVisualState.AttackActive:
-                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
-            case FighterVisualState.AttackRecovery:
-                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne);
+            case FighterVisualState.Attacking:
+                return GetAttackHash(snapshot.attackType, snapshot.attackIsAirborne, snapshot.attackIsCrouching);
             default:
                 ReportMissingStateOnce($"No animation mapped for visual state '{snapshot.visualState}'.");
                 return 0;
         }
     }
 
-    private int GetAttackHash(AttackType attackType, bool isAirborne)
+    private int GetAttackHash(AttackType attackType, bool isAirborne, bool isCrouching)
     {
         if (attackType == AttackType.Light)
-            return isAirborne ? jumpingLightAttackHash : standingLightAttackHash;
+        {
+            if (isAirborne)
+                return jumpingLightAttackHash;
+
+            if (isCrouching && crouchingLightAttackHash != 0)
+                return crouchingLightAttackHash;
+
+            return standingLightAttackHash;
+        }
 
         if (attackType == AttackType.Medium)
-            return isAirborne ? jumpingMediumAttackHash : standingMediumAttackHash;
+        {
+            if (isAirborne)
+                return jumpingMediumAttackHash;
+
+            if (isCrouching && crouchingMediumAttackHash != 0)
+                return crouchingMediumAttackHash;
+
+            return standingMediumAttackHash;
+        }
 
         if (attackType == AttackType.Heavy)
-            return isAirborne ? jumpingHeavyAttackHash : standingHeavyAttackHash;
+        {
+            if (isAirborne)
+                return jumpingHeavyAttackHash;
+
+            if (isCrouching && crouchingHeavyAttackHash != 0)
+                return crouchingHeavyAttackHash;
+
+            return standingHeavyAttackHash;
+        }
 
         ReportMissingStateOnce($"No attack animation mapped for attack type '{attackType}'.");
         return 0;
@@ -340,6 +409,7 @@ public class FighterView : MonoBehaviour
         if (showBoxes)
         {
             hurtboxVisual.SetBox(hurtbox);
+            hurtboxVisual.SetColor(fighter.IsHoldingValidBlockDirection ? blockingHurtboxColor : hurtboxColor);
             hurtboxVisual.SetVisible(true);
 
             if (hitbox.active)

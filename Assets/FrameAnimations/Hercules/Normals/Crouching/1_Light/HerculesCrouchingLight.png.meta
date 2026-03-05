@@ -93,6 +93,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -112,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9802e7369ce4dcb4ebc641a0627f117b
-      internalID: -2122185300
+      spriteID: 76ca845e3265b904194fadb952dfe50e
+      internalID: 363356848
       vertices: []
       indices: 
       edges: []
@@ -134,8 +147,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90e962ad501816e46b6f02d4d5070800
-      internalID: -1661491309
+      spriteID: acd0d59b89fbcb54c938f82e3bbfbfd8
+      internalID: 1164394373
       vertices: []
       indices: 
       edges: []
@@ -156,8 +169,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 27044477abc19be448eec8404b395339
-      internalID: -1234962416
+      spriteID: 38911703f47514c4c92b5ac692652b33
+      internalID: -79288083
       vertices: []
       indices: 
       edges: []
@@ -178,8 +191,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ae175b094b2f4164585d0f7b285acd93
-      internalID: -766386403
+      spriteID: bf7da4820f679f84d9db032c8341f250
+      internalID: 2048781118
       vertices: []
       indices: 
       edges: []
@@ -196,12 +209,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesCrouchingLight_0: -2122185300
-      HerculesCrouchingLight_1: -1661491309
-      HerculesCrouchingLight_2: -1234962416
-      HerculesCrouchingLight_3: -766386403
+      HerculesCrouchingLight_0: 363356848
+      HerculesCrouchingLight_1: 1164394373
+      HerculesCrouchingLight_2: -79288083
+      HerculesCrouchingLight_3: 2048781118
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

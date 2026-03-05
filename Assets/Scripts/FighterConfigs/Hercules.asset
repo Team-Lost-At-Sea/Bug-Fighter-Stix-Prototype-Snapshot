@@ -44,6 +44,30 @@ MonoBehaviour:
     hitstunFrames: 30
     hitboxOffset: {x: 5, y: 3.62}
     hitboxSize: {x: 10.4, y: 5}
+  crouchingLightAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  crouchingMediumAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  crouchingHeavyAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
   jumpingLightAttackData:
     startupFrames: 4
     activeFrames: 2
@@ -68,11 +92,3 @@ MonoBehaviour:
     hitstunFrames: 38
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 5, y: 5}
-  lightAttackData:
-    startupFrames: 3
-    activeFrames: 2
-    recoveryFrames: 13
-    damage: 0
-    hitstunFrames: 0
-    hitboxOffset: {x: 3, y: 5}
-    hitboxSize: {x: 2, y: 2}

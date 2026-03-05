@@ -4,6 +4,12 @@ using UnityEngine.InputSystem;
 
 public class GameInput : MonoBehaviour
 {
+    public enum InputConsumeSource
+    {
+        Buffer,
+        LiveFallback
+    }
+
     public static GameInput Instance { get; private set; }
 
     private const string INVERT_Y_PREF_KEY = "input.invert_y";
@@ -17,13 +23,28 @@ public class GameInput : MonoBehaviour
     [SerializeField]
     private int maxBufferedFrames = 5;
 
+    [Header("Debug")]
+    [SerializeField]
+    private bool verboseCrouchDebug;
+
+    [SerializeField]
+    private bool showInputDebugOverlay;
+
     [Header("Invert Y")]
     [SerializeField]
     private bool invertYDefault;
 
     private bool invertYEnabled;
+    private float lastRawMoveY;
+    private int lastQuantizedMoveY;
+    private InputConsumeSource lastConsumeSource = InputConsumeSource.LiveFallback;
+    private bool hasQuantizedMoveYSample;
 
     public bool InvertYEnabled => invertYEnabled;
+    public bool VerboseCrouchDebug => verboseCrouchDebug;
+    public float LastRawMoveY => lastRawMoveY;
+    public int LastQuantizedMoveY => lastQuantizedMoveY;
+    public InputConsumeSource LastConsumeSource => lastConsumeSource;
 
     void Awake()
     {
@@ -73,6 +94,45 @@ public class GameInput : MonoBehaviour
 
     private void CapturePlayer1Input()
     {
+        InputFrame frame = BuildCurrentInputFrame();
+
+        // Only buffer if there is actual input.
+        if (
+            frame.moveX != 0
+            || frame.moveY != 0
+            || frame.punchLight
+            || frame.punchMedium
+            || frame.punchHeavy
+        )
+        {
+            // Limit buffer size to avoid ghost inputs.
+            if (inputBuffer.Count >= maxBufferedFrames)
+                inputBuffer.Dequeue();
+
+            inputBuffer.Enqueue(frame);
+        }
+    }
+
+    /// <summary>
+    /// Called by Simulation.Tick() to get the next input.
+    /// Falls back to a live sample if the buffer is empty.
+    /// </summary>
+    public InputFrame ConsumeNextInput()
+    {
+        if (inputBuffer.Count > 0)
+        {
+            lastConsumeSource = InputConsumeSource.Buffer;
+            return inputBuffer.Dequeue();
+        }
+
+        // If simulation catches up faster than Update enqueues, sample live input so held
+        // directions/buttons (like crouch hold) do not flicker between active and neutral.
+        lastConsumeSource = InputConsumeSource.LiveFallback;
+        return BuildCurrentInputFrame();
+    }
+
+    private InputFrame BuildCurrentInputFrame()
+    {
         float rawMoveX = inputActions.Gameplay.P1_MoveX.ReadValue<float>();
         float rawMoveY = inputActions.Gameplay.P1_MoveY.ReadValue<float>();
 
@@ -92,39 +152,37 @@ public class GameInput : MonoBehaviour
         else if (rawMoveY < -0.5f)
             moveY = -1;
 
-        bool light = inputActions.Gameplay.P1_LightAttack.IsPressed();
-        bool medium = inputActions.Gameplay.P1_MediumAttack.IsPressed();
-        bool heavy = inputActions.Gameplay.P1_HeavyAttack.IsPressed();
-
-        // Only buffer if there is actual input.
-        if (moveX != 0 || moveY != 0 || light || medium || heavy)
+        lastRawMoveY = rawMoveY;
+        if (verboseCrouchDebug && (!hasQuantizedMoveYSample || moveY != lastQuantizedMoveY))
         {
-            InputFrame frame = new InputFrame
-            {
-                moveX = moveX,
-                moveY = moveY,
-                punchLight = light,
-                punchMedium = medium,
-                punchHeavy = heavy
-            };
-
-            // Limit buffer size to avoid ghost inputs.
-            if (inputBuffer.Count >= maxBufferedFrames)
-                inputBuffer.Dequeue();
-
-            inputBuffer.Enqueue(frame);
+            Debug.Log($"[InputY] raw={rawMoveY:F3} quantized={moveY}");
         }
+
+        lastQuantizedMoveY = moveY;
+        hasQuantizedMoveYSample = true;
+
+        return new InputFrame
+        {
+            moveX = moveX,
+            moveY = moveY,
+            punchLight = inputActions.Gameplay.P1_LightAttack.IsPressed(),
+            punchMedium = inputActions.Gameplay.P1_MediumAttack.IsPressed(),
+            punchHeavy = inputActions.Gameplay.P1_HeavyAttack.IsPressed()
+        };
     }
 
-    /// <summary>
-    /// Called by Simulation.Tick() to get the next input.
-    /// Returns neutral if no input is buffered.
-    /// </summary>
-    public InputFrame ConsumeNextInput()
+    private void OnGUI()
     {
-        if (inputBuffer.Count == 0)
-            return InputFrame.Neutral;
+        if (!showInputDebugOverlay)
+            return;
 
-        return inputBuffer.Dequeue();
+        GUI.Label(
+            new Rect(10f, 10f, 360f, 20f),
+            $"InputY raw={lastRawMoveY:F3} quantized={lastQuantizedMoveY}"
+        );
+        GUI.Label(
+            new Rect(10f, 30f, 360f, 20f),
+            $"Input source={lastConsumeSource} buffered={inputBuffer.Count}"
+        );
     }
 }

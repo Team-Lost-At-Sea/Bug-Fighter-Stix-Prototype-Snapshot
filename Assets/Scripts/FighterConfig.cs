@@ -24,12 +24,14 @@ public class FighterConfig : ScriptableObject
     public AttackData groundedMediumAttackData;
     public AttackData groundedHeavyAttackData;
 
+    [Header("Crouch Attacks")]
+    public AttackData crouchingLightAttackData;
+    public AttackData crouchingMediumAttackData;
+    public AttackData crouchingHeavyAttackData;
+
     [Header("Air Attacks")]
     public AttackData jumpingLightAttackData;
     public AttackData jumpingMediumAttackData;
     public AttackData jumpingHeavyAttackData;
-
-    [Header("Legacy Attack Data")]
-    public AttackData lightAttackData;
 
 }

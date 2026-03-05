@@ -4,8 +4,6 @@ using UnityEngine;
 // Gameplay timing is fully frame-based and independent from Animator timing.
 public class Fighter
 {
-    private const int JUMP_STARTUP_TICKS = 4;
-    private const int LANDING_RECOVERY_TICKS = 3;
     private const int DEFENDER_HITSTOP_FRAMES = 8;
     private const int ATTACKER_HITSTOP_FRAMES = 6;
 
@@ -14,13 +12,14 @@ public class Fighter
     public bool FacingRight => facingRight;
     public float PushboxHalfWidth => config.pushboxHalfWidth;
     public bool IsGrounded => isGrounded;
-    public bool HasActiveUnspentHitbox => hitbox.active && !hitbox.hasHit;
-    public Hitbox CurrentHitbox => hitbox;
+    public bool HasActiveUnspentHitbox => attackController.HasActiveUnspentHitbox;
+    public Hitbox CurrentHitbox => attackController.CurrentHitbox;
     public Box CurrentHurtbox => new Box(position, hurtbox.halfSize);
     public FighterState CurrentState => state;
     public int StateFrame => stateFrame;
-    public AttackType CurrentAttackType => currentAttackType;
+    public AttackType CurrentAttackType => attackController.CurrentAttackType;
     public bool IsInHitstop => hitstopFramesRemaining > 0;
+    public bool IsHoldingValidBlockDirection => isHoldingValidBlockDirection;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
 
     private Vector2 position;
@@ -36,25 +35,17 @@ public class Fighter
     private bool transitionedThisTick;
     private bool stateFrameFrozenThisTick;
 
-    private AttackType currentAttackType = AttackType.None;
-    private AttackData currentAttack;
-    private bool currentAttackStartedAirborne;
-    private int attackFrame;
-    private Hitbox hitbox;
+    private readonly FighterAttackController attackController = new FighterAttackController();
+    private readonly FighterMovementController movementController = new FighterMovementController();
+    private readonly FighterRenderStateBuilder renderStateBuilder = new FighterRenderStateBuilder();
     private Box hurtbox;
 
     private int hitstopFramesRemaining;
     private int hitstunFramesRemaining;
-    private int jumpStartupTicksRemaining;
-    private int landingRecoveryTicksRemaining;
-    private int queuedJumpMoveX;
-    private bool usedAirNormalThisJump;
+    private bool isHoldingValidBlockDirection;
+    private bool hadAttackInputThisTick;
 
     private FighterRenderSnapshot renderSnapshot;
-    private FighterVisualState lastVisualState = FighterVisualState.None;
-    private AttackType lastVisualAttackType = AttackType.None;
-    private int visualStateFrame;
-    private uint animationSerial;
 
     public Fighter(FighterView view, Vector2 startPosition)
     {
@@ -63,14 +54,25 @@ public class Fighter
         position = startPosition;
         velocity = Vector2.zero;
         hurtbox = new Box(position, config.hurtboxHalfSize);
-        hitbox.Reset();
-        BuildRenderSnapshot(forceRestart: true);
+        renderSnapshot = renderStateBuilder.BuildSnapshot(
+            state,
+            velocity,
+            facingRight,
+            attackController.CurrentAttackType,
+            attackController.CurrentAttackStartedAirborne,
+            attackController.CurrentAttackStartedCrouching,
+            hadAttackInputThisTick,
+            IsInHitstop,
+            forceRestart: true
+        );
     }
 
     public void Tick(InputFrame input)
     {
         transitionedThisTick = false;
         stateFrameFrozenThisTick = false;
+        hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
+        UpdateBlockDirectionHold(input);
         if (hitstopFramesRemaining > 0)
         {
             hitstopFramesRemaining--;
@@ -91,8 +93,8 @@ public class Fighter
             HandleMovement(input);
             HandleAttacks(input);
             UpdateAttackDataAttack();
-            ApplyGravity();
-            Integrate();
+            movementController.ApplyGravity(isGrounded, ref velocity, config);
+            movementController.Integrate(ref position, velocity);
             ResolveGroundContact();
             AdvanceLandingRecovery();
         }
@@ -100,13 +102,20 @@ public class Fighter
         EndTick();
     }
 
+    private void UpdateBlockDirectionHold(InputFrame input)
+    {
+        int backDirection = facingRight ? -1 : 1;
+        bool holdingBack = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f)) == backDirection;
+        isHoldingValidBlockDirection = isGrounded && holdingBack;
+    }
+
     private void SimulateHitstun()
     {
         if (hitstunFramesRemaining > 0)
             hitstunFramesRemaining--;
 
-        ApplyGravity();
-        Integrate();
+        movementController.ApplyGravity(isGrounded, ref velocity, config);
+        movementController.Integrate(ref position, velocity);
         ResolveGroundContact();
 
         if (hitstunFramesRemaining <= 0)
@@ -120,25 +129,10 @@ public class Fighter
 
     private void HandleJumpStartup(InputFrame input)
     {
-        if (state != FighterState.JumpStartup)
-            return;
-
-        int moveX = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f));
-        if (queuedJumpMoveX == 0 && moveX != 0)
-            queuedJumpMoveX = moveX;
-
-        jumpStartupTicksRemaining--;
-        if (jumpStartupTicksRemaining > 0)
-            return;
-
-        if (queuedJumpMoveX == -1)
-            velocity.x = -config.moveSpeed * config.jumpHorizontalBoostScale;
-        else if (queuedJumpMoveX == 1)
-            velocity.x = config.moveSpeed * config.jumpHorizontalBoostScale;
-
-        velocity.y = config.jumpForce;
-        isGrounded = false;
-        EnterState(FighterState.NeutralAir);
+        if (
+            movementController.HandleJumpStartup(state, input, config, ref velocity, ref isGrounded)
+        )
+            EnterState(FighterState.NeutralAir);
     }
 
     private void HandleMovement(InputFrame input)
@@ -147,13 +141,20 @@ public class Fighter
             return;
 
         bool holdingDown = input.moveY < 0f;
+        bool hasAttackInput = input.punchLight || input.punchMedium || input.punchHeavy;
         if (holdingDown && state == FighterState.Crouching)
         {
             velocity.x = 0f;
             return;
         }
 
-        if (holdingDown && CanEnterCrouchFromIdle())
+        if (state == FighterState.Crouching && hasAttackInput)
+        {
+            velocity.x = 0f;
+            return;
+        }
+
+        if (holdingDown && FighterStateRules.CanEnterCrouchFromIdle(state, isGrounded))
         {
             velocity.x = 0f;
             EnterState(FighterState.Crouching);
@@ -163,7 +164,7 @@ public class Fighter
         if (state == FighterState.Crouching)
             EnterState(FighterState.NeutralGround);
 
-        if (ShouldLockMovement())
+        if (FighterStateRules.ShouldLockMovement(state, isGrounded))
         {
             velocity.x = 0f;
             return;
@@ -174,37 +175,10 @@ public class Fighter
         else if (input.moveX == 1)
             velocity.x = config.moveSpeed;
         else
-            ApplyFriction();
+            movementController.ApplyFriction(ref velocity, config);
 
-        if (input.moveY == 1 && IsActionableGrounded)
+        if (input.moveY == 1 && FighterStateRules.IsActionableGrounded(state))
             StartJumpStartup(input.moveX);
-    }
-
-    private bool ShouldLockMovement()
-    {
-        if (state == FighterState.JumpStartup)
-            return true;
-        if (state == FighterState.Crouching)
-            return true;
-        if (state == FighterState.LandingRecovery)
-            return true;
-        if (
-            state == FighterState.AttackStartup
-            || state == FighterState.AttackActive
-            || state == FighterState.AttackRecovery
-        )
-            return isGrounded;
-        if (state == FighterState.Hitstun || state == FighterState.Blockstun || state == FighterState.Knockdown)
-            return true;
-
-        return false;
-    }
-
-    private bool IsActionableGrounded => state == FighterState.NeutralGround;
-
-    private bool CanEnterCrouchFromIdle()
-    {
-        return isGrounded && state == FighterState.NeutralGround;
     }
 
     private void StartJumpStartup(float moveX)
@@ -212,192 +186,85 @@ public class Fighter
         if (!isGrounded || state == FighterState.JumpStartup)
             return;
 
-        queuedJumpMoveX = Mathf.RoundToInt(Mathf.Clamp(moveX, -1f, 1f));
-        usedAirNormalThisJump = false;
-        jumpStartupTicksRemaining = JUMP_STARTUP_TICKS;
+        movementController.StartJumpStartup(moveX);
         EnterState(FighterState.JumpStartup);
-    }
-
-    private void ApplyFriction()
-    {
-        if (velocity.x > 0f)
-        {
-            velocity.x -= config.groundFriction * GameLoop.FIXED_DT;
-            if (velocity.x < 0f)
-                velocity.x = 0f;
-        }
-        else if (velocity.x < 0f)
-        {
-            velocity.x += config.groundFriction * GameLoop.FIXED_DT;
-            if (velocity.x > 0f)
-                velocity.x = 0f;
-        }
     }
 
     private void HandleAttacks(InputFrame input)
     {
-        if (
-            state == FighterState.AttackStartup
-            || state == FighterState.AttackActive
-            || state == FighterState.AttackRecovery
-        )
+        if (FighterStateRules.IsAttackState(state))
             return;
 
         if (!CanStartAttack())
             return;
 
+        AttackStance stance = ResolveAttackStance(input);
         if (input.punchLight)
-            StartAttack(AttackType.Light, ResolveAttackData(AttackType.Light));
+            StartAttack(AttackType.Light, ResolveAttackData(AttackType.Light, stance), stance);
         else if (input.punchMedium)
-            StartAttack(AttackType.Medium, ResolveAttackData(AttackType.Medium));
+            StartAttack(AttackType.Medium, ResolveAttackData(AttackType.Medium, stance), stance);
         else if (input.punchHeavy)
-            StartAttack(AttackType.Heavy, ResolveAttackData(AttackType.Heavy));
+            StartAttack(AttackType.Heavy, ResolveAttackData(AttackType.Heavy, stance), stance);
     }
 
     private bool CanStartAttack()
     {
-        if (state == FighterState.LandingRecovery)
-            return CanCancelLandingRecoveryIntoAttack();
-
-        if (isGrounded)
-            return state == FighterState.NeutralGround;
-
-        return state == FighterState.NeutralAir;
+        return FighterStateRules.CanStartAttack(
+            state,
+            isGrounded,
+            movementController.CanCancelLandingRecoveryIntoAttack()
+        );
     }
 
-    private void StartAttack(AttackType type, AttackData attackData)
+    private void StartAttack(AttackType type, AttackData attackData, AttackStance stance)
     {
-        if (attackData == null)
+        if (!attackController.StartAttack(type, attackData, stance))
             return;
 
-        currentAttackType = type;
-        currentAttack = attackData;
-        currentAttackStartedAirborne = !isGrounded;
-        attackFrame = 0;
-        hitbox.Reset();
-        landingRecoveryTicksRemaining = 0;
-
         if (!isGrounded)
-            usedAirNormalThisJump = true;
+            movementController.MarkAirNormalUsed();
+
+        movementController.ClearLandingRecovery();
 
         EnterState(FighterState.AttackStartup);
     }
 
     public void StartAttack(AttackData attack)
     {
-        if (attack == null)
-            return;
-
-        StartAttack(AttackType.Light, attack);
+        StartAttack(AttackType.Light, attack, ResolveAttackStance(InputFrame.Neutral));
     }
 
-    private AttackData ResolveAttackData(AttackType type)
+    private AttackData ResolveAttackData(AttackType type, AttackStance stance)
     {
-        AttackData configuredAttack = ResolveConfiguredAttackData(type, isGrounded);
-        if (configuredAttack != null)
-            return configuredAttack;
-
-        if (type == AttackType.Light && config.lightAttackData != null)
-            return config.lightAttackData;
-
-        AttackTiming timing = GetDefaultTiming(type);
-        return new AttackData
-        {
-            startupFrames = timing.startupFrames,
-            activeFrames = timing.activeFrames,
-            recoveryFrames = timing.recoveryFrames,
-            damage = 5,
-            hitstunFrames = 10,
-            hitboxOffset = new Vector2(facingRight ? 0.9f : -0.9f, 0.9f),
-            hitboxSize = new Vector2(1.0f, 0.8f),
-        };
+        return attackController.ResolveAttackData(type, stance, config, facingRight);
     }
 
-    private AttackData ResolveConfiguredAttackData(AttackType type, bool useGroundedSet)
+    private AttackStance ResolveAttackStance(InputFrame input)
     {
-        if (useGroundedSet)
-        {
-            if (type == AttackType.Light)
-                return config.groundedLightAttackData;
-            if (type == AttackType.Medium)
-                return config.groundedMediumAttackData;
-            if (type == AttackType.Heavy)
-                return config.groundedHeavyAttackData;
-            return null;
-        }
+        if (!isGrounded)
+            return AttackStance.Airborne;
 
-        if (type == AttackType.Light)
-            return config.jumpingLightAttackData;
-        if (type == AttackType.Medium)
-            return config.jumpingMediumAttackData;
-        if (type == AttackType.Heavy)
-            return config.jumpingHeavyAttackData;
-
-        return null;
-    }
-
-    private static AttackTiming GetDefaultTiming(AttackType type)
-    {
-        switch (type)
-        {
-            case AttackType.Light:
-                return new AttackTiming(4, 3, 14);
-            case AttackType.Medium:
-                return new AttackTiming(10, 4, 19);
-            case AttackType.Heavy:
-                return new AttackTiming(16, 5, 24);
-            default:
-                return new AttackTiming(0, 0, 0);
-        }
+        bool crouchIntent = state == FighterState.Crouching || input.moveY < 0f;
+        return crouchIntent ? AttackStance.Crouching : AttackStance.Standing;
     }
 
     private void UpdateAttackDataAttack()
     {
-        if (currentAttack == null)
-            return;
+        AttackUpdateOutcome outcome = attackController.Update(state, position, facingRight);
 
-        attackFrame++;
-
-        if (state == FighterState.AttackStartup && attackFrame >= currentAttack.startupFrames)
-        {
+        if (outcome.enterActive)
             EnterState(FighterState.AttackActive);
-            hitbox.active = true;
-            hitbox.hasHit = false;
-            hitbox.damage = currentAttack.damage;
-            hitbox.hitstunFrames = currentAttack.hitstunFrames;
-        }
 
-        if (state == FighterState.AttackActive)
-        {
-            Vector2 hitboxOffset = currentAttack.hitboxOffset;
-            if (!facingRight)
-                hitboxOffset.x = -hitboxOffset.x;
+        if (outcome.enterRecovery)
+            EnterState(FighterState.AttackRecovery);
 
-            hitbox.box = new Box(position + hitboxOffset, currentAttack.hitboxSize * 0.5f);
-
-            int activeEndFrame = currentAttack.startupFrames + currentAttack.activeFrames;
-            if (attackFrame >= activeEndFrame)
-            {
-                hitbox.active = false;
-                EnterState(FighterState.AttackRecovery);
-            }
-        }
-
-        if (state == FighterState.AttackRecovery)
-        {
-            int recoveryEndFrame =
-                currentAttack.startupFrames + currentAttack.activeFrames + currentAttack.recoveryFrames;
-            if (attackFrame >= recoveryEndFrame)
-                EndAttackAndReturnNeutral();
-        }
+        if (outcome.endAttack)
+            EndAttackAndReturnNeutral();
     }
 
     private void EndAttackAndReturnNeutral()
     {
-        hitbox.Reset();
-        currentAttack = null;
-        currentAttackType = AttackType.None;
-        currentAttackStartedAirborne = false;
+        attackController.EndAttack();
         EnterState(isGrounded ? FighterState.NeutralGround : FighterState.NeutralAir);
     }
 
@@ -405,10 +272,7 @@ public class Fighter
     {
         ApplyHitstop(DEFENDER_HITSTOP_FRAMES);
         hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames);
-        hitbox.Reset();
-        currentAttack = null;
-        currentAttackType = AttackType.None;
-        currentAttackStartedAirborne = false;
+        attackController.EndAttack();
         EnterState(FighterState.Hitstun);
     }
 
@@ -427,53 +291,27 @@ public class Fighter
 
     public void MarkCurrentHitboxAsSpent()
     {
-        hitbox.hasHit = true;
-    }
-
-    private void ApplyGravity()
-    {
-        if (isGrounded)
-        {
-            velocity.y = 0f;
-            return;
-        }
-
-        velocity.y += config.gravity * GameLoop.FIXED_DT;
-
-        if (velocity.y < config.maxFallSpeed)
-            velocity.y = config.maxFallSpeed;
-    }
-
-    private void Integrate()
-    {
-        position += velocity * GameLoop.FIXED_DT;
+        attackController.MarkCurrentHitboxAsSpent();
     }
 
     private void ResolveGroundContact()
     {
-        bool wasAirborne = !isGrounded;
-        if (position.y <= 0f)
-        {
-            position.y = 0f;
-            velocity.y = 0f;
-            isGrounded = true;
+        GroundContactResult contact = movementController.ResolveGroundContact(
+            ref position,
+            ref velocity,
+            ref isGrounded
+        );
 
-            if (wasAirborne)
+        if (isGrounded)
+        {
+            if (contact.landedFromAir)
             {
-                if (
-                    state != FighterState.Hitstun
-                    && state != FighterState.Blockstun
-                    && state != FighterState.Knockdown
-                )
+                if (FighterStateRules.ShouldApplyLandingRecovery(state))
                 {
-                    if (
-                        state == FighterState.AttackStartup
-                        || state == FighterState.AttackActive
-                        || state == FighterState.AttackRecovery
-                    )
+                    if (FighterStateRules.IsAttackState(state))
                         EndAttackAndReturnNeutral();
 
-                    landingRecoveryTicksRemaining = LANDING_RECOVERY_TICKS;
+                    movementController.StartLandingRecovery();
                     EnterState(FighterState.LandingRecovery);
                 }
             }
@@ -484,8 +322,6 @@ public class Fighter
         }
         else
         {
-            isGrounded = false;
-
             if (state == FighterState.NeutralGround || state == FighterState.LandingRecovery)
                 EnterState(FighterState.NeutralAir);
         }
@@ -493,23 +329,8 @@ public class Fighter
 
     private void AdvanceLandingRecovery()
     {
-        if (state != FighterState.LandingRecovery)
-            return;
-
-        if (landingRecoveryTicksRemaining > 0)
-            landingRecoveryTicksRemaining--;
-
-        if (landingRecoveryTicksRemaining <= 0)
+        if (movementController.AdvanceLandingRecovery(state))
             EnterState(FighterState.NeutralGround);
-    }
-
-    private bool CanCancelLandingRecoveryIntoAttack()
-    {
-        if (usedAirNormalThisJump)
-            return false;
-
-        int currentLandingFrame = LANDING_RECOVERY_TICKS - landingRecoveryTicksRemaining + 1;
-        return currentLandingFrame == 2 || currentLandingFrame == 3;
     }
 
     private void EndTick()
@@ -518,90 +339,17 @@ public class Fighter
             stateFrame++;
 
         UpdateFacing(opponent);
-
-        BuildRenderSnapshot(forceRestart: false);
-    }
-
-    private void BuildRenderSnapshot(bool forceRestart)
-    {
-        FighterVisualState visualState = ResolveVisualState();
-        AttackType visualAttackType = ResolveVisualAttackType(visualState);
-
-        bool shouldRestart =
-            forceRestart
-            || visualState != lastVisualState
-            || visualAttackType != lastVisualAttackType;
-
-        if (shouldRestart)
-        {
-            animationSerial++;
-            visualStateFrame = 0;
-            lastVisualState = visualState;
-            lastVisualAttackType = visualAttackType;
-        }
-        else
-        {
-            visualStateFrame++;
-        }
-
-        renderSnapshot = new FighterRenderSnapshot(
-            visualState,
-            visualAttackType,
-            currentAttackStartedAirborne,
-            visualStateFrame,
-            animationSerial,
-            shouldRestart,
-            IsInHitstop
+        renderSnapshot = renderStateBuilder.BuildSnapshot(
+            state,
+            velocity,
+            facingRight,
+            attackController.CurrentAttackType,
+            attackController.CurrentAttackStartedAirborne,
+            attackController.CurrentAttackStartedCrouching,
+            hadAttackInputThisTick,
+            IsInHitstop,
+            forceRestart: false
         );
-    }
-
-    private FighterVisualState ResolveVisualState()
-    {
-        if (state == FighterState.Hitstun)
-            return FighterVisualState.Hitstun;
-        if (state == FighterState.Blockstun)
-            return FighterVisualState.Blockstun;
-        if (state == FighterState.Knockdown)
-            return FighterVisualState.Knockdown;
-        if (state == FighterState.JumpStartup)
-            return FighterVisualState.JumpStartup;
-        if (state == FighterState.Crouching)
-            return FighterVisualState.Crouching;
-        if (state == FighterState.NeutralAir)
-            return FighterVisualState.Airborne;
-        if (state == FighterState.LandingRecovery)
-            return FighterVisualState.Landing;
-        if (state == FighterState.AttackStartup)
-            return FighterVisualState.AttackStartup;
-        if (state == FighterState.AttackActive)
-            return FighterVisualState.AttackActive;
-        if (state == FighterState.AttackRecovery)
-            return FighterVisualState.AttackRecovery;
-
-        if (Mathf.Abs(velocity.x) > 0.01f)
-            return IsMovingForward() ? FighterVisualState.WalkForward : FighterVisualState.WalkBackward;
-
-        return FighterVisualState.Idle;
-    }
-
-    private AttackType ResolveVisualAttackType(FighterVisualState visualState)
-    {
-        if (
-            visualState == FighterVisualState.AttackStartup
-            || visualState == FighterVisualState.AttackActive
-            || visualState == FighterVisualState.AttackRecovery
-        )
-            return currentAttackType;
-
-        return AttackType.None;
-    }
-
-    private bool IsMovingForward()
-    {
-        if (Mathf.Abs(velocity.x) <= 0.01f)
-            return false;
-
-        return facingRight ? velocity.x > 0f : velocity.x < 0f;
     }
 
     private void EnterState(FighterState nextState)
@@ -609,9 +357,27 @@ public class Fighter
         if (state == nextState)
             return;
 
+        FighterState previousState = state;
         state = nextState;
         stateFrame = 0;
         transitionedThisTick = true;
+
+        if (ShouldLogCrouchTransition(previousState, nextState))
+        {
+            string fighterName = view != null ? view.name : "UnknownFighter";
+            Debug.Log(
+                $"[CrouchState] {fighterName} {previousState} -> {nextState} " +
+                $"grounded={isGrounded} posY={position.y:F3}"
+            );
+        }
+    }
+
+    private static bool ShouldLogCrouchTransition(FighterState previousState, FighterState nextState)
+    {
+        if (GameInput.Instance == null || !GameInput.Instance.VerboseCrouchDebug)
+            return false;
+
+        return previousState == FighterState.Crouching || nextState == FighterState.Crouching;
     }
 
     public void UpdateFacing(Fighter opponent)
@@ -642,89 +408,4 @@ public class Fighter
     {
         position.x = newX;
     }
-
-    private readonly struct AttackTiming
-    {
-        public readonly int startupFrames;
-        public readonly int activeFrames;
-        public readonly int recoveryFrames;
-
-        public AttackTiming(int startupFrames, int activeFrames, int recoveryFrames)
-        {
-            this.startupFrames = startupFrames;
-            this.activeFrames = activeFrames;
-            this.recoveryFrames = recoveryFrames;
-        }
-    }
-}
-
-public enum FighterState
-{
-    NeutralGround,
-    Crouching,
-    NeutralAir,
-    JumpStartup,
-    LandingRecovery,
-    AttackStartup,
-    AttackActive,
-    AttackRecovery,
-    Hitstun,
-    Blockstun,
-    Knockdown,
-}
-
-public enum FighterVisualState
-{
-    None,
-    Idle,
-    Crouching,
-    WalkForward,
-    WalkBackward,
-    JumpStartup,
-    Airborne,
-    Landing,
-    AttackStartup,
-    AttackActive,
-    AttackRecovery,
-    Hitstun,
-    Blockstun,
-    Knockdown,
-}
-
-public readonly struct FighterRenderSnapshot
-{
-    public readonly FighterVisualState visualState;
-    public readonly AttackType attackType;
-    public readonly bool attackIsAirborne;
-    public readonly int visualStateFrame;
-    public readonly uint animationSerial;
-    public readonly bool restartAnimation;
-    public readonly bool freezeAnimation;
-
-    public FighterRenderSnapshot(
-        FighterVisualState visualState,
-        AttackType attackType,
-        bool attackIsAirborne,
-        int visualStateFrame,
-        uint animationSerial,
-        bool restartAnimation,
-        bool freezeAnimation
-    )
-    {
-        this.visualState = visualState;
-        this.attackType = attackType;
-        this.attackIsAirborne = attackIsAirborne;
-        this.visualStateFrame = visualStateFrame;
-        this.animationSerial = animationSerial;
-        this.restartAnimation = restartAnimation;
-        this.freezeAnimation = freezeAnimation;
-    }
-}
-
-public enum AttackType
-{
-    None = 0,
-    Light = 1,
-    Medium = 2,
-    Heavy = 3,
 }
