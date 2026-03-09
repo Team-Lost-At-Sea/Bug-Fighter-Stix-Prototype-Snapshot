@@ -17,7 +17,7 @@ public class Fighter
     public Box CurrentHurtbox => new Box(position, hurtbox.halfSize);
     public FighterState CurrentState => state;
     public int StateFrame => stateFrame;
-    public AttackType CurrentAttackType => attackController.CurrentAttackType;
+    public MoveType CurrentMoveType => attackController.CurrentMoveType;
     public bool IsInHitstop => hitstopFramesRemaining > 0;
     public bool IsHoldingValidBlockDirection => isHoldingValidBlockDirection;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
@@ -58,9 +58,7 @@ public class Fighter
             state,
             velocity,
             facingRight,
-            attackController.CurrentAttackType,
-            attackController.CurrentAttackStartedAirborne,
-            attackController.CurrentAttackStartedCrouching,
+            attackController.CurrentMoveType,
             hadAttackInputThisTick,
             IsInHitstop,
             forceRestart: true
@@ -198,13 +196,12 @@ public class Fighter
         if (!CanStartAttack())
             return;
 
-        AttackStance stance = ResolveAttackStance(input);
         if (input.punchLight)
-            StartAttack(AttackType.Light, ResolveAttackData(AttackType.Light, stance), stance);
+            StartAttack(ResolveMoveType(AttackStrength.Light, input));
         else if (input.punchMedium)
-            StartAttack(AttackType.Medium, ResolveAttackData(AttackType.Medium, stance), stance);
+            StartAttack(ResolveMoveType(AttackStrength.Medium, input));
         else if (input.punchHeavy)
-            StartAttack(AttackType.Heavy, ResolveAttackData(AttackType.Heavy, stance), stance);
+            StartAttack(ResolveMoveType(AttackStrength.Heavy, input));
     }
 
     private bool CanStartAttack()
@@ -216,9 +213,10 @@ public class Fighter
         );
     }
 
-    private void StartAttack(AttackType type, AttackData attackData, AttackStance stance)
+    private void StartAttack(MoveType moveType)
     {
-        if (!attackController.StartAttack(type, attackData, stance))
+        AttackData attackData = ResolveAttackData(moveType);
+        if (!attackController.StartAttack(moveType, attackData))
             return;
 
         if (!isGrounded)
@@ -231,21 +229,62 @@ public class Fighter
 
     public void StartAttack(AttackData attack)
     {
-        StartAttack(AttackType.Light, attack, ResolveAttackStance(InputFrame.Neutral));
+        if (!attackController.StartAttack(MoveType.StandingLight, attack))
+            return;
+
+        movementController.ClearLandingRecovery();
+        EnterState(FighterState.AttackStartup);
     }
 
-    private AttackData ResolveAttackData(AttackType type, AttackStance stance)
+    private AttackData ResolveAttackData(MoveType moveType)
     {
-        return attackController.ResolveAttackData(type, stance, config, facingRight);
+        return attackController.ResolveAttackData(moveType, config, facingRight);
     }
 
-    private AttackStance ResolveAttackStance(InputFrame input)
+    private MoveType ResolveMoveType(AttackStrength strength, InputFrame input)
     {
         if (!isGrounded)
-            return AttackStance.Airborne;
+        {
+            switch (strength)
+            {
+                case AttackStrength.Light:
+                    return MoveType.JumpingLight;
+                case AttackStrength.Medium:
+                    return MoveType.JumpingMedium;
+                case AttackStrength.Heavy:
+                    return MoveType.JumpingHeavy;
+                default:
+                    return MoveType.None;
+            }
+        }
 
         bool crouchIntent = state == FighterState.Crouching || input.moveY < 0f;
-        return crouchIntent ? AttackStance.Crouching : AttackStance.Standing;
+        if (crouchIntent)
+        {
+            switch (strength)
+            {
+                case AttackStrength.Light:
+                    return MoveType.CrouchingLight;
+                case AttackStrength.Medium:
+                    return MoveType.CrouchingMedium;
+                case AttackStrength.Heavy:
+                    return MoveType.CrouchingHeavy;
+                default:
+                    return MoveType.None;
+            }
+        }
+
+        switch (strength)
+        {
+            case AttackStrength.Light:
+                return MoveType.StandingLight;
+            case AttackStrength.Medium:
+                return MoveType.StandingMedium;
+            case AttackStrength.Heavy:
+                return MoveType.StandingHeavy;
+            default:
+                return MoveType.None;
+        }
     }
 
     private void UpdateAttackDataAttack()
@@ -343,9 +382,7 @@ public class Fighter
             state,
             velocity,
             facingRight,
-            attackController.CurrentAttackType,
-            attackController.CurrentAttackStartedAirborne,
-            attackController.CurrentAttackStartedCrouching,
+            attackController.CurrentMoveType,
             hadAttackInputThisTick,
             IsInHitstop,
             forceRestart: false
@@ -407,5 +444,12 @@ public class Fighter
     public void SetHorizontal(float newX)
     {
         position.x = newX;
+    }
+
+    private enum AttackStrength
+    {
+        Light,
+        Medium,
+        Heavy,
     }
 }

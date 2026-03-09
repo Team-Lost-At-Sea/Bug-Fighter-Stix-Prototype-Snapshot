@@ -5,7 +5,7 @@ public sealed class FighterRenderStateBuilder
     private const int CROUCH_TRANSITION_FRAMES = 5;
 
     private FighterVisualState lastVisualState = FighterVisualState.None;
-    private AttackType lastVisualAttackType = AttackType.None;
+    private MoveType lastVisualMoveType = MoveType.None;
     private int visualStateFrame;
     private uint animationSerial;
     private FighterState lastSimulationState = FighterState.NeutralGround;
@@ -17,9 +17,7 @@ public sealed class FighterRenderStateBuilder
         FighterState state,
         Vector2 velocity,
         bool facingRight,
-        AttackType currentAttackType,
-        bool attackStartedAirborne,
-        bool attackStartedCrouching,
+        MoveType currentMoveType,
         bool hadAttackInputThisTick,
         bool freezeAnimation,
         bool forceRestart
@@ -56,19 +54,19 @@ public sealed class FighterRenderStateBuilder
             crouchTransitionFramesRemaining,
             cancelledCrouchDuringTransition
         );
-        AttackType visualAttackType = ResolveVisualAttackType(visualState, currentAttackType);
+        MoveType visualMoveType = ResolveVisualMoveType(visualState, currentMoveType);
 
         bool shouldRestart =
             forceRestart
             || visualState != lastVisualState
-            || visualAttackType != lastVisualAttackType;
+            || visualMoveType != lastVisualMoveType;
 
         if (shouldRestart)
         {
             animationSerial++;
             visualStateFrame = 0;
             lastVisualState = visualState;
-            lastVisualAttackType = visualAttackType;
+            lastVisualMoveType = visualMoveType;
         }
         else
         {
@@ -83,9 +81,7 @@ public sealed class FighterRenderStateBuilder
 
         return new FighterRenderSnapshot(
             visualState,
-            visualAttackType,
-            attackStartedAirborne,
-            attackStartedCrouching,
+            visualMoveType,
             visualStateFrame,
             animationSerial,
             shouldRestart,
@@ -135,12 +131,12 @@ public sealed class FighterRenderStateBuilder
         return FighterVisualState.Idle;
     }
 
-    private static AttackType ResolveVisualAttackType(FighterVisualState visualState, AttackType currentAttackType)
+    private static MoveType ResolveVisualMoveType(FighterVisualState visualState, MoveType currentMoveType)
     {
         if (visualState == FighterVisualState.Attacking)
-            return currentAttackType;
+            return currentMoveType;
 
-        return AttackType.None;
+        return MoveType.None;
     }
 
     private static bool IsMovingForward(Vector2 velocity, bool facingRight)

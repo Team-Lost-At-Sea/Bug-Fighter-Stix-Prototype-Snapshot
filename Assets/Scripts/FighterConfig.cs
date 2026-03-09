@@ -19,19 +19,123 @@ public class FighterConfig : ScriptableObject
     [Header("Hurtbox")]
     public Vector2 hurtboxHalfSize = new Vector2(0.5f, 1.0f);
 
-    [Header("Attacks")]
-    public AttackData groundedLightAttackData;
-    public AttackData groundedMediumAttackData;
-    public AttackData groundedHeavyAttackData;
+    [Header("Shared State Animations")]
+    public string idleStateName = "Idle";
+    public string crouchStateName = "Crouching";
+    public string crouchTransitionStateName = "Crouch Transition";
+    public string walkForwardStateName = "Walk Forward";
+    public string walkBackwardStateName = "Base Layer.Walk Backward";
+    public string jumpStartupStateName = "Jumpsquat";
+    public string airborneStateName = "Airborne";
+    public string landingStateName = "Landing";
+    public string hitstunStateName = "Hitstun";
+    public string blockstunStateName = "Blockstun";
+    public string knockdownStateName = "Knockdown";
 
-    [Header("Crouch Attacks")]
+    [Header("Move Animations")]
+    public string standingLightStateName = "s_LP";
+    public string standingMediumStateName = "s_MP";
+    public string standingHeavyStateName = "s_HP";
+    public string crouchingLightStateName = "c_LP";
+    public string crouchingMediumStateName = "c_MP";
+    public string crouchingHeavyStateName = "c_HP";
+    public string jumpingLightStateName = "j_LP";
+    public string jumpingMediumStateName = "j_MP";
+    public string jumpingHeavyStateName = "j_HP";
+
+    [Header("Shared Moves")]
+    public AttackData standingLightAttackData;
+    public AttackData standingMediumAttackData;
+    public AttackData standingHeavyAttackData;
     public AttackData crouchingLightAttackData;
     public AttackData crouchingMediumAttackData;
     public AttackData crouchingHeavyAttackData;
-
-    [Header("Air Attacks")]
     public AttackData jumpingLightAttackData;
     public AttackData jumpingMediumAttackData;
     public AttackData jumpingHeavyAttackData;
 
+    public AttackData GetAttackData(MoveType moveType)
+    {
+        switch (moveType)
+        {
+            case MoveType.StandingLight:
+                return standingLightAttackData;
+            case MoveType.StandingMedium:
+                return standingMediumAttackData;
+            case MoveType.StandingHeavy:
+                return standingHeavyAttackData;
+            case MoveType.CrouchingLight:
+                return crouchingLightAttackData;
+            case MoveType.CrouchingMedium:
+                return crouchingMediumAttackData;
+            case MoveType.CrouchingHeavy:
+                return crouchingHeavyAttackData;
+            case MoveType.JumpingLight:
+                return jumpingLightAttackData;
+            case MoveType.JumpingMedium:
+                return jumpingMediumAttackData;
+            case MoveType.JumpingHeavy:
+                return jumpingHeavyAttackData;
+            default:
+                return null;
+        }
+    }
+
+    public string GetAnimationStateName(FighterVisualState visualState)
+    {
+        switch (visualState)
+        {
+            case FighterVisualState.Idle:
+                return idleStateName;
+            case FighterVisualState.CrouchTransition:
+                return crouchTransitionStateName;
+            case FighterVisualState.Crouching:
+                return crouchStateName;
+            case FighterVisualState.WalkForward:
+                return walkForwardStateName;
+            case FighterVisualState.WalkBackward:
+                return walkBackwardStateName;
+            case FighterVisualState.JumpStartup:
+                return jumpStartupStateName;
+            case FighterVisualState.Airborne:
+                return airborneStateName;
+            case FighterVisualState.Landing:
+                return landingStateName;
+            case FighterVisualState.Hitstun:
+                return hitstunStateName;
+            case FighterVisualState.Blockstun:
+                return blockstunStateName;
+            case FighterVisualState.Knockdown:
+                return knockdownStateName;
+            default:
+                return null;
+        }
+    }
+
+    public string GetAnimationStateName(MoveType moveType)
+    {
+        switch (moveType)
+        {
+            case MoveType.StandingLight:
+                return standingLightStateName;
+            case MoveType.StandingMedium:
+                return standingMediumStateName;
+            case MoveType.StandingHeavy:
+                return standingHeavyStateName;
+            case MoveType.CrouchingLight:
+                return crouchingLightStateName;
+            case MoveType.CrouchingMedium:
+                return crouchingMediumStateName;
+            case MoveType.CrouchingHeavy:
+                return crouchingHeavyStateName;
+            case MoveType.JumpingLight:
+                return jumpingLightStateName;
+            case MoveType.JumpingMedium:
+                return jumpingMediumStateName;
+            case MoveType.JumpingHeavy:
+                return jumpingHeavyStateName;
+            default:
+                return null;
+        }
+    }
 }

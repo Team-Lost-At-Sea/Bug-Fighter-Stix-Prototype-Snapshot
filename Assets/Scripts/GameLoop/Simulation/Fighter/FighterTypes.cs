@@ -33,9 +33,7 @@ public enum FighterVisualState
 public readonly struct FighterRenderSnapshot
 {
     public readonly FighterVisualState visualState;
-    public readonly AttackType attackType;
-    public readonly bool attackIsAirborne;
-    public readonly bool attackIsCrouching;
+    public readonly MoveType moveType;
     public readonly int visualStateFrame;
     public readonly uint animationSerial;
     public readonly bool restartAnimation;
@@ -43,9 +41,7 @@ public readonly struct FighterRenderSnapshot
 
     public FighterRenderSnapshot(
         FighterVisualState visualState,
-        AttackType attackType,
-        bool attackIsAirborne,
-        bool attackIsCrouching,
+        MoveType moveType,
         int visualStateFrame,
         uint animationSerial,
         bool restartAnimation,
@@ -53,9 +49,7 @@ public readonly struct FighterRenderSnapshot
     )
     {
         this.visualState = visualState;
-        this.attackType = attackType;
-        this.attackIsAirborne = attackIsAirborne;
-        this.attackIsCrouching = attackIsCrouching;
+        this.moveType = moveType;
         this.visualStateFrame = visualStateFrame;
         this.animationSerial = animationSerial;
         this.restartAnimation = restartAnimation;
@@ -63,17 +57,16 @@ public readonly struct FighterRenderSnapshot
     }
 }
 
-public enum AttackType
+public enum MoveType
 {
     None = 0,
-    Light = 1,
-    Medium = 2,
-    Heavy = 3,
-}
-
-public enum AttackStance
-{
-    Standing,
-    Crouching,
-    Airborne,
+    StandingLight = 1,
+    StandingMedium = 2,
+    StandingHeavy = 3,
+    CrouchingLight = 4,
+    CrouchingMedium = 5,
+    CrouchingHeavy = 6,
+    JumpingLight = 7,
+    JumpingMedium = 8,
+    JumpingHeavy = 9,
 }

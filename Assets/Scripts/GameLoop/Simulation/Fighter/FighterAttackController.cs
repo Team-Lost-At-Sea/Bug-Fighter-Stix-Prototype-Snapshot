@@ -2,45 +2,34 @@ using UnityEngine;
 
 public sealed class FighterAttackController
 {
-    public AttackType CurrentAttackType => currentAttackType;
-    public bool CurrentAttackStartedAirborne => currentAttackStartedAirborne;
-    public bool CurrentAttackStartedCrouching => currentAttackStartedCrouching;
+    public MoveType CurrentMoveType => currentMoveType;
     public bool HasActiveUnspentHitbox => hitbox.active && !hitbox.hasHit;
     public Hitbox CurrentHitbox => hitbox;
 
-    private AttackType currentAttackType = AttackType.None;
+    private MoveType currentMoveType = MoveType.None;
     private AttackData currentAttack;
-    private bool currentAttackStartedAirborne;
-    private bool currentAttackStartedCrouching;
     private int attackFrame;
     private Hitbox hitbox;
 
-    public bool StartAttack(AttackType type, AttackData attackData, AttackStance stance)
+    public bool StartAttack(MoveType moveType, AttackData attackData)
     {
         if (attackData == null)
             return false;
 
-        currentAttackType = type;
+        currentMoveType = moveType;
         currentAttack = attackData;
-        currentAttackStartedAirborne = stance == AttackStance.Airborne;
-        currentAttackStartedCrouching = stance == AttackStance.Crouching;
         attackFrame = 0;
         hitbox.Reset();
         return true;
     }
 
-    public AttackData ResolveAttackData(
-        AttackType type,
-        AttackStance stance,
-        FighterConfig config,
-        bool facingRight
-    )
+    public AttackData ResolveAttackData(MoveType moveType, FighterConfig config, bool facingRight)
     {
-        AttackData configuredAttack = ResolveConfiguredAttackData(type, stance, config);
+        AttackData configuredAttack = config.GetAttackData(moveType);
         if (configuredAttack != null)
             return configuredAttack;
 
-        AttackTiming timing = GetDefaultTiming(type);
+        AttackTiming timing = GetDefaultTiming(moveType);
         return new AttackData
         {
             startupFrames = timing.startupFrames,
@@ -104,9 +93,7 @@ public sealed class FighterAttackController
     {
         hitbox.Reset();
         currentAttack = null;
-        currentAttackType = AttackType.None;
-        currentAttackStartedAirborne = false;
-        currentAttackStartedCrouching = false;
+        currentMoveType = MoveType.None;
     }
 
     public void MarkCurrentHitboxAsSpent()
@@ -114,53 +101,21 @@ public sealed class FighterAttackController
         hitbox.hasHit = true;
     }
 
-    private static AttackData ResolveConfiguredAttackData(
-        AttackType type,
-        AttackStance stance,
-        FighterConfig config
-    )
+    private static AttackTiming GetDefaultTiming(MoveType moveType)
     {
-        if (stance == AttackStance.Crouching)
+        switch (moveType)
         {
-            if (type == AttackType.Light)
-                return config.crouchingLightAttackData;
-            if (type == AttackType.Medium)
-                return config.crouchingMediumAttackData;
-            if (type == AttackType.Heavy)
-                return config.crouchingHeavyAttackData;
-            return null;
-        }
-
-        if (stance == AttackStance.Standing)
-        {
-            if (type == AttackType.Light)
-                return config.groundedLightAttackData;
-            if (type == AttackType.Medium)
-                return config.groundedMediumAttackData;
-            if (type == AttackType.Heavy)
-                return config.groundedHeavyAttackData;
-            return null;
-        }
-
-        if (type == AttackType.Light)
-            return config.jumpingLightAttackData;
-        if (type == AttackType.Medium)
-            return config.jumpingMediumAttackData;
-        if (type == AttackType.Heavy)
-            return config.jumpingHeavyAttackData;
-
-        return null;
-    }
-
-    private static AttackTiming GetDefaultTiming(AttackType type)
-    {
-        switch (type)
-        {
-            case AttackType.Light:
+            case MoveType.StandingLight:
+            case MoveType.CrouchingLight:
+            case MoveType.JumpingLight:
                 return new AttackTiming(4, 3, 14);
-            case AttackType.Medium:
+            case MoveType.StandingMedium:
+            case MoveType.CrouchingMedium:
+            case MoveType.JumpingMedium:
                 return new AttackTiming(10, 4, 19);
-            case AttackType.Heavy:
+            case MoveType.StandingHeavy:
+            case MoveType.CrouchingHeavy:
+            case MoveType.JumpingHeavy:
                 return new AttackTiming(16, 5, 24);
             default:
                 return new AttackTiming(0, 0, 0);
