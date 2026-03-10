@@ -7,11 +7,20 @@ public class GameLoop : MonoBehaviour
 
     private float accumulator;
 
+    [Header("Views")]
     public FighterView player1View;
     public FighterView player2View;
 
+    [Header("Character Selection")]
+    [SerializeField]
+    private CharacterDefinition player1Character;
+
+    [SerializeField]
+    private CharacterDefinition player2Character;
+
     void Start()
     {
+        ApplySelectedCharacters();
         Simulation.Instance.Initialize(player1View, player2View);
     }
 
@@ -33,5 +42,23 @@ public class GameLoop : MonoBehaviour
 
         // Render after simulation updates
         Simulation.Instance.Render();
+    }
+
+    private void ApplySelectedCharacters()
+    {
+        CharacterDefinition resolvedPlayer1 = player1Character;
+        CharacterDefinition resolvedPlayer2 = player2Character;
+
+        if (MatchSetup.HasSelections)
+        {
+            resolvedPlayer1 = MatchSetup.Player1Character;
+            resolvedPlayer2 = MatchSetup.Player2Character;
+        }
+
+        if (player1View != null && resolvedPlayer1 != null)
+            player1View.ApplyCharacterDefinition(resolvedPlayer1);
+
+        if (player2View != null && resolvedPlayer2 != null)
+            player2View.ApplyCharacterDefinition(resolvedPlayer2);
     }
 }

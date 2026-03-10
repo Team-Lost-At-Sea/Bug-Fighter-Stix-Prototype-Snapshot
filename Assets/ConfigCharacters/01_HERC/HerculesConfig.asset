@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e039ea9281b3744f8707727518db9cd, type: 3}
+  m_Name: HerculesConfig
+  m_EditorClassIdentifier: 
+  moveSpeed: 6
+  jumpForce: 65
+  jumpHorizontalBoostScale: 2
+  gravity: -120
+  maxFallSpeed: -400
+  groundFriction: 9999
+  pushboxHalfWidth: 1.3
+  hurtboxHalfSize: {x: 3, y: 10}
+  idleStateName: Idle
+  crouchStateName: Crouching
+  crouchTransitionStateName: Crouch Transition
+  walkForwardStateName: Walk Forward
+  walkBackwardStateName: Base Layer.Walk Backward
+  jumpStartupStateName: Jumpsquat
+  airborneStateName: Airborne
+  landingStateName: Landing
+  hitstunStateName: Hitstun
+  blockstunStateName: Blockstun
+  knockdownStateName: Knockdown
+  standingLightStateName: s_LP
+  standingMediumStateName: s_MP
+  standingHeavyStateName: s_HP
+  crouchingLightStateName: c_LP
+  crouchingMediumStateName: c_MP
+  crouchingHeavyStateName: c_HP
+  jumpingLightStateName: j_LP
+  jumpingMediumStateName: j_MP
+  jumpingHeavyStateName: j_HP
+  standingLightAttackData:
+    startupFrames: 3
+    activeFrames: 2
+    recoveryFrames: 13
+    damage: 0
+    hitstunFrames: 14
+    hitboxOffset: {x: 3, y: 5}
+    hitboxSize: {x: 2, y: 2}
+  standingMediumAttackData:
+    startupFrames: 9
+    activeFrames: 1
+    recoveryFrames: 18
+    damage: 0
+    hitstunFrames: 2
+    hitboxOffset: {x: 2.27, y: 2.86}
+    hitboxSize: {x: 5, y: 2}
+  standingHeavyAttackData:
+    startupFrames: 10
+    activeFrames: 4
+    recoveryFrames: 26
+    damage: 0
+    hitstunFrames: 30
+    hitboxOffset: {x: 5, y: 3.62}
+    hitboxSize: {x: 10.4, y: 5}
+  crouchingLightAttackData:
+    startupFrames: 3
+    activeFrames: 2
+    recoveryFrames: 13
+    damage: 0
+    hitstunFrames: 15
+    hitboxOffset: {x: 2, y: 4.65}
+    hitboxSize: {x: 3.2, y: 3}
+  crouchingMediumAttackData:
+    startupFrames: 13
+    activeFrames: 4
+    recoveryFrames: 13
+    damage: 0
+    hitstunFrames: 15
+    hitboxOffset: {x: 3, y: 1.44}
+    hitboxSize: {x: 3, y: 3}
+  crouchingHeavyAttackData:
+    startupFrames: 8
+    activeFrames: 4
+    recoveryFrames: 13
+    damage: 0
+    hitstunFrames: 15
+    hitboxOffset: {x: 3, y: 4}
+    hitboxSize: {x: 2.5, y: 6}
+  jumpingLightAttackData:
+    startupFrames: 4
+    activeFrames: 2
+    recoveryFrames: 18
+    damage: 0
+    hitstunFrames: 20
+    hitboxOffset: {x: 2.5, y: 3.22}
+    hitboxSize: {x: 2, y: 2}
+  jumpingMediumAttackData:
+    startupFrames: 7
+    activeFrames: 24
+    recoveryFrames: 4
+    damage: 0
+    hitstunFrames: 28
+    hitboxOffset: {x: 2.73, y: 3.85}
+    hitboxSize: {x: 2, y: 3}
+  jumpingHeavyAttackData:
+    startupFrames: 14
+    activeFrames: 16
+    recoveryFrames: 10
+    damage: 0
+    hitstunFrames: 38
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 5, y: 5}

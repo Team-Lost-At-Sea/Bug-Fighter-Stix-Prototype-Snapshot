@@ -1094,6 +1094,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1402892030}
+  player1Character: {fileID: 0}
+  player2Character: {fileID: 0}
 --- !u!1 &1096896760
 GameObject:
   m_ObjectHideFlags: 0
@@ -1176,7 +1178,7 @@ Animator:
   m_GameObject: {fileID: 1155164310}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: f0dadf298fc29884399d3ffdedb6f8a3, type: 2}
+  m_Controller: {fileID: 9100000, guid: e8239c0aa29465a448fd608f8c415781, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -1335,26 +1337,6 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1155164311}
-  idleStateName: Idle
-  crouchStateName: Crouching
-  crouchTransitionStateName: Crouch Transition
-  walkForwardStateName: Walk Forward
-  walkBackwardStateName: Walk Backward
-  jumpStartupStateName: Jumpsquat
-  airborneStateName: Rising
-  landingStateName: Landing
-  hitstunStateName: Hitstun
-  blockstunStateName: Blockstun
-  knockdownStateName: Knockdown
-  standingLightAttackStateName: s_LP
-  standingMediumAttackStateName: s_MP
-  standingHeavyAttackStateName: s_HP
-  crouchingLightAttackStateName: c_LP
-  crouchingMediumAttackStateName: c_MP
-  crouchingHeavyAttackStateName: c_HP
-  jumpingLightAttackStateName: j_LP
-  jumpingMediumAttackStateName: j_MP
-  jumpingHeavyAttackStateName: j_HP
   hurtboxColor: {r: 0, g: 1, b: 0, a: 0.75}
   blockingHurtboxColor: {r: 0.05, g: 0.2, b: 0.6, a: 0.75}
   hitboxColor: {r: 1, g: 0, b: 0, a: 0.75}
@@ -1456,26 +1438,6 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1096896761}
-  idleStateName: Idle
-  crouchStateName: Crouching
-  crouchTransitionStateName: Crouch Transition
-  walkForwardStateName: Walk Forward
-  walkBackwardStateName: Walk Backward
-  jumpStartupStateName: Jumpsquat
-  airborneStateName: Rising
-  landingStateName: Landing
-  hitstunStateName: Hitstun
-  blockstunStateName: Blockstun
-  knockdownStateName: Knockdown
-  standingLightAttackStateName: s_LP
-  standingMediumAttackStateName: s_MP
-  standingHeavyAttackStateName: s_HP
-  crouchingLightAttackStateName: c_LP
-  crouchingMediumAttackStateName: c_MP
-  crouchingHeavyAttackStateName: c_HP
-  jumpingLightAttackStateName: j_LP
-  jumpingMediumAttackStateName: j_MP
-  jumpingHeavyAttackStateName: j_HP
   hurtboxColor: {r: 0, g: 1, b: 0, a: 0.75}
   blockingHurtboxColor: {r: 0.05, g: 0.2, b: 0.6, a: 0.75}
   hitboxColor: {r: 1, g: 0, b: 0, a: 0.75}
@@ -2064,7 +2026,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 6cf2f5e4faeb6b94299ecb4fb9c973f5, type: 3}
+  m_Resource: {fileID: 8300000, guid: 4a9d19b24e78bf34e9b3ac2dad62c89a, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.02
   m_Pitch: 1

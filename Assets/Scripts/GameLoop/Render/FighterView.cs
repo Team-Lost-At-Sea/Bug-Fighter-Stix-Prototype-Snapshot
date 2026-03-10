@@ -53,10 +53,30 @@ public class FighterView : MonoBehaviour
 
     public FighterConfig Config => config;
 
+    public void ApplyCharacterDefinition(CharacterDefinition characterDefinition)
+    {
+        if (characterDefinition == null)
+        {
+            Debug.LogWarning("FighterView received a null character definition.", this);
+            return;
+        }
+
+        config = characterDefinition.fighterConfig;
+
+        if (animator != null)
+            animator.runtimeAnimatorController = characterDefinition.animatorController;
+    }
+
     public void Initialize(Fighter fighter)
     {
         this.fighter = fighter;
         EnsureBoxVisuals();
+
+        if (config == null)
+        {
+            Debug.LogWarning("FighterView is missing fighter config.");
+            return;
+        }
 
         if (animator == null)
         {
