@@ -24,7 +24,7 @@ MonoBehaviour:
   crouchStateName: Crouching
   crouchTransitionStateName: Crouch Transition
   walkForwardStateName: Walk Forward
-  walkBackwardStateName: Base Layer.Walk Backward
+  walkBackwardStateName: Walk Backward
   jumpStartupStateName: Jumpsquat
   airborneStateName: Airborne
   landingStateName: Landing
