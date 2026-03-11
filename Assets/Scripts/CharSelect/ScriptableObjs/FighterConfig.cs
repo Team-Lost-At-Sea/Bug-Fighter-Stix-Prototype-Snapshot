@@ -24,7 +24,7 @@ public class FighterConfig : ScriptableObject
     public string crouchStateName = "Crouching";
     public string crouchTransitionStateName = "Crouch Transition";
     public string walkForwardStateName = "Walk Forward";
-    public string walkBackwardStateName = "Base Layer.Walk Backward";
+    public string walkBackwardStateName = "Walk Backward";
     public string jumpStartupStateName = "Jumpsquat";
     public string airborneStateName = "Airborne";
     public string landingStateName = "Landing";
