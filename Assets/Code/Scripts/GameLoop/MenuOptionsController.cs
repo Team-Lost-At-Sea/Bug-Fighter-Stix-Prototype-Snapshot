@@ -1,31 +1,46 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class MenuOptionsController : MonoBehaviour
 {
+    public enum InputMode
+    {
+        Auto,
+        Gamepad,
+        Keyboard
+    }
+
     [Header("Menu")]
     [SerializeField]
     private bool allowMenuOpening = true;
 
-    [Header("UI Scale")]
     [SerializeField]
-    private float uiScale = 1f;
+    private float navigationRepeatDelay = 0.2f;
 
     [Header("UI References")]
     [SerializeField]
     private GameObject menuRoot;
 
     [SerializeField]
-    private Text optionLabel;
+    private TMP_Text optionLabel;
 
     [SerializeField]
-    private Text toggleHintLabel;
+    private TMP_Text uiScaleLabel;
 
     [SerializeField]
-    private Text closeHintLabel;
+    private TMP_Text inputModeLabel;
+
+    [SerializeField]
+    private TMP_Text toggleHintLabel;
+
+    [SerializeField]
+    private TMP_Text closeHintLabel;
 
     private bool menuOpen;
+    private int selectedIndex;
+    private float nextNavigationTime;
+    private InputMode inputMode = InputMode.Auto;
 
     public bool IsMenuOpen => menuOpen;
     public bool AllowMenuOpening
@@ -34,7 +49,7 @@ public class MenuOptionsController : MonoBehaviour
         set => allowMenuOpening = value;
     }
 
-    public float UIScale => uiScale;
+    public InputMode CurrentInputMode => inputMode;
 
     private void Awake()
     {
@@ -43,6 +58,16 @@ public class MenuOptionsController : MonoBehaviour
 
         ApplyScale();
         UpdateMenuVisibility();
+    }
+
+    private void OnEnable()
+    {
+        VideoSettings.Changed += HandleVideoSettingsChanged;
+    }
+
+    private void OnDisable()
+    {
+        VideoSettings.Changed -= HandleVideoSettingsChanged;
     }
 
     public bool Tick(InputSystem_Actions actions, Action onToggleInvertY)
@@ -67,8 +92,16 @@ public class MenuOptionsController : MonoBehaviour
                 openedThisFrame = true;
         }
 
-        if (menuOpen && actions.UI.Submit.WasPressedThisFrame())
-            onToggleInvertY?.Invoke();
+        if (menuOpen)
+        {
+            HandleNavigation(actions);
+
+            if (actions.UI.Submit.WasPressedThisFrame())
+            {
+                if (selectedIndex == 0)
+                    onToggleInvertY?.Invoke();
+            }
+        }
 
         return openedThisFrame;
     }
@@ -78,9 +111,13 @@ public class MenuOptionsController : MonoBehaviour
         UpdateMenuVisibility();
         string optionState = invertYEnabled ? "On" : "Off";
         if (optionLabel != null)
-            optionLabel.text = $"> Invert Y axis: {optionState}";
+            optionLabel.text = $"{GetPrefix(0)}Invert Y axis: {optionState}";
+        if (uiScaleLabel != null)
+            uiScaleLabel.text = $"{GetPrefix(1)}UI Scale: {VideoSettings.UIScale:0.##}x";
+        if (inputModeLabel != null)
+            inputModeLabel.text = $"{GetPrefix(2)}Input Mode: {GetInputModeLabel(inputMode)}";
         if (toggleHintLabel != null)
-            toggleHintLabel.text = "Press Submit to toggle";
+            toggleHintLabel.text = "Press Submit to toggle • Left/Right to adjust";
         if (closeHintLabel != null)
             closeHintLabel.text = "Press Start to close";
     }
@@ -91,7 +128,87 @@ public class MenuOptionsController : MonoBehaviour
             return;
 
         menuOpen = open;
+        if (menuOpen)
+        {
+            selectedIndex = 0;
+            nextNavigationTime = 0f;
+        }
         UpdateMenuVisibility();
+    }
+
+    private void HandleNavigation(InputSystem_Actions actions)
+    {
+        if (Time.unscaledTime < nextNavigationTime)
+            return;
+
+        Vector2 nav = actions.UI.Navigate.ReadValue<Vector2>();
+        if (nav.sqrMagnitude < 0.25f)
+            return;
+
+        if (Mathf.Abs(nav.y) > Mathf.Abs(nav.x))
+        {
+            if (nav.y > 0.5f)
+                selectedIndex = Mathf.Max(0, selectedIndex - 1);
+            else if (nav.y < -0.5f)
+                selectedIndex = Mathf.Min(2, selectedIndex + 1);
+        }
+        else
+        {
+            if (nav.x > 0.5f)
+                HandleHorizontalAdjust(1);
+            else if (nav.x < -0.5f)
+                HandleHorizontalAdjust(-1);
+        }
+
+        nextNavigationTime = Time.unscaledTime + navigationRepeatDelay;
+    }
+
+    private void HandleHorizontalAdjust(int direction)
+    {
+        if (selectedIndex == 1)
+        {
+            AdjustUIScale(0.25f * direction);
+            return;
+        }
+
+        if (selectedIndex == 2)
+        {
+            CycleInputMode(direction);
+        }
+    }
+
+    private void AdjustUIScale(float delta)
+    {
+        VideoSettings.SetUIScale(VideoSettings.UIScale + delta);
+        ApplyScale();
+    }
+
+    private void CycleInputMode(int direction)
+    {
+        int modeCount = Enum.GetValues(typeof(InputMode)).Length;
+        int next = ((int)inputMode + direction) % modeCount;
+        if (next < 0)
+            next += modeCount;
+
+        inputMode = (InputMode)next;
+    }
+
+    private string GetPrefix(int index)
+    {
+        return selectedIndex == index ? "> " : "  ";
+    }
+
+    private string GetInputModeLabel(InputMode mode)
+    {
+        switch (mode)
+        {
+            case InputMode.Gamepad:
+                return "Gamepad";
+            case InputMode.Keyboard:
+                return "Keyboard";
+            default:
+                return "Auto";
+        }
     }
 
     private void UpdateMenuVisibility()
@@ -105,26 +222,17 @@ public class MenuOptionsController : MonoBehaviour
         if (menuRoot == null)
             return;
 
-        float scale = Mathf.Max(0.25f, uiScale * 4f);
+        float scale = Mathf.Max(0.25f, VideoSettings.UIScale);
         menuRoot.transform.localScale = new Vector3(scale, scale, 1f);
+    }
+
+    private void HandleVideoSettingsChanged()
+    {
+        ApplyScale();
     }
 
     private void OnValidate()
     {
-        float[] steps = { 1f, 1.25f, 1.5f, 2f, 3f, 4f };
-        int closestIndex = 0;
-        float closestDistance = Mathf.Abs(uiScale - steps[0]);
-        for (int i = 1; i < steps.Length; i++)
-        {
-            float distance = Mathf.Abs(uiScale - steps[i]);
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestIndex = i;
-            }
-        }
-
-        uiScale = steps[closestIndex];
         ApplyScale();
     }
 }

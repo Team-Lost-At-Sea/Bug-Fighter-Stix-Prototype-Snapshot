@@ -43,6 +43,8 @@ public class GameInput : MonoBehaviour
     private int lastQuantizedMoveY;
     private InputConsumeSource lastConsumeSource = InputConsumeSource.LiveFallback;
     private bool hasQuantizedMoveYSample;
+    private bool hasAppliedInputMode;
+    private MenuOptionsController.InputMode lastInputMode;
 
     public bool InvertYEnabled => invertYEnabled;
     public bool IsMenuOpen => menuController != null && menuController.IsMenuOpen;
@@ -78,10 +80,14 @@ public class GameInput : MonoBehaviour
 
         if (menuController == null)
             Debug.LogError("GameInput: MenuOptionsController not assigned; options menu will be disabled.");
+
+        ApplyInputMode();
     }
 
     void Update()
     {
+        ApplyInputMode();
+
         if (menuController != null)
         {
             bool openedThisFrame = menuController.Tick(inputActions, () => SetInvertYEnabled(!invertYEnabled));
@@ -193,6 +199,35 @@ public class GameInput : MonoBehaviour
             punchMedium = inputActions.Gameplay.P1_MediumAttack.IsPressed(),
             punchHeavy = inputActions.Gameplay.P1_HeavyAttack.IsPressed()
         };
+    }
+
+    private void ApplyInputMode()
+    {
+        if (menuController == null || inputActions == null)
+            return;
+
+        MenuOptionsController.InputMode mode = menuController.CurrentInputMode;
+        if (hasAppliedInputMode && mode == lastInputMode)
+            return;
+
+        switch (mode)
+        {
+            case MenuOptionsController.InputMode.Gamepad:
+                inputActions.bindingMask = null;
+                inputActions.Gameplay.Get().bindingMask = InputBinding.MaskByGroup("Gamepad");
+                break;
+            case MenuOptionsController.InputMode.Keyboard:
+                inputActions.bindingMask = null;
+                inputActions.Gameplay.Get().bindingMask = InputBinding.MaskByGroup("Keyboard&Mouse");
+                break;
+            default:
+                inputActions.bindingMask = null;
+                inputActions.Gameplay.Get().bindingMask = null;
+                break;
+        }
+
+        lastInputMode = mode;
+        hasAppliedInputMode = true;
     }
 
     private void OnGUI()

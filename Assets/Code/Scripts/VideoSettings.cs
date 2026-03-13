@@ -12,6 +12,7 @@ public static class VideoSettings
     public static bool Fullscreen { get; private set; } = Screen.fullScreen;
 
     public static float ReferenceHeight { get; private set; } = DEFAULT_REFERENCE_HEIGHT;
+    public static float UIScale { get; private set; } = 1f;
 
     public static void SetResolution(int width, int height, bool fullscreen)
     {
@@ -42,6 +43,16 @@ public static class VideoSettings
             return;
 
         ReferenceHeight = height;
+        Changed?.Invoke();
+    }
+
+    public static void SetUIScale(float scale)
+    {
+        float clamped = Mathf.Clamp(scale, 0.25f, 4f);
+        if (Mathf.Approximately(UIScale, clamped))
+            return;
+
+        UIScale = clamped;
         Changed?.Invoke();
     }
 
