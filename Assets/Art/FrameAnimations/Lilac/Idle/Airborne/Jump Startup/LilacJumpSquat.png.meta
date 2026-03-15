@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b957038e83bc6e04fada1a02bd530f5d
+guid: 5dff3387c6d7e32449e6b73131cfd5e8
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,17 +93,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesCrouchingHeld_0
+      name: LilacJumpSquat_0
       rect:
         serializedVersion: 2
-        x: 78
-        y: 615
-        width: 139
-        height: 260
+        x: 63
+        y: 514
+        width: 89
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c6d839b2805eb454690850e45732b483
-      internalID: 281700287
+      spriteID: e5608d66b13716f4aa4f6ff870413f04
+      internalID: 960880496
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesCrouchingHeld_1
+      name: LilacJumpSquat_1
       rect:
         serializedVersion: 2
-        x: 378
-        y: 615
-        width: 139
-        height: 259
+        x: 314
+        y: 516
+        width: 89
+        height: 207
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5360ce6e14604bb41b6b7d916dcd9089
-      internalID: -660760997
+      spriteID: d8696605d9788af48b36870c2b9ba03a
+      internalID: -905121058
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesCrouchingHeld_2
+      name: LilacJumpSquat_2
       rect:
         serializedVersion: 2
-        x: 679
-        y: 615
-        width: 146
-        height: 258
+        x: 71
+        y: 266
+        width: 89
+        height: 193
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,20 +169,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a95762adffd0ecd45aefd1e047679d58
-      internalID: -1401622008
+      spriteID: f7a758ab726eb83488edd3fd11b852ee
+      internalID: -1403778867
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesCrouchingHeld_3
+      name: LilacJumpSquat_3
       rect:
         serializedVersion: 2
-        x: 78
-        y: 315
-        width: 151
-        height: 261
+        x: 313
+        y: 268
+        width: 89
+        height: 206
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -178,20 +191,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0223b44929fff384da3131d9861b74c2
-      internalID: -875866349
+      spriteID: 9f0eef242674aaa46921c8dca6a176dc
+      internalID: 1969359299
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesCrouchingHeld_4
+      name: LilacJumpSquat_4
       rect:
         serializedVersion: 2
-        x: 378
-        y: 315
-        width: 151
-        height: 261
+        x: 63
+        y: 12
+        width: 89
+        height: 212
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,52 +213,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c28774d0ccf11b147bc35088362bd32e
-      internalID: -1786429896
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HerculesCrouchingHeld_5
-      rect:
-        serializedVersion: 2
-        x: 678
-        y: 315
-        width: 146
-        height: 261
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c951101fbd6d48d42a7e6de73fba7374
-      internalID: -1732680538
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HerculesCrouchingHeld_6
-      rect:
-        serializedVersion: 2
-        x: 78
-        y: 15
-        width: 139
-        height: 261
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f60cc2947226d7b4ca88a3d18d769095
-      internalID: -405870496
+      spriteID: 80a64c967c2a6e84e80ffde99e601610
+      internalID: 1499252832
       vertices: []
       indices: 
       edges: []
@@ -262,15 +231,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesCrouchingHeld_0: 281700287
-      HerculesCrouchingHeld_1: -660760997
-      HerculesCrouchingHeld_2: -1401622008
-      HerculesCrouchingHeld_3: -875866349
-      HerculesCrouchingHeld_4: -1786429896
-      HerculesCrouchingHeld_5: -1732680538
-      HerculesCrouchingHeld_6: -405870496
+      LilacJumpSquat_0: 960880496
+      LilacJumpSquat_1: -905121058
+      LilacJumpSquat_2: -1403778867
+      LilacJumpSquat_3: 1969359299
+      LilacJumpSquat_4: 1499252832
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

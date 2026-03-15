@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: abf7a8b68ca843e4ca1a8f6c8b5ebb2d
+guid: ecfebd0d7702aa04e9ec3bdf2a70293f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,17 +93,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesAirborne_0
+      name: LilacCrouchingHeld_0
       rect:
         serializedVersion: 2
-        x: 80
-        y: 301
-        width: 135
-        height: 275
+        x: 63
+        y: 269
+        width: 89
+        height: 168
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d882754a39abb6c45b588d610d292d7a
-      internalID: 312877259
+      spriteID: 02808a83ff839864f9ca5fe812d38db8
+      internalID: -865794691
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesAirborne_1
+      name: LilacCrouchingHeld_1
       rect:
         serializedVersion: 2
-        x: 378
-        y: 301
-        width: 135
-        height: 275
+        x: 313
+        y: 269
+        width: 89
+        height: 167
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 16102ed1af1842b45b089d3dd7a730bb
-      internalID: 1078670203
+      spriteID: 7d1984c735f591d418b196ca25126dec
+      internalID: -1795123369
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesAirborne_2
+      name: LilacCrouchingHeld_2
       rect:
         serializedVersion: 2
-        x: 80
-        y: 1
-        width: 135
-        height: 275
+        x: 63
+        y: 19
+        width: 89
+        height: 166
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,8 +169,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 99dc2cd742f894b47a36bff3ee827f8e
-      internalID: 526055852
+      spriteID: 096221c29fd0ec442af30a8853843295
+      internalID: -1345648386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LilacCrouchingHeld_3
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 19
+        width: 89
+        height: 167
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc35e79379102484e9dac090374e15e5
+      internalID: 462725611
       vertices: []
       indices: 
       edges: []
@@ -174,11 +209,14 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesAirborne_0: 312877259
-      HerculesAirborne_1: 1078670203
-      HerculesAirborne_2: 526055852
+      LilacCrouchingHeld_0: -865794691
+      LilacCrouchingHeld_1: -1795123369
+      LilacCrouchingHeld_2: -1345648386
+      LilacCrouchingHeld_3: 462725611
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,0 +1,9 @@
+to-do list
+
+blocking
+cpu takeover
+lilac hitboxes
+crossover
+reset state
+special input
+visual confirmation in champ select
