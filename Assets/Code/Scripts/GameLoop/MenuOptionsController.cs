@@ -56,6 +56,9 @@ public class MenuOptionsController : MonoBehaviour
         if (menuRoot == null)
             Debug.LogError("MenuOptionsController: Menu Root is not assigned; options menu UI will not be visible.");
 
+        // Always start in Auto each session.
+        inputMode = InputMode.Auto;
+
         ApplyScale();
         UpdateMenuVisibility();
     }
@@ -117,7 +120,12 @@ public class MenuOptionsController : MonoBehaviour
         if (inputModeLabel != null)
             inputModeLabel.text = $"{GetPrefix(2)}Input Mode: {GetInputModeLabel(inputMode)}";
         if (toggleHintLabel != null)
-            toggleHintLabel.text = "Press Submit to toggle • Left/Right to adjust";
+        {
+            string hint = "Press Submit to toggle - Left/Right to adjust";
+            if (inputMode != InputMode.Auto)
+                hint += "\nDevice mode is mainly for local or tournament setups";
+            toggleHintLabel.text = hint;
+        }
         if (closeHintLabel != null)
             closeHintLabel.text = "Press Start to close";
     }
@@ -236,3 +244,5 @@ public class MenuOptionsController : MonoBehaviour
         ApplyScale();
     }
 }
+
+

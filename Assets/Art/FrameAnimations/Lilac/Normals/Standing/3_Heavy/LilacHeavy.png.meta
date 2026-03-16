@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b46e4576b4ee6504a991dc254510b8f0
+guid: 1a84a47657b50cb43b987edb5e2744dd
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,17 +93,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesMedium_0
+      name: LilacHeavy_0
       rect:
         serializedVersion: 2
-        x: 81
-        y: 915
-        width: 153
-        height: 278
+        x: 63
+        y: 764
+        width: 89
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e434244870c361f4891355235c5a161c
-      internalID: -617838684
+      spriteID: 14a7f8133137e994c9364739b06e0446
+      internalID: 326058521
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_1
+      name: LilacHeavy_1
       rect:
         serializedVersion: 2
-        x: 381
-        y: 913
-        width: 135
-        height: 280
+        x: 312
+        y: 764
+        width: 91
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f2fb60b92cca52d44bacbe652d3759e0
-      internalID: 2108899991
+      spriteID: 6ab7dd7bfeb1fb94fba136f1c3eab885
+      internalID: 5587766
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_2
+      name: LilacHeavy_2
       rect:
         serializedVersion: 2
-        x: 682
-        y: 913
-        width: 135
-        height: 278
+        x: 562
+        y: 764
+        width: 124
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,20 +169,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 412fd5981a6a5ff429a3e83e22e5004b
-      internalID: 742446197
+      spriteID: 9119949efdf3ab84895e459b1e9958a9
+      internalID: -1725182045
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_3
+      name: LilacHeavy_3
       rect:
         serializedVersion: 2
-        x: 77
-        y: 613
-        width: 135
-        height: 283
+        x: 60
+        y: 514
+        width: 140
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -178,20 +191,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d1c0f717d4ec3fc47a0a6a1461a3959a
-      internalID: 2077324849
+      spriteID: 031441d7415fd324ca316c42c3a40758
+      internalID: 1020993892
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_4
+      name: LilacHeavy_4
       rect:
         serializedVersion: 2
-        x: 377
-        y: 613
-        width: 135
-        height: 283
+        x: 312
+        y: 514
+        width: 140
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,20 +213,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d72b87b319c4f03458f8b306140d8d62
-      internalID: -462776696
+      spriteID: 42513b4eed4982541a4943f46bb8afeb
+      internalID: 304124657
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_5
+      name: LilacHeavy_5
       rect:
         serializedVersion: 2
-        x: 677
-        y: 613
-        width: 143
-        height: 283
+        x: 563
+        y: 514
+        width: 140
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -222,20 +235,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f0c3fdfc997426146a3350a899917859
-      internalID: 242020797
+      spriteID: 02a57e42a7533fb4aa7ae8083ce8cc7f
+      internalID: -198564197
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_6
+      name: LilacHeavy_6
       rect:
         serializedVersion: 2
-        x: 81
-        y: 313
-        width: 167
-        height: 282
+        x: 55
+        y: 264
+        width: 147
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -244,20 +257,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 890b55fdd25cdd64e85f2f23687debdb
-      internalID: -2013103851
+      spriteID: 6d31a423ec3738a449e9d8b222a3d2c1
+      internalID: -365411754
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_7
+      name: LilacHeavy_7
       rect:
         serializedVersion: 2
-        x: 381
-        y: 313
-        width: 167
-        height: 282
+        x: 305
+        y: 264
+        width: 154
+        height: 222
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -266,20 +279,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a48673729d2171e4e8af2bbf22ec6dc1
-      internalID: 501678783
+      spriteID: ff39150710e425946b6a57de02c665bd
+      internalID: 1312165484
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_8
+      name: LilacHeavy_8
       rect:
         serializedVersion: 2
-        x: 677
-        y: 313
-        width: 167
-        height: 283
+        x: 555
+        y: 264
+        width: 146
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -288,20 +301,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5aec18e6a70ab16438697c8e8ef19a9b
-      internalID: -884088892
+      spriteID: 399e6b4ea254e6d4aae6a106fc5a335b
+      internalID: -1862250568
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesMedium_9
+      name: LilacHeavy_9
       rect:
         serializedVersion: 2
-        x: 77
-        y: 13
-        width: 167
-        height: 283
+        x: 32
+        y: 14
+        width: 171
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -310,8 +323,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 070012caeb04b0c41b880ec5273416b3
-      internalID: 1129999273
+      spriteID: 20e7764f51e12f64f84a8cbfb4951c84
+      internalID: 465031959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LilacHeavy_10
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 14
+        width: 171
+        height: 210
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9ed550f8a766d34291d93a676a9e0d9
+      internalID: 1256866631
       vertices: []
       indices: 
       edges: []
@@ -328,18 +363,21 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesMedium_0: -617838684
-      HerculesMedium_1: 2108899991
-      HerculesMedium_2: 742446197
-      HerculesMedium_3: 2077324849
-      HerculesMedium_4: -462776696
-      HerculesMedium_5: 242020797
-      HerculesMedium_6: -2013103851
-      HerculesMedium_7: 501678783
-      HerculesMedium_8: -884088892
-      HerculesMedium_9: 1129999273
+      LilacHeavy_0: 326058521
+      LilacHeavy_1: 5587766
+      LilacHeavy_10: 1256866631
+      LilacHeavy_2: -1725182045
+      LilacHeavy_3: 1020993892
+      LilacHeavy_4: 304124657
+      LilacHeavy_5: -198564197
+      LilacHeavy_6: -365411754
+      LilacHeavy_7: 1312165484
+      LilacHeavy_8: -1862250568
+      LilacHeavy_9: 465031959
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

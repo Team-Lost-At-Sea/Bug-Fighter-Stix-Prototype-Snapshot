@@ -1,9 +1,12 @@
 to-do list
 
+crossover
+DONE lilac hitboxes
+
+Next week:
+
 blocking
 cpu takeover
-lilac hitboxes
-crossover
 reset state
 special input
 visual confirmation in champ select
