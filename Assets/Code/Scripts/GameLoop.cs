@@ -18,8 +18,13 @@ public class GameLoop : MonoBehaviour
     [SerializeField]
     private CharacterDefinition player2Character;
 
+    [Header("Debug")]
+    [SerializeField]
+    private float hitstopScale = 2f;
+
     void Start()
     {
+        Fighter.HitstopScale = Mathf.Max(0f, hitstopScale);
         ApplySelectedCharacters();
         Simulation.Instance.Initialize(player1View, player2View);
     }

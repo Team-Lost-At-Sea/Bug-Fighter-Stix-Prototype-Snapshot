@@ -6,6 +6,7 @@ public class Fighter
 {
     private const int DEFENDER_HITSTOP_FRAMES = 8;
     private const int ATTACKER_HITSTOP_FRAMES = 6;
+    public static float HitstopScale { get; set; } = 1f;
 
     public Vector2 Position => position;
     public Vector2 Velocity => velocity;
@@ -324,6 +325,9 @@ public class Fighter
     {
         if (frames <= 0)
             return;
+
+        if (HitstopScale > 0f)
+            frames = Mathf.Max(1, Mathf.RoundToInt(frames * HitstopScale));
 
         hitstopFramesRemaining = Mathf.Max(hitstopFramesRemaining, frames);
     }

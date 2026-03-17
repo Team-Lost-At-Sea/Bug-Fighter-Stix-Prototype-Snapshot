@@ -225,6 +225,7 @@ public class MenuOptionsController : MonoBehaviour
         FighterView.GlobalShowBoxes = showHitboxView;
     }
 
+
     private string GetPrefix(int index)
     {
         return selectedIndex == index ? "> " : "  ";
