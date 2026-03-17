@@ -6,6 +6,7 @@ using UnityEngine;
 public class FighterView : MonoBehaviour
 {
     private static Transform debugBoxRoot;
+    public static bool GlobalShowBoxes { get; set; } = true;
 
     [Header("Config")]
     [SerializeField]
@@ -327,7 +328,7 @@ public class FighterView : MonoBehaviour
         Box hurtbox = fighter.CurrentHurtbox;
         Hitbox hitbox = fighter.CurrentHitbox;
 
-        if (showBoxes)
+        if (showBoxes && GlobalShowBoxes)
         {
             hurtboxVisual.SetBox(hurtbox);
             hurtboxVisual.SetColor(fighter.IsHoldingValidBlockDirection ? blockingHurtboxColor : hurtboxColor);

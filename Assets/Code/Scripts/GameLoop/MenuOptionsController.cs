@@ -32,7 +32,18 @@ public class MenuOptionsController : MonoBehaviour
     private TMP_Text inputModeLabel;
 
     [SerializeField]
+    private TMP_Text hitboxViewLabel;
+
+    [Header("Hints")]
+    [SerializeField]
     private TMP_Text toggleHintLabel;
+
+    [Header("Context Hint Popup")]
+    [SerializeField]
+    private GameObject contextHintRoot;
+
+    [SerializeField]
+    private TMP_Text contextHintLabel;
 
     [SerializeField]
     private TMP_Text closeHintLabel;
@@ -41,6 +52,7 @@ public class MenuOptionsController : MonoBehaviour
     private int selectedIndex;
     private float nextNavigationTime;
     private InputMode inputMode = InputMode.Auto;
+    private bool showHitboxView = true;
 
     public bool IsMenuOpen => menuOpen;
     public bool AllowMenuOpening
@@ -58,6 +70,8 @@ public class MenuOptionsController : MonoBehaviour
 
         // Always start in Auto each session.
         inputMode = InputMode.Auto;
+        showHitboxView = true;
+        FighterView.GlobalShowBoxes = showHitboxView;
 
         ApplyScale();
         UpdateMenuVisibility();
@@ -103,6 +117,8 @@ public class MenuOptionsController : MonoBehaviour
             {
                 if (selectedIndex == 0)
                     onToggleInvertY?.Invoke();
+                else if (selectedIndex == 3)
+                    ToggleHitboxView();
             }
         }
 
@@ -119,15 +135,17 @@ public class MenuOptionsController : MonoBehaviour
             uiScaleLabel.text = $"{GetPrefix(1)}UI Scale: {VideoSettings.UIScale:0.##}x";
         if (inputModeLabel != null)
             inputModeLabel.text = $"{GetPrefix(2)}Input Mode: {GetInputModeLabel(inputMode)}";
+        if (hitboxViewLabel != null)
+            hitboxViewLabel.text = $"{GetPrefix(3)}Hitbox View: {(showHitboxView ? "On" : "Off")}";
         if (toggleHintLabel != null)
         {
             string hint = "Press Submit to toggle - Left/Right to adjust";
-            if (inputMode != InputMode.Auto)
-                hint += "\nDevice mode is mainly for local or tournament setups";
             toggleHintLabel.text = hint;
         }
         if (closeHintLabel != null)
             closeHintLabel.text = "Press Start to close";
+
+        UpdateContextHint();
     }
 
     private void SetMenuOpen(bool open)
@@ -158,7 +176,7 @@ public class MenuOptionsController : MonoBehaviour
             if (nav.y > 0.5f)
                 selectedIndex = Mathf.Max(0, selectedIndex - 1);
             else if (nav.y < -0.5f)
-                selectedIndex = Mathf.Min(2, selectedIndex + 1);
+                selectedIndex = Mathf.Min(3, selectedIndex + 1);
         }
         else
         {
@@ -201,6 +219,12 @@ public class MenuOptionsController : MonoBehaviour
         inputMode = (InputMode)next;
     }
 
+    private void ToggleHitboxView()
+    {
+        showHitboxView = !showHitboxView;
+        FighterView.GlobalShowBoxes = showHitboxView;
+    }
+
     private string GetPrefix(int index)
     {
         return selectedIndex == index ? "> " : "  ";
@@ -239,10 +263,45 @@ public class MenuOptionsController : MonoBehaviour
         ApplyScale();
     }
 
+    private void UpdateContextHint()
+    {
+        if (contextHintLabel == null)
+            return;
+
+        if (!menuOpen)
+        {
+            if (contextHintRoot != null)
+                contextHintRoot.SetActive(false);
+            return;
+        }
+
+        string hint = GetContextHint();
+        contextHintLabel.text = hint;
+        if (contextHintRoot != null)
+            contextHintRoot.SetActive(!string.IsNullOrEmpty(hint));
+    }
+
+    private string GetContextHint()
+    {
+        switch (selectedIndex)
+        {
+            case 0:
+                return "Invert Y flips vertical movement input.";
+            case 1:
+                return "UI Scale adjusts the size of the menu text.";
+            case 2:
+                if (inputMode == InputMode.Auto)
+                    return "Auto accepts input from any active device.";
+                return "Device mode is mainly for local or tournament setups.";
+            case 3:
+                return "Hitbox View shows hitboxes and hurtboxes for debugging.";
+            default:
+                return string.Empty;
+        }
+    }
+
     private void OnValidate()
     {
         ApplyScale();
     }
 }
-
-
