@@ -4,9 +4,7 @@ using UnityEngine;
 // Gameplay timing is fully frame-based and independent from Animator timing.
 public class Fighter
 {
-    private const int DEFENDER_HITSTOP_FRAMES = 8;
-    private const int ATTACKER_HITSTOP_FRAMES = 6;
-    public static float HitstopScale { get; set; } = 1f;
+    public static int HitstopFrames { get; set; } = 8;
 
     public Vector2 Position => position;
     public Vector2 Velocity => velocity;
@@ -310,7 +308,7 @@ public class Fighter
 
     public void ApplyHit(Hitbox hit)
     {
-        ApplyHitstop(DEFENDER_HITSTOP_FRAMES);
+        ApplyHitstop(HitstopFrames);
         hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames);
         attackController.EndAttack();
         EnterState(FighterState.Hitstun);
@@ -318,16 +316,13 @@ public class Fighter
 
     public void ApplySuccessfulHitstopAsAttacker()
     {
-        ApplyHitstop(ATTACKER_HITSTOP_FRAMES);
+        ApplyHitstop(HitstopFrames);
     }
 
     public void ApplyHitstop(int frames)
     {
         if (frames <= 0)
             return;
-
-        if (HitstopScale > 0f)
-            frames = Mathf.Max(1, Mathf.RoundToInt(frames * HitstopScale));
 
         hitstopFramesRemaining = Mathf.Max(hitstopFramesRemaining, frames);
     }

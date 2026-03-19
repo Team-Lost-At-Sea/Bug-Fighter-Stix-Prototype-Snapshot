@@ -1485,6 +1485,7 @@ MonoBehaviour:
   player2View: {fileID: 1739284738}
   player1Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
   player2Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
+  hitstopFrames: 6
 --- !u!1 &1187611071
 GameObject:
   m_ObjectHideFlags: 0
