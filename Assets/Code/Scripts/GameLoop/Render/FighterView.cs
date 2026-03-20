@@ -331,7 +331,8 @@ public class FighterView : MonoBehaviour
         if (showBoxes && GlobalShowBoxes)
         {
             hurtboxVisual.SetBox(hurtbox);
-            hurtboxVisual.SetColor(fighter.IsHoldingValidBlockDirection ? blockingHurtboxColor : hurtboxColor);
+            bool showBlockingHurtbox = fighter.IsHoldingBlockInput && fighter.CanCurrentlyBlock;
+            hurtboxVisual.SetColor(showBlockingHurtbox ? blockingHurtboxColor : hurtboxColor);
             hurtboxVisual.SetVisible(true);
 
             if (hitbox.active)

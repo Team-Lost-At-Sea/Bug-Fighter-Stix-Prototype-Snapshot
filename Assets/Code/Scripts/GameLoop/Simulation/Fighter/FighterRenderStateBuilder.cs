@@ -11,7 +11,6 @@ public sealed class FighterRenderStateBuilder
     private FighterState lastSimulationState = FighterState.NeutralGround;
     private bool hasLastSimulationState;
     private int crouchTransitionFramesRemaining;
-    private int nonCrouchFrames;
 
     public FighterRenderSnapshot BuildSnapshot(
         FighterState state,
@@ -30,21 +29,20 @@ public sealed class FighterRenderStateBuilder
             && crouchTransitionFramesRemaining > 0
             && !hadAttackInputThisTick;
 
-        bool wasCrouchingLastFrame = hasLastSimulationState && lastSimulationState == FighterState.Crouching;
         bool enteredCrouch = false;
         if (state == FighterState.Crouching)
         {
-            bool canReplayTransition = !hasLastSimulationState || nonCrouchFrames > 1;
-            enteredCrouch = !wasCrouchingLastFrame && canReplayTransition;
+            // Crouch transition is only for standing idle/walk -> crouch.
+            enteredCrouch =
+                hasLastSimulationState
+                && lastSimulationState == FighterState.NeutralGround
+                && IsStandingLocomotionVisualState(lastVisualState);
             if (enteredCrouch)
                 crouchTransitionFramesRemaining = CROUCH_TRANSITION_FRAMES;
-
-            nonCrouchFrames = 0;
         }
         else
         {
             crouchTransitionFramesRemaining = 0;
-            nonCrouchFrames++;
         }
 
         FighterVisualState visualState = ResolveVisualState(
@@ -145,5 +143,12 @@ public sealed class FighterRenderStateBuilder
             return false;
 
         return facingRight ? velocity.x > 0f : velocity.x < 0f;
+    }
+
+    private static bool IsStandingLocomotionVisualState(FighterVisualState visualState)
+    {
+        return visualState == FighterVisualState.Idle
+            || visualState == FighterVisualState.WalkForward
+            || visualState == FighterVisualState.WalkBackward;
     }
 }

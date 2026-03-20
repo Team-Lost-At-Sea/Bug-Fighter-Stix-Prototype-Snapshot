@@ -30,6 +30,14 @@ public enum FighterVisualState
     Knockdown,
 }
 
+public enum FighterAirPhase
+{
+    Grounded,
+    Rising,
+    Falling,
+    Apex,
+}
+
 public readonly struct FighterRenderSnapshot
 {
     public readonly FighterVisualState visualState;

@@ -26,7 +26,7 @@ MonoBehaviour:
   walkForwardStateName: Walk Forward
   walkBackwardStateName: Walk Backward
   jumpStartupStateName: Jumpsquat
-  airborneStateName: Airborne
+  airborneStateName: Rising
   landingStateName: Landing
   hitstunStateName: Hitstun
   blockstunStateName: Blockstun

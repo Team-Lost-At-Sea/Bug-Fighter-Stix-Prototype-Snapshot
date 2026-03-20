@@ -33,6 +33,14 @@ public static class FighterStateRules
         return state == FighterState.NeutralGround;
     }
 
+    public static bool CanHoldBlock(FighterState state, bool isGrounded)
+    {
+        if (!isGrounded)
+            return false;
+
+        return state == FighterState.NeutralGround || state == FighterState.Crouching;
+    }
+
     public static bool CanStartAttack(
         FighterState state,
         bool isGrounded,

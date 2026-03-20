@@ -26,7 +26,7 @@ public class FighterConfig : ScriptableObject
     public string walkForwardStateName = "Walk Forward";
     public string walkBackwardStateName = "Walk Backward";
     public string jumpStartupStateName = "Jumpsquat";
-    public string airborneStateName = "Airborne";
+    public string airborneStateName = "Rising";
     public string landingStateName = "Landing";
     public string hitstunStateName = "Hitstun";
     public string blockstunStateName = "Blockstun";

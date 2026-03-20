@@ -15,9 +15,14 @@ public class Fighter
     public Hitbox CurrentHitbox => attackController.CurrentHitbox;
     public Box CurrentHurtbox => new Box(position, hurtbox.halfSize);
     public FighterState CurrentState => state;
+    public FighterAirPhase CurrentAirPhase => GetAirPhase();
+    public bool IsRisingInAir => GetAirPhase() == FighterAirPhase.Rising;
+    public bool IsFallingInAir => GetAirPhase() == FighterAirPhase.Falling;
     public int StateFrame => stateFrame;
     public MoveType CurrentMoveType => attackController.CurrentMoveType;
     public bool IsInHitstop => hitstopFramesRemaining > 0;
+    public bool IsHoldingBlockInput => isHoldingBlockInput;
+    public bool CanCurrentlyBlock => canCurrentlyBlock;
     public bool IsHoldingValidBlockDirection => isHoldingValidBlockDirection;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
 
@@ -34,6 +39,7 @@ public class Fighter
     private bool transitionedThisTick;
     private bool stateFrameFrozenThisTick;
 
+    // Dedicated controllers keep Fighter focused on state orchestration.
     private readonly FighterAttackController attackController = new FighterAttackController();
     private readonly FighterMovementController movementController = new FighterMovementController();
     private readonly FighterRenderStateBuilder renderStateBuilder = new FighterRenderStateBuilder();
@@ -41,6 +47,8 @@ public class Fighter
 
     private int hitstopFramesRemaining;
     private int hitstunFramesRemaining;
+    private bool isHoldingBlockInput;
+    private bool canCurrentlyBlock;
     private bool isHoldingValidBlockDirection;
     private bool hadAttackInputThisTick;
 
@@ -66,14 +74,18 @@ public class Fighter
 
     public void Tick(InputFrame input)
     {
+        // Tick order is intentional and should stay stable for gameplay feel:
+        // 1) sample block intent, 2) resolve freeze states, 3) run gameplay logic,
+        // 4) finalize facing/render snapshot in EndTick.
         transitionedThisTick = false;
         stateFrameFrozenThisTick = false;
         hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
-        UpdateBlockDirectionHold(input);
+        UpdateBlockingState(input);
         if (hitstopFramesRemaining > 0)
         {
             hitstopFramesRemaining--;
             stateFrameFrozenThisTick = true;
+            UpdateBlockingState(input);
             EndTick();
             return;
         }
@@ -89,21 +101,26 @@ public class Fighter
             HandleJumpStartup(input);
             HandleMovement(input);
             HandleAttacks(input);
-            UpdateAttackDataAttack();
+            UpdateAttackDataAttack(input);
             movementController.ApplyGravity(isGrounded, ref velocity, config);
             movementController.Integrate(ref position, velocity);
             ResolveGroundContact();
             AdvanceLandingRecovery();
         }
 
+        UpdateBlockingState(input);
         EndTick();
     }
 
-    private void UpdateBlockDirectionHold(InputFrame input)
+    private void UpdateBlockingState(InputFrame input)
     {
+        // "Holding block" and "can block" are tracked separately so visuals/gameplay
+        // can reason about intent vs availability independently.
         int backDirection = facingRight ? -1 : 1;
         bool holdingBack = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f)) == backDirection;
-        isHoldingValidBlockDirection = isGrounded && holdingBack;
+        isHoldingBlockInput = holdingBack;
+        canCurrentlyBlock = FighterStateRules.CanHoldBlock(state, isGrounded);
+        isHoldingValidBlockDirection = isHoldingBlockInput && canCurrentlyBlock;
     }
 
     private void SimulateHitstun()
@@ -127,7 +144,14 @@ public class Fighter
     private void HandleJumpStartup(InputFrame input)
     {
         if (
-            movementController.HandleJumpStartup(state, input, config, ref velocity, ref isGrounded)
+            movementController.HandleJumpStartup(
+                state,
+                stateFrame,
+                input,
+                config,
+                ref velocity,
+                ref isGrounded
+            )
         )
             EnterState(FighterState.NeutralAir);
     }
@@ -139,6 +163,8 @@ public class Fighter
 
         bool holdingDown = input.moveY < 0f;
         bool hasAttackInput = input.punchLight || input.punchMedium || input.punchHeavy;
+
+        // While crouching, down-hold or crouch-attack input keeps horizontal velocity locked.
         if (holdingDown && state == FighterState.Crouching)
         {
             velocity.x = 0f;
@@ -286,8 +312,10 @@ public class Fighter
         }
     }
 
-    private void UpdateAttackDataAttack()
+    private void UpdateAttackDataAttack(InputFrame input)
     {
+        // Attack controller owns frame counting and phase boundaries; Fighter maps those
+        // outcomes into simulation states.
         AttackUpdateOutcome outcome = attackController.Update(state, position, facingRight);
 
         if (outcome.enterActive)
@@ -297,13 +325,38 @@ public class Fighter
             EnterState(FighterState.AttackRecovery);
 
         if (outcome.endAttack)
-            EndAttackAndReturnNeutral();
+            EndAttackAndReturnPostAttackState(input);
     }
 
-    private void EndAttackAndReturnNeutral()
+    private void EndAttackAndReturnPostAttackState(InputFrame input)
     {
+        // Choose post-attack state before the next frame so we do not force extra neutral
+        // frames that can create visual/feel artifacts (especially around crouch normals).
+        MoveType completedMoveType = attackController.CurrentMoveType;
         attackController.EndAttack();
-        EnterState(isGrounded ? FighterState.NeutralGround : FighterState.NeutralAir);
+
+        if (!isGrounded)
+        {
+            EnterState(FighterState.NeutralAir);
+            return;
+        }
+
+        bool holdCrouch = input.moveY < 0f;
+        bool wasCrouchingAttack = IsCrouchingMoveType(completedMoveType);
+        if (holdCrouch && wasCrouchingAttack)
+        {
+            EnterState(FighterState.Crouching);
+            return;
+        }
+
+        EnterState(FighterState.NeutralGround);
+    }
+
+    private static bool IsCrouchingMoveType(MoveType moveType)
+    {
+        return moveType == MoveType.CrouchingLight
+            || moveType == MoveType.CrouchingMedium
+            || moveType == MoveType.CrouchingHeavy;
     }
 
     public void ApplyHit(Hitbox hit)
@@ -334,6 +387,8 @@ public class Fighter
 
     private void ResolveGroundContact()
     {
+        // Ground contact can force state changes (landing recovery, air->ground, ground->air)
+        // after movement integration has updated position/velocity.
         GroundContactResult contact = movementController.ResolveGroundContact(
             ref position,
             ref velocity,
@@ -347,7 +402,7 @@ public class Fighter
                 if (FighterStateRules.ShouldApplyLandingRecovery(state))
                 {
                     if (FighterStateRules.IsAttackState(state))
-                        EndAttackAndReturnNeutral();
+                        EndAttackAndReturnPostAttackState(InputFrame.Neutral);
 
                     movementController.StartLandingRecovery();
                     EnterState(FighterState.LandingRecovery);
@@ -373,9 +428,12 @@ public class Fighter
 
     private void EndTick()
     {
+        // State frame advances only when no transition/freeze occurred this tick.
         if (!transitionedThisTick && !stateFrameFrozenThisTick)
             stateFrame++;
 
+        // Facing and render snapshot are finalized last so rendering sees authoritative
+        // post-simulation state for this tick.
         UpdateFacing(opponent);
         renderSnapshot = renderStateBuilder.BuildSnapshot(
             state,
@@ -388,11 +446,28 @@ public class Fighter
         );
     }
 
+    public FighterAirPhase GetAirPhase()
+    {
+        // Small deadzone around 0 avoids rapid rising/falling toggles near apex.
+        if (isGrounded)
+            return FighterAirPhase.Grounded;
+
+        if (velocity.y > 0.01f)
+            return FighterAirPhase.Rising;
+
+        if (velocity.y < -0.01f)
+            return FighterAirPhase.Falling;
+
+        return FighterAirPhase.Apex;
+    }
+
     private void EnterState(FighterState nextState)
     {
         if (state == nextState)
             return;
 
+        // Every state transition resets frame counter and marks this tick as transitioned
+        // so timing code can reliably key off stateFrame.
         FighterState previousState = state;
         state = nextState;
         stateFrame = 0;

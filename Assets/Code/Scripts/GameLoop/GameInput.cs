@@ -41,6 +41,7 @@ public class GameInput : MonoBehaviour
     private bool invertYEnabled;
     private float lastRawMoveY;
     private int lastQuantizedMoveY;
+    private InputFrame lastCapturedFrame = InputFrame.Neutral;
     private InputConsumeSource lastConsumeSource = InputConsumeSource.LiveFallback;
     private bool hasQuantizedMoveYSample;
     private bool hasAppliedInputMode;
@@ -61,6 +62,7 @@ public class GameInput : MonoBehaviour
     public float LastRawMoveY => lastRawMoveY;
     public int LastQuantizedMoveY => lastQuantizedMoveY;
     public InputConsumeSource LastConsumeSource => lastConsumeSource;
+    public InputFrame LatestCapturedInput => lastCapturedFrame;
 
     void Awake()
     {
@@ -92,12 +94,18 @@ public class GameInput : MonoBehaviour
         {
             bool openedThisFrame = menuController.Tick(inputActions, () => SetInvertYEnabled(!invertYEnabled));
             if (openedThisFrame)
+            {
                 inputBuffer.Clear();
+                lastCapturedFrame = InputFrame.Neutral;
+            }
 
             menuController.UpdateView(invertYEnabled);
 
             if (menuController.IsMenuOpen)
+            {
+                lastCapturedFrame = InputFrame.Neutral;
                 return;
+            }
         }
 
         CapturePlayer1Input();
@@ -117,6 +125,7 @@ public class GameInput : MonoBehaviour
     private void CapturePlayer1Input()
     {
         InputFrame frame = BuildCurrentInputFrame();
+        lastCapturedFrame = frame;
 
         // Only buffer if there is actual input.
         if (
@@ -137,7 +146,7 @@ public class GameInput : MonoBehaviour
 
     /// <summary>
     /// Called by Simulation.Tick() to get the next input.
-    /// Falls back to a live sample if the buffer is empty.
+    /// Falls back to the most recently captured frame if the buffer is empty.
     /// </summary>
     public InputFrame ConsumeNextInput()
     {
@@ -147,10 +156,11 @@ public class GameInput : MonoBehaviour
             return inputBuffer.Dequeue();
         }
 
-        // If simulation catches up faster than Update enqueues, sample live input so held
-        // directions/buttons (like crouch hold) do not flicker between active and neutral.
+        // If simulation catches up faster than Update enqueues, reuse the latest captured
+        // frame instead of re-sampling live input mid-frame. This keeps input timing
+        // consistent across catch-up ticks.
         lastConsumeSource = InputConsumeSource.LiveFallback;
-        return BuildCurrentInputFrame();
+        return lastCapturedFrame;
     }
 
     private InputFrame BuildCurrentInputFrame()

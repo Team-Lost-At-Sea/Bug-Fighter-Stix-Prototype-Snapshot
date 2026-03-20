@@ -5,7 +5,6 @@ public sealed class FighterMovementController
     private const int JUMP_STARTUP_TICKS = 4;
     private const int LANDING_RECOVERY_TICKS = 3;
 
-    private int jumpStartupTicksRemaining;
     private int landingRecoveryTicksRemaining;
     private int queuedJumpMoveX;
     private bool usedAirNormalThisJump;
@@ -14,11 +13,11 @@ public sealed class FighterMovementController
     {
         queuedJumpMoveX = Mathf.RoundToInt(Mathf.Clamp(moveX, -1f, 1f));
         usedAirNormalThisJump = false;
-        jumpStartupTicksRemaining = JUMP_STARTUP_TICKS;
     }
 
     public bool HandleJumpStartup(
         FighterState state,
+        int stateFrame,
         InputFrame input,
         FighterConfig config,
         ref Vector2 velocity,
@@ -32,8 +31,9 @@ public sealed class FighterMovementController
         if (queuedJumpMoveX == 0 && moveX != 0)
             queuedJumpMoveX = moveX;
 
-        jumpStartupTicksRemaining--;
-        if (jumpStartupTicksRemaining > 0)
+        // Drive jump startup timing from fighter state frames to avoid countdown
+        // desync that can leave fighters stuck in JumpStartup.
+        if (stateFrame < JUMP_STARTUP_TICKS - 1)
             return false;
 
         if (queuedJumpMoveX == -1)
