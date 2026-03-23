@@ -11,7 +11,7 @@ public class DebugBoxVisual : MonoBehaviour
         sprite.sprite = GenerateSprite();
         currentColor = color;
         sprite.color = color;
-        sprite.sortingOrder = 100; // Always on top
+        sprite.sortingOrder = RenderOrder.World.DebugBoxes;
     }
 
     public void SetColor(Color color)

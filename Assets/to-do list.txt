@@ -10,3 +10,11 @@ cpu takeover
 reset state
 special input
 visual confirmation in champ select
+backdashs/fw dash
+
+Ideas to not let go:
+
+Minigames:
+Dung Paper Scissors + Frog (eats the laser gun and switches player ownership every turn) Laser beam of annihilation and despair / Mirror reflector
+
+Scratch tickets

@@ -50,7 +50,7 @@ public sealed class InputDisplayWidget : MonoBehaviour
     private bool forceTrailCanvasOverrideSorting = true;
 
     [SerializeField]
-    private int trailSortingOrder = 100;
+    private int trailSortingOrder = RenderOrder.UI.InputDisplay;
 
     [Header("Buttons")]
     [SerializeField]
