@@ -1407,7 +1407,7 @@ PrefabInstance:
     - target: {fileID: 1071053576676423226, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: e8239c0aa29465a448fd608f8c415781, type: 2}
+      objectReference: {fileID: 9100000, guid: d43f68b67666655468e09486f92d1afe, type: 2}
     - target: {fileID: 2287060288388628142, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -1768,7 +1768,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1739284738}
-  player1Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
+  player1Character: {fileID: 11400000, guid: fc069ae876ad6154797dacf66328731a, type: 2}
   player2Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
   hitstopFrames: 6
 --- !u!1 &1187611071
@@ -2517,13 +2517,14 @@ GameObject:
   - component: {fileID: 1599634755}
   - component: {fileID: 1599634754}
   - component: {fileID: 1599634758}
+  - component: {fileID: 1599634759}
   m_Layer: 5
   m_Name: Canvas-HUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1599634754
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2619,6 +2620,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3752adac306669c4ea5ed2a0bc06d0e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnableThisOnAwake
+--- !u!225 &1599634759
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1599634753}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1644834131
 GameObject:
   m_ObjectHideFlags: 0
@@ -2911,13 +2924,14 @@ GameObject:
   - component: {fileID: 1778213959}
   - component: {fileID: 1778213958}
   - component: {fileID: 1778213962}
+  - component: {fileID: 1778213963}
   m_Layer: 5
   m_Name: Canvas-Menu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1778213958
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3013,6 +3027,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3752adac306669c4ea5ed2a0bc06d0e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnableThisOnAwake
+--- !u!225 &1778213963
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1778213957}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1789430052
 GameObject:
   m_ObjectHideFlags: 0

@@ -40,6 +40,9 @@ MonoBehaviour:
   jumpingLightStateName: j_LP
   jumpingMediumStateName: j_MP
   jumpingHeavyStateName: j_HP
+  fireballLightStateName: Fireball
+  fireballMediumStateName: Fireball
+  fireballHeavyStateName: Fireball
   standingLightAttackData:
     startupFrames: 3
     activeFrames: 2
@@ -112,3 +115,35 @@ MonoBehaviour:
     hitstunFrames: 38
     hitboxOffset: {x: 0, y: 2.4}
     hitboxSize: {x: 5, y: 2}
+  fireballLightAttackData:
+    startupFrames: 15
+    activeFrames: 0
+    recoveryFrames: 25
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballMediumAttackData:
+    startupFrames: 15
+    activeFrames: 0
+    recoveryFrames: 25
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballHeavyAttackData:
+    startupFrames: 15
+    activeFrames: 0
+    recoveryFrames: 25
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballProjectileSprite: {fileID: -990202917, guid: 5fc625e09ee099746a2340f5aae789bf, type: 3}
+  fireballProjectileTint: {r: 1, g: 1, b: 1, a: 1}
+  fireballSpawnOffset: {x: 1, y: 6}
+  fireballProjectileHalfSize: {x: 2, y: 2}
+  fireballProjectileSpeedPerFrame: 0.42
+  fireballProjectileLifetimeFrames: 120
+  fireballProjectileDamage: 7
+  fireballProjectileHitstunFrames: 16

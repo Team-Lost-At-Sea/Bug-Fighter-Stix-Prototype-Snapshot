@@ -1,10 +1,10 @@
 to-do list
 
 crossover
-DONE lilac hitboxes
 
 Next week:
 
+J_HP loops
 blocking
 cpu takeover
 reset state

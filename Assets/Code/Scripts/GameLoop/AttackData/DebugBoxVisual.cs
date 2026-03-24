@@ -2,13 +2,14 @@ using UnityEngine;
 
 public class DebugBoxVisual : MonoBehaviour
 {
+    private static Sprite fallbackSprite;
     private SpriteRenderer sprite;
     private Color currentColor;
 
     public void Initialize(Color color)
     {
         sprite = gameObject.AddComponent<SpriteRenderer>();
-        sprite.sprite = GenerateSprite();
+        sprite.sprite = GetFallbackSprite();
         currentColor = color;
         sprite.color = color;
         sprite.sortingOrder = RenderOrder.World.DebugBoxes;
@@ -35,12 +36,30 @@ public class DebugBoxVisual : MonoBehaviour
             sprite.enabled = value;
     }
 
-    private Sprite GenerateSprite()
+    public void SetSprite(Sprite customSprite)
     {
+        if (sprite == null)
+            return;
+
+        sprite.sprite = customSprite != null ? customSprite : GetFallbackSprite();
+    }
+
+    public void SetSortingOrder(int sortingOrder)
+    {
+        if (sprite != null)
+            sprite.sortingOrder = sortingOrder;
+    }
+
+    private static Sprite GetFallbackSprite()
+    {
+        if (fallbackSprite != null)
+            return fallbackSprite;
+
         Texture2D tex = new Texture2D(1, 1);
         tex.SetPixel(0, 0, Color.white);
         tex.Apply();
 
-        return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        fallbackSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        return fallbackSprite;
     }
 }

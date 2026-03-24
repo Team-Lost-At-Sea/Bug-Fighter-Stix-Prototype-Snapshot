@@ -77,4 +77,7 @@ public enum MoveType
     JumpingLight = 7,
     JumpingMedium = 8,
     JumpingHeavy = 9,
+    FireballLight = 10,
+    FireballMedium = 11,
+    FireballHeavy = 12,
 }

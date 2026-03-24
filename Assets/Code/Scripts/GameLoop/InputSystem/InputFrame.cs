@@ -7,6 +7,17 @@ public struct InputFrame
     public bool punchLight;
     public bool punchMedium;
     public bool punchHeavy;
+    public bool punchLightPressed;
+    public bool punchMediumPressed;
+    public bool punchHeavyPressed;
+
+    public bool HasAttackPress
+    {
+        get
+        {
+            return punchLightPressed || punchMediumPressed || punchHeavyPressed;
+        }
+    }
 
     // Static default / neutral input
     public static readonly InputFrame Neutral = new InputFrame
@@ -16,5 +27,8 @@ public struct InputFrame
         punchLight = false,
         punchMedium = false,
         punchHeavy = false,
+        punchLightPressed = false,
+        punchMediumPressed = false,
+        punchHeavyPressed = false,
     };
 }

@@ -55,10 +55,13 @@ public sealed class FighterAttackController
         {
             simulatedState = FighterState.AttackActive;
             outcome.enterActive = true;
-            hitbox.active = true;
-            hitbox.hasHit = false;
-            hitbox.damage = currentAttack.damage;
-            hitbox.hitstunFrames = currentAttack.hitstunFrames;
+            if (!IsProjectileOnlyMove(currentMoveType))
+            {
+                hitbox.active = true;
+                hitbox.hasHit = false;
+                hitbox.damage = currentAttack.damage;
+                hitbox.hitstunFrames = currentAttack.hitstunFrames;
+            }
         }
 
         if (simulatedState == FighterState.AttackActive)
@@ -67,7 +70,8 @@ public sealed class FighterAttackController
             if (!facingRight)
                 hitboxOffset.x = -hitboxOffset.x;
 
-            hitbox.box = new Box(position + hitboxOffset, currentAttack.hitboxSize * 0.5f);
+            if (!IsProjectileOnlyMove(currentMoveType))
+                hitbox.box = new Box(position + hitboxOffset, currentAttack.hitboxSize * 0.5f);
 
             int activeEndFrame = currentAttack.startupFrames + currentAttack.activeFrames;
             if (attackFrame >= activeEndFrame)
@@ -101,6 +105,13 @@ public sealed class FighterAttackController
         hitbox.hasHit = true;
     }
 
+    private static bool IsProjectileOnlyMove(MoveType moveType)
+    {
+        return moveType == MoveType.FireballLight
+            || moveType == MoveType.FireballMedium
+            || moveType == MoveType.FireballHeavy;
+    }
+
     private static AttackTiming GetDefaultTiming(MoveType moveType)
     {
         switch (moveType)
@@ -109,14 +120,20 @@ public sealed class FighterAttackController
             case MoveType.CrouchingLight:
             case MoveType.JumpingLight:
                 return new AttackTiming(4, 3, 14);
+            case MoveType.FireballLight:
+                return new AttackTiming(10, 0, 18);
             case MoveType.StandingMedium:
             case MoveType.CrouchingMedium:
             case MoveType.JumpingMedium:
                 return new AttackTiming(10, 4, 19);
+            case MoveType.FireballMedium:
+                return new AttackTiming(12, 0, 20);
             case MoveType.StandingHeavy:
             case MoveType.CrouchingHeavy:
             case MoveType.JumpingHeavy:
                 return new AttackTiming(16, 5, 24);
+            case MoveType.FireballHeavy:
+                return new AttackTiming(14, 0, 22);
             default:
                 return new AttackTiming(0, 0, 0);
         }

@@ -21,7 +21,7 @@ public class GameInput : MonoBehaviour
 
     // Maximum number of frames to buffer
     [SerializeField]
-    private int maxBufferedFrames = 5;
+    private int maxBufferedFrames = 20;
 
     [Header("Debug")]
     [SerializeField]
@@ -46,6 +46,12 @@ public class GameInput : MonoBehaviour
     private bool hasQuantizedMoveYSample;
     private bool hasAppliedInputMode;
     private MenuOptionsController.InputMode lastInputMode;
+    private bool lastLightPressed;
+    private bool lastMediumPressed;
+    private bool lastHeavyPressed;
+    private GUIStyle debugOverlayStyle;
+    private InputFrame lastEnqueuedFrame = InputFrame.Neutral;
+    private bool hasLastEnqueuedFrame;
 
     public bool InvertYEnabled => invertYEnabled;
     public bool IsMenuOpen => menuController != null && menuController.IsMenuOpen;
@@ -97,6 +103,10 @@ public class GameInput : MonoBehaviour
             {
                 inputBuffer.Clear();
                 lastCapturedFrame = InputFrame.Neutral;
+                hasLastEnqueuedFrame = false;
+                lastLightPressed = false;
+                lastMediumPressed = false;
+                lastHeavyPressed = false;
             }
 
             menuController.UpdateView(invertYEnabled);
@@ -127,20 +137,15 @@ public class GameInput : MonoBehaviour
         InputFrame frame = BuildCurrentInputFrame();
         lastCapturedFrame = frame;
 
-        // Only buffer if there is actual input.
-        if (
-            frame.moveX != 0
-            || frame.moveY != 0
-            || frame.punchLight
-            || frame.punchMedium
-            || frame.punchHeavy
-        )
+        if (ShouldEnqueueFrame(frame))
         {
             // Limit buffer size to avoid ghost inputs.
             if (inputBuffer.Count >= maxBufferedFrames)
                 inputBuffer.Dequeue();
 
             inputBuffer.Enqueue(frame);
+            lastEnqueuedFrame = frame;
+            hasLastEnqueuedFrame = true;
         }
     }
 
@@ -181,6 +186,9 @@ public class GameInput : MonoBehaviour
 
         int moveX = 0;
         int moveY = 0;
+        bool lightPressed = inputActions.Gameplay.P1_LightAttack.IsPressed();
+        bool mediumPressed = inputActions.Gameplay.P1_MediumAttack.IsPressed();
+        bool heavyPressed = inputActions.Gameplay.P1_HeavyAttack.IsPressed();
 
         if (rawMoveX > 0.5f)
             moveX = 1;
@@ -201,14 +209,22 @@ public class GameInput : MonoBehaviour
         lastQuantizedMoveY = moveY;
         hasQuantizedMoveYSample = true;
 
-        return new InputFrame
+        InputFrame frame = new InputFrame
         {
             moveX = moveX,
             moveY = moveY,
-            punchLight = inputActions.Gameplay.P1_LightAttack.IsPressed(),
-            punchMedium = inputActions.Gameplay.P1_MediumAttack.IsPressed(),
-            punchHeavy = inputActions.Gameplay.P1_HeavyAttack.IsPressed()
+            punchLight = lightPressed,
+            punchMedium = mediumPressed,
+            punchHeavy = heavyPressed,
+            punchLightPressed = lightPressed && !lastLightPressed,
+            punchMediumPressed = mediumPressed && !lastMediumPressed,
+            punchHeavyPressed = heavyPressed && !lastHeavyPressed
         };
+
+        lastLightPressed = lightPressed;
+        lastMediumPressed = mediumPressed;
+        lastHeavyPressed = heavyPressed;
+        return frame;
     }
 
     private void ApplyInputMode()
@@ -245,13 +261,62 @@ public class GameInput : MonoBehaviour
         if (!showInputDebugOverlay)
             return;
 
+        EnsureDebugOverlayStyle();
+
         GUI.Label(
             new Rect(10f, 10f, 360f, 20f),
-            $"InputY raw={lastRawMoveY:F3} quantized={lastQuantizedMoveY}"
+            $"InputY raw={lastRawMoveY:F3} quantized={lastQuantizedMoveY}",
+            debugOverlayStyle
         );
         GUI.Label(
             new Rect(10f, 30f, 360f, 20f),
-            $"Input source={lastConsumeSource} buffered={inputBuffer.Count}"
+            $"Input source={lastConsumeSource} buffered={inputBuffer.Count}",
+            debugOverlayStyle
         );
+        GUI.Label(
+            new Rect(10f, 50f, 420f, 20f),
+            $"Press edges LP={lastCapturedFrame.punchLightPressed} MP={lastCapturedFrame.punchMediumPressed} HP={lastCapturedFrame.punchHeavyPressed}",
+            debugOverlayStyle
+        );
+        GUI.Label(
+            new Rect(10f, 70f, 900f, 20f),
+            $"P1 history oldest->newest: {Simulation.Instance.GetPlayer1InputHistoryDebugString()}",
+            debugOverlayStyle
+        );
+    }
+
+    private void EnsureDebugOverlayStyle()
+    {
+        if (debugOverlayStyle != null)
+            return;
+
+        debugOverlayStyle = new GUIStyle(GUI.skin.label);
+        debugOverlayStyle.richText = true;
+        debugOverlayStyle.normal.textColor = Color.white;
+    }
+
+    private bool ShouldEnqueueFrame(InputFrame frame)
+    {
+        bool hasAnyInput =
+            frame.moveX != 0
+            || frame.moveY != 0
+            || frame.punchLight
+            || frame.punchMedium
+            || frame.punchHeavy;
+
+        if (!hasAnyInput)
+            return false;
+
+        if (frame.HasAttackPress)
+            return true;
+
+        if (!hasLastEnqueuedFrame)
+            return true;
+
+        return frame.moveX != lastEnqueuedFrame.moveX
+            || frame.moveY != lastEnqueuedFrame.moveY
+            || frame.punchLight != lastEnqueuedFrame.punchLight
+            || frame.punchMedium != lastEnqueuedFrame.punchMedium
+            || frame.punchHeavy != lastEnqueuedFrame.punchHeavy;
     }
 }

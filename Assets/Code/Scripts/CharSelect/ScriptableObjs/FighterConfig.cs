@@ -42,6 +42,9 @@ public class FighterConfig : ScriptableObject
     public string jumpingLightStateName = "j_LP";
     public string jumpingMediumStateName = "j_MP";
     public string jumpingHeavyStateName = "j_HP";
+    public string fireballLightStateName = "s_LP";
+    public string fireballMediumStateName = "s_MP";
+    public string fireballHeavyStateName = "s_HP";
 
     [Header("Shared Moves")]
     public AttackData standingLightAttackData;
@@ -53,6 +56,19 @@ public class FighterConfig : ScriptableObject
     public AttackData jumpingLightAttackData;
     public AttackData jumpingMediumAttackData;
     public AttackData jumpingHeavyAttackData;
+    public AttackData fireballLightAttackData;
+    public AttackData fireballMediumAttackData;
+    public AttackData fireballHeavyAttackData;
+
+    [Header("Fireball Projectile")]
+    public Sprite fireballProjectileSprite;
+    public Color fireballProjectileTint = new Color(1f, 0.6f, 0.1f, 0.9f);
+    public Vector2 fireballSpawnOffset = new Vector2(1.0f, 1.0f);
+    public Vector2 fireballProjectileHalfSize = new Vector2(0.35f, 0.35f);
+    public float fireballProjectileSpeedPerFrame = 0.42f;
+    public int fireballProjectileLifetimeFrames = 120;
+    public int fireballProjectileDamage = 7;
+    public int fireballProjectileHitstunFrames = 16;
 
     public AttackData GetAttackData(MoveType moveType)
     {
@@ -76,6 +92,12 @@ public class FighterConfig : ScriptableObject
                 return jumpingMediumAttackData;
             case MoveType.JumpingHeavy:
                 return jumpingHeavyAttackData;
+            case MoveType.FireballLight:
+                return fireballLightAttackData;
+            case MoveType.FireballMedium:
+                return fireballMediumAttackData;
+            case MoveType.FireballHeavy:
+                return fireballHeavyAttackData;
             default:
                 return null;
         }
@@ -134,6 +156,12 @@ public class FighterConfig : ScriptableObject
                 return jumpingMediumStateName;
             case MoveType.JumpingHeavy:
                 return jumpingHeavyStateName;
+            case MoveType.FireballLight:
+                return fireballLightStateName;
+            case MoveType.FireballMedium:
+                return fireballMediumStateName;
+            case MoveType.FireballHeavy:
+                return fireballHeavyStateName;
             default:
                 return null;
         }

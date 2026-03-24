@@ -1,10 +1,19 @@
 using UnityEngine;
+using System.Text;
 
 // Fighter.cs drives deterministic simulation for one fighter.
 // Gameplay timing is fully frame-based and independent from Animator timing.
 public class Fighter
 {
     public static int HitstopFrames { get; set; } = 8;
+    public static bool LogSpecialInputReads { get; set; } = true;
+    private const int NormalInputBufferFrames = 4;
+    private const int DebugInputHistoryDisplayLength = 30;
+    private const int DebugInputFreezeFrames = 75;
+    private const string DebugLightPunchColor = "#F4D03F";
+    private const string DebugMediumPunchColor = "#3498DB";
+    private const string DebugHeavyPunchColor = "#8E44AD";
+    private const string DebugSeparatorColor = "#000000";
 
     public Vector2 Position => position;
     public Vector2 Velocity => velocity;
@@ -43,6 +52,7 @@ public class Fighter
     private readonly FighterAttackController attackController = new FighterAttackController();
     private readonly FighterMovementController movementController = new FighterMovementController();
     private readonly FighterRenderStateBuilder renderStateBuilder = new FighterRenderStateBuilder();
+    private readonly InputHistoryBuffer inputHistory = new InputHistoryBuffer(90);
     private Box hurtbox;
 
     private int hitstopFramesRemaining;
@@ -51,6 +61,13 @@ public class Fighter
     private bool canCurrentlyBlock;
     private bool isHoldingValidBlockDirection;
     private bool hadAttackInputThisTick;
+    private int debugInputHistoryFreezeFramesRemaining;
+    private string debugInputHistoryDisplay = "No input history yet";
+    private bool hasPendingProjectileSpawn;
+    private ProjectileSpawnRequest pendingProjectileSpawn;
+    private int lightPressBufferFramesRemaining;
+    private int mediumPressBufferFramesRemaining;
+    private int heavyPressBufferFramesRemaining;
 
     private FighterRenderSnapshot renderSnapshot;
 
@@ -80,6 +97,9 @@ public class Fighter
         transitionedThisTick = false;
         stateFrameFrozenThisTick = false;
         hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
+        inputHistory.Push(input, facingRight);
+        UpdateNormalPressBuffers(input);
+        UpdateInputHistoryDebugDisplay(input);
         UpdateBlockingState(input);
         if (hitstopFramesRemaining > 0)
         {
@@ -110,6 +130,100 @@ public class Fighter
 
         UpdateBlockingState(input);
         EndTick();
+    }
+
+    public string GetInputHistoryDebugString(int maxEntries = 10)
+    {
+        if (maxEntries == DebugInputHistoryDisplayLength)
+            return debugInputHistoryDisplay;
+
+        return BuildInputHistoryDebugString(maxEntries);
+    }
+
+    private void UpdateInputHistoryDebugDisplay(InputFrame input)
+    {
+        if (input.HasAttackPress)
+        {
+            debugInputHistoryDisplay = BuildInputHistoryDebugStringEndingAtAttackPress(DebugInputHistoryDisplayLength);
+            debugInputHistoryFreezeFramesRemaining = DebugInputFreezeFrames;
+            return;
+        }
+
+        if (debugInputHistoryFreezeFramesRemaining > 0)
+        {
+            debugInputHistoryFreezeFramesRemaining--;
+            return;
+        }
+
+        debugInputHistoryDisplay = BuildInputHistoryDebugString(DebugInputHistoryDisplayLength);
+    }
+
+    private string BuildInputHistoryDebugString(int maxEntries)
+    {
+        StringBuilder builder = new StringBuilder();
+        int entriesToShow = Mathf.Min(maxEntries, inputHistory.Count);
+
+        for (int framesAgo = entriesToShow - 1; framesAgo >= 0; framesAgo--)
+        {
+            InputHistoryBuffer.HistoryEntry entry = inputHistory.GetRecent(framesAgo);
+            if (builder.Length > 0)
+                builder.Append($" <color={DebugSeparatorColor}>|</color> ");
+
+            builder.Append(entry.relativeDirection);
+
+            if (entry.input.punchLightPressed)
+                builder.Append($" <color={DebugLightPunchColor}>LP</color>");
+            if (entry.input.punchMediumPressed)
+                builder.Append($" <color={DebugMediumPunchColor}>MP</color>");
+            if (entry.input.punchHeavyPressed)
+                builder.Append($" <color={DebugHeavyPunchColor}>HP</color>");
+        }
+
+        if (builder.Length == 0)
+            builder.Append("No input history yet");
+
+        return builder.ToString();
+    }
+
+    private string BuildInputHistoryDebugStringEndingAtAttackPress(int maxEntries)
+    {
+        int attackPressFramesAgo = -1;
+        int searchCount = Mathf.Min(maxEntries - 1, inputHistory.Count - 1);
+        for (int i = 0; i <= searchCount; i++)
+        {
+            if (inputHistory.GetRecent(i).input.HasAttackPress)
+            {
+                attackPressFramesAgo = i;
+                break;
+            }
+        }
+
+        if (attackPressFramesAgo < 0)
+            return BuildInputHistoryDebugString(maxEntries);
+
+        StringBuilder builder = new StringBuilder();
+        int oldestFramesAgo = Mathf.Min(inputHistory.Count - 1, attackPressFramesAgo + (maxEntries - 1));
+
+        for (int framesAgo = oldestFramesAgo; framesAgo >= attackPressFramesAgo; framesAgo--)
+        {
+            InputHistoryBuffer.HistoryEntry entry = inputHistory.GetRecent(framesAgo);
+            if (builder.Length > 0)
+                builder.Append($" <color={DebugSeparatorColor}>|</color> ");
+
+            builder.Append(entry.relativeDirection);
+
+            if (entry.input.punchLightPressed)
+                builder.Append($" <color={DebugLightPunchColor}>LP</color>");
+            if (entry.input.punchMediumPressed)
+                builder.Append($" <color={DebugMediumPunchColor}>MP</color>");
+            if (entry.input.punchHeavyPressed)
+                builder.Append($" <color={DebugHeavyPunchColor}>HP</color>");
+        }
+
+        if (builder.Length == 0)
+            builder.Append("No input history yet");
+
+        return builder.ToString();
     }
 
     private void UpdateBlockingState(InputFrame input)
@@ -221,12 +335,27 @@ public class Fighter
         if (!CanStartAttack())
             return;
 
-        if (input.punchLight)
+        if (TryResolveGroundedSpecial(input, out MoveType specialMoveType))
+        {
+            StartAttack(specialMoveType);
+            return;
+        }
+
+        if (lightPressBufferFramesRemaining > 0)
+        {
             StartAttack(ResolveMoveType(AttackStrength.Light, input));
-        else if (input.punchMedium)
+            lightPressBufferFramesRemaining = 0;
+        }
+        else if (mediumPressBufferFramesRemaining > 0)
+        {
             StartAttack(ResolveMoveType(AttackStrength.Medium, input));
-        else if (input.punchHeavy)
+            mediumPressBufferFramesRemaining = 0;
+        }
+        else if (heavyPressBufferFramesRemaining > 0)
+        {
             StartAttack(ResolveMoveType(AttackStrength.Heavy, input));
+            heavyPressBufferFramesRemaining = 0;
+        }
     }
 
     private bool CanStartAttack()
@@ -236,6 +365,83 @@ public class Fighter
             isGrounded,
             movementController.CanCancelLandingRecoveryIntoAttack()
         );
+    }
+
+    private bool TryResolveGroundedSpecial(InputFrame input, out MoveType moveType)
+    {
+        const int quarterCircleForwardWindow = 20;
+        moveType = MoveType.None;
+
+        if (!isGrounded || !input.HasAttackPress)
+            return false;
+
+        if (!ContainsQuarterCircleForward(quarterCircleForwardWindow))
+            return false;
+
+        if (input.punchLightPressed)
+            moveType = MoveType.FireballLight;
+        else if (input.punchMediumPressed)
+            moveType = MoveType.FireballMedium;
+        else if (input.punchHeavyPressed)
+            moveType = MoveType.FireballHeavy;
+
+        if (moveType != MoveType.None && LogSpecialInputReads)
+            Debug.Log($"[SpecialInput] Fireball read: {moveType}");
+
+        return moveType != MoveType.None;
+    }
+
+    private bool ContainsQuarterCircleForward(int maxFrames)
+    {
+        int searchCount = inputHistory.Count < maxFrames ? inputHistory.Count : maxFrames;
+        int requiredStep = 0;
+
+        // Search backward from the button-press frame.
+        // We accept extra repeated directions and neutral frames, but require
+        // the core sequence 6 <- 3 <- 2 to appear in order.
+        for (int framesAgo = 0; framesAgo < searchCount; framesAgo++)
+        {
+            int direction = inputHistory.GetRecent(framesAgo).relativeDirection;
+
+            switch (requiredStep)
+            {
+                case 0:
+                    if (direction == 6 || direction == 3)
+                        requiredStep = 1;
+                    break;
+                case 1:
+                    if (direction == 3)
+                        requiredStep = 2;
+                    else if (direction == 2)
+                        requiredStep = 3;
+                    break;
+                case 2:
+                    if (direction == 2)
+                        return true;
+                    break;
+                case 3:
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void UpdateNormalPressBuffers(InputFrame input)
+    {
+        if (lightPressBufferFramesRemaining > 0)
+            lightPressBufferFramesRemaining--;
+        if (mediumPressBufferFramesRemaining > 0)
+            mediumPressBufferFramesRemaining--;
+        if (heavyPressBufferFramesRemaining > 0)
+            heavyPressBufferFramesRemaining--;
+
+        if (input.punchLightPressed)
+            lightPressBufferFramesRemaining = NormalInputBufferFrames;
+        if (input.punchMediumPressed)
+            mediumPressBufferFramesRemaining = NormalInputBufferFrames;
+        if (input.punchHeavyPressed)
+            heavyPressBufferFramesRemaining = NormalInputBufferFrames;
     }
 
     private void StartAttack(MoveType moveType)
@@ -319,7 +525,10 @@ public class Fighter
         AttackUpdateOutcome outcome = attackController.Update(state, position, facingRight);
 
         if (outcome.enterActive)
+        {
+            TryQueueProjectileSpawnForCurrentMove();
             EnterState(FighterState.AttackActive);
+        }
 
         if (outcome.enterRecovery)
             EnterState(FighterState.AttackRecovery);
@@ -350,6 +559,43 @@ public class Fighter
         }
 
         EnterState(FighterState.NeutralGround);
+    }
+
+    private void TryQueueProjectileSpawnForCurrentMove()
+    {
+        MoveType moveType = attackController.CurrentMoveType;
+        if (!IsFireballMoveType(moveType))
+            return;
+
+        float direction = facingRight ? 1f : -1f;
+        Vector2 spawnOffset = config.fireballSpawnOffset;
+        spawnOffset.x *= direction;
+        pendingProjectileSpawn = new ProjectileSpawnRequest
+        {
+            owner = this,
+            position = position + spawnOffset,
+            velocity = new Vector2(config.fireballProjectileSpeedPerFrame * direction, 0f),
+            halfSize = config.fireballProjectileHalfSize,
+            lifetimeFrames = config.fireballProjectileLifetimeFrames,
+            damage = config.fireballProjectileDamage,
+            hitstunFrames = config.fireballProjectileHitstunFrames,
+            sprite = config.fireballProjectileSprite,
+            tint = config.fireballProjectileTint
+        };
+        hasPendingProjectileSpawn = true;
+    }
+
+    public bool TryConsumeProjectileSpawnRequest(out ProjectileSpawnRequest request)
+    {
+        if (!hasPendingProjectileSpawn)
+        {
+            request = default;
+            return false;
+        }
+
+        request = pendingProjectileSpawn;
+        hasPendingProjectileSpawn = false;
+        return true;
     }
 
     private static bool IsCrouchingMoveType(MoveType moveType)
@@ -510,6 +756,13 @@ public class Fighter
         this.opponent = opponent;
     }
 
+    public void ClearInputHistory()
+    {
+        inputHistory.Clear();
+        debugInputHistoryFreezeFramesRemaining = 0;
+        debugInputHistoryDisplay = "No input history yet";
+    }
+
     public void MoveHorizontal(float deltaX)
     {
         position.x += deltaX;
@@ -525,5 +778,12 @@ public class Fighter
         Light,
         Medium,
         Heavy,
+    }
+
+    private static bool IsFireballMoveType(MoveType moveType)
+    {
+        return moveType == MoveType.FireballLight
+            || moveType == MoveType.FireballMedium
+            || moveType == MoveType.FireballHeavy;
     }
 }

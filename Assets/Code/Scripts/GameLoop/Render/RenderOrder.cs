@@ -13,6 +13,7 @@ public static class RenderOrder
 
     public static class World
     {
+        public const int Projectiles = 90;
         public const int DebugBoxes = 100;
     }
 }
