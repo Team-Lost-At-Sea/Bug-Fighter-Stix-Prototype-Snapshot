@@ -55,7 +55,7 @@ public sealed class FighterAttackController
         {
             simulatedState = FighterState.AttackActive;
             outcome.enterActive = true;
-            if (!IsProjectileOnlyMove(currentMoveType))
+            if (!currentMoveType.IsFireball())
             {
                 hitbox.active = true;
                 hitbox.hasHit = false;
@@ -70,7 +70,7 @@ public sealed class FighterAttackController
             if (!facingRight)
                 hitboxOffset.x = -hitboxOffset.x;
 
-            if (!IsProjectileOnlyMove(currentMoveType))
+            if (!currentMoveType.IsFireball())
                 hitbox.box = new Box(position + hitboxOffset, currentAttack.hitboxSize * 0.5f);
 
             int activeEndFrame = currentAttack.startupFrames + currentAttack.activeFrames;
@@ -103,13 +103,6 @@ public sealed class FighterAttackController
     public void MarkCurrentHitboxAsSpent()
     {
         hitbox.hasHit = true;
-    }
-
-    private static bool IsProjectileOnlyMove(MoveType moveType)
-    {
-        return moveType == MoveType.FireballLight
-            || moveType == MoveType.FireballMedium
-            || moveType == MoveType.FireballHeavy;
     }
 
     private static AttackTiming GetDefaultTiming(MoveType moveType)

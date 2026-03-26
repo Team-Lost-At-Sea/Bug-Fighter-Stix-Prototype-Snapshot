@@ -22,7 +22,7 @@ public class Fighter
     public bool IsGrounded => isGrounded;
     public bool HasActiveUnspentHitbox => attackController.HasActiveUnspentHitbox;
     public Hitbox CurrentHitbox => attackController.CurrentHitbox;
-    public Box CurrentHurtbox => new Box(position, hurtbox.halfSize);
+    public Box CurrentHurtbox => new Box(GetHurtboxCenter(), config.hurtboxHalfSize);
     public FighterState CurrentState => state;
     public FighterAirPhase CurrentAirPhase => GetAirPhase();
     public bool IsRisingInAir => GetAirPhase() == FighterAirPhase.Rising;
@@ -53,7 +53,6 @@ public class Fighter
     private readonly FighterMovementController movementController = new FighterMovementController();
     private readonly FighterRenderStateBuilder renderStateBuilder = new FighterRenderStateBuilder();
     private readonly InputHistoryBuffer inputHistory = new InputHistoryBuffer(90);
-    private Box hurtbox;
 
     private int hitstopFramesRemaining;
     private int hitstunFramesRemaining;
@@ -77,7 +76,6 @@ public class Fighter
         config = view.Config;
         position = startPosition;
         velocity = Vector2.zero;
-        hurtbox = new Box(position, config.hurtboxHalfSize);
         renderSnapshot = renderStateBuilder.BuildSnapshot(
             state,
             velocity,
@@ -564,24 +562,23 @@ public class Fighter
     private void TryQueueProjectileSpawnForCurrentMove()
     {
         MoveType moveType = attackController.CurrentMoveType;
-        if (!IsFireballMoveType(moveType))
+        if (!moveType.IsFireball())
             return;
 
         float direction = facingRight ? 1f : -1f;
         Vector2 spawnOffset = config.fireballSpawnOffset;
         spawnOffset.x *= direction;
-        pendingProjectileSpawn = new ProjectileSpawnRequest
-        {
-            owner = this,
-            position = position + spawnOffset,
-            velocity = new Vector2(config.fireballProjectileSpeedPerFrame * direction, 0f),
-            halfSize = config.fireballProjectileHalfSize,
-            lifetimeFrames = config.fireballProjectileLifetimeFrames,
-            damage = config.fireballProjectileDamage,
-            hitstunFrames = config.fireballProjectileHitstunFrames,
-            sprite = config.fireballProjectileSprite,
-            tint = config.fireballProjectileTint
-        };
+        pendingProjectileSpawn = new ProjectileSpawnRequest(
+            owner: this,
+            position: position + spawnOffset,
+            velocity: new Vector2(config.fireballProjectileSpeedPerFrame * direction, 0f),
+            halfSize: config.fireballProjectileHalfSize,
+            lifetimeFrames: config.fireballProjectileLifetimeFrames,
+            damage: config.fireballProjectileDamage,
+            hitstunFrames: config.fireballProjectileHitstunFrames,
+            sprite: config.fireballProjectileSprite,
+            tint: config.fireballProjectileTint
+        );
         hasPendingProjectileSpawn = true;
     }
 
@@ -742,6 +739,11 @@ public class Fighter
         if (opponent == null)
             return;
 
+        // Preserve facing for the full airborne arc. This keeps left/right-sensitive
+        // inputs (like QCF/QCB) stable until the fighter lands.
+        if (!isGrounded)
+            return;
+
         facingRight = opponent.position.x > position.x;
     }
 
@@ -773,6 +775,14 @@ public class Fighter
         position.x = newX;
     }
 
+    private Vector2 GetHurtboxCenter()
+    {
+        // Position is the feet anchor. Lift hurtbox by half-height so its base sits at feet,
+        // then allow per-character fine tuning through hurtboxOffsetFromFeet.
+        Vector2 centerOffset = new Vector2(0f, config.hurtboxHalfSize.y) + config.hurtboxOffsetFromFeet;
+        return position + centerOffset;
+    }
+
     private enum AttackStrength
     {
         Light,
@@ -780,10 +790,4 @@ public class Fighter
         Heavy,
     }
 
-    private static bool IsFireballMoveType(MoveType moveType)
-    {
-        return moveType == MoveType.FireballLight
-            || moveType == MoveType.FireballMedium
-            || moveType == MoveType.FireballHeavy;
-    }
 }

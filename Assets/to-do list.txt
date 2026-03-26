@@ -4,6 +4,8 @@ crossover
 
 Next week:
 
+Jumps feel floaty, need more gravity
+glasses on casa
 J_HP loops
 blocking
 cpu takeover

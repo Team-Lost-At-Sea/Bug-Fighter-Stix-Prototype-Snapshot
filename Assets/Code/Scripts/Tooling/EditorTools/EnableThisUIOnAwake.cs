@@ -4,7 +4,7 @@ using UnityEngine;
 // without having to remember to re-enable them to test the game.
 
 [RequireComponent(typeof(CanvasGroup))]
-public class EnableUIOnAwake : MonoBehaviour
+public class EnableThisUIOnAwake : MonoBehaviour
 {
     void Awake()
     {

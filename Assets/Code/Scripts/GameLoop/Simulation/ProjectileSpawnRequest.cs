@@ -1,14 +1,37 @@
 using UnityEngine;
 
-public struct ProjectileSpawnRequest
+public readonly struct ProjectileSpawnRequest
 {
-    public Fighter owner;
-    public Vector2 position;
-    public Vector2 velocity;
-    public Vector2 halfSize;
-    public int lifetimeFrames;
-    public int damage;
-    public int hitstunFrames;
-    public Sprite sprite;
-    public Color tint;
+    public readonly Fighter owner;
+    public readonly Vector2 position;
+    public readonly Vector2 velocity;
+    public readonly Vector2 halfSize;
+    public readonly int lifetimeFrames;
+    public readonly int damage;
+    public readonly int hitstunFrames;
+    public readonly Sprite sprite;
+    public readonly Color tint;
+
+    public ProjectileSpawnRequest(
+        Fighter owner,
+        Vector2 position,
+        Vector2 velocity,
+        Vector2 halfSize,
+        int lifetimeFrames,
+        int damage,
+        int hitstunFrames,
+        Sprite sprite,
+        Color tint
+    )
+    {
+        this.owner = owner;
+        this.position = position;
+        this.velocity = velocity;
+        this.halfSize = halfSize;
+        this.lifetimeFrames = Mathf.Max(1, lifetimeFrames);
+        this.damage = Mathf.Max(0, damage);
+        this.hitstunFrames = Mathf.Max(1, hitstunFrames);
+        this.sprite = sprite;
+        this.tint = tint;
+    }
 }

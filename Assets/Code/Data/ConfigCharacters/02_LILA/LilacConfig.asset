@@ -15,11 +15,12 @@ MonoBehaviour:
   moveSpeed: 6
   jumpForce: 65
   jumpHorizontalBoostScale: 2
-  gravity: -120
+  gravity: -160
   maxFallSpeed: -400
   groundFriction: 9999
   pushboxHalfWidth: 1.3
-  hurtboxHalfSize: {x: 1.4, y: 8}
+  hurtboxHalfSize: {x: 1.4, y: 4.29}
+  hurtboxOffsetFromFeet: {x: 0, y: 0}
   idleStateName: Idle
   crouchStateName: Crouching
   crouchTransitionStateName: Crouch Transition

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 
 public sealed class InputHistoryBuffer
 {
@@ -20,6 +21,9 @@ public sealed class InputHistoryBuffer
 
     public InputHistoryBuffer(int capacity)
     {
+        if (capacity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(capacity), "Input history capacity must be greater than zero.");
+
         entries = new HistoryEntry[capacity];
     }
 

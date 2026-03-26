@@ -81,3 +81,13 @@ public enum MoveType
     FireballMedium = 11,
     FireballHeavy = 12,
 }
+
+public static class MoveTypeExtensions
+{
+    public static bool IsFireball(this MoveType moveType)
+    {
+        return moveType == MoveType.FireballLight
+            || moveType == MoveType.FireballMedium
+            || moveType == MoveType.FireballHeavy;
+    }
+}

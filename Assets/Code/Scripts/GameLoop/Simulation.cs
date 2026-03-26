@@ -20,10 +20,7 @@ public class Simulation
     private Fighter player1;
     private Fighter player2;
     private readonly List<Projectile> projectiles = new List<Projectile>();
-    private readonly Dictionary<int, DebugBoxVisual> projectileVisuals = new Dictionary<int, DebugBoxVisual>();
-    private readonly Dictionary<int, DebugBoxVisual> projectileHitboxVisuals = new Dictionary<int, DebugBoxVisual>();
-    private Transform projectileVisualRoot;
-    private Transform projectileHitboxVisualRoot;
+    private readonly ProjectileDebugRenderer projectileRenderer = new ProjectileDebugRenderer();
     private int nextProjectileId = 1;
     const float FIGHTER_START_POSITION_OFFSET = 10f;
 
@@ -66,7 +63,7 @@ public class Simulation
     {
         player1.Render();
         player2.Render();
-        RenderProjectiles();
+        projectileRenderer.Render(projectiles);
     }
 
     public string GetPlayer1InputHistoryDebugString(int maxEntries = 30)
@@ -85,6 +82,9 @@ public class Simulation
 
     private void ResolvePushboxes()
     {
+        if (!ShouldResolvePushboxCollision(player1, player2))
+            return;
+
         // Compute horizontal overlap
         float distance = Mathf.Abs(player2.Position.x - player1.Position.x);
         float minDistance = player1.PushboxHalfWidth + player2.PushboxHalfWidth;
@@ -105,6 +105,21 @@ public class Simulation
                 player2.MoveHorizontal(-separation);
             }
         }
+    }
+
+    private static bool ShouldResolvePushboxCollision(Fighter a, Fighter b)
+    {
+        if (a == null || b == null)
+            return false;
+
+        // Keep grounded body-blocking behavior, but allow air crossovers by requiring
+        // vertical overlap between hurtboxes before applying horizontal push separation.
+        if (a.IsGrounded && b.IsGrounded)
+            return true;
+
+        Box hurtboxA = a.CurrentHurtbox;
+        Box hurtboxB = b.CurrentHurtbox;
+        return Mathf.Abs(hurtboxA.center.y - hurtboxB.center.y) <= (hurtboxA.halfSize.y + hurtboxB.halfSize.y);
     }
 
     private void ResolveHitDetection()
@@ -169,7 +184,7 @@ public class Simulation
             if (!projectile.active || IsProjectileOutOfStage(projectile))
             {
                 projectile.active = false;
-                RemoveProjectileVisual(projectile.id);
+                projectileRenderer.Remove(projectile.id);
                 projectiles.RemoveAt(i);
             }
         }
@@ -199,120 +214,16 @@ public class Simulation
             defender.ApplyHit(projectile.ToHitbox());
             projectile.owner.ApplySuccessfulHitstopAsAttacker();
             projectile.active = false;
-            RemoveProjectileVisual(projectile.id);
+            projectileRenderer.Remove(projectile.id);
             projectiles.RemoveAt(i);
-        }
-    }
-
-    private void RenderProjectiles()
-    {
-        for (int i = 0; i < projectiles.Count; i++)
-        {
-            Projectile projectile = projectiles[i];
-            DebugBoxVisual visual = GetOrCreateProjectileVisual(projectile.id);
-            visual.SetBox(projectile.CurrentBox);
-            visual.SetVisible(projectile.active);
-
-            DebugBoxVisual hitboxVisual = GetOrCreateProjectileHitboxVisual(projectile.id);
-            hitboxVisual.SetBox(projectile.CurrentBox);
-            hitboxVisual.SetVisible(projectile.active && FighterView.GlobalShowBoxes);
-        }
-    }
-
-    private DebugBoxVisual GetOrCreateProjectileVisual(int projectileId)
-    {
-        if (projectileVisuals.TryGetValue(projectileId, out DebugBoxVisual existing))
-            return existing;
-
-        GameObject visualObject = new GameObject($"ProjectileVisual_{projectileId}");
-        visualObject.transform.SetParent(GetOrCreateProjectileVisualRoot(), false);
-        DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
-        Projectile projectile = GetProjectileById(projectileId);
-        Color tint = projectile != null ? projectile.tint : new Color(1f, 0.6f, 0.1f, 0.9f);
-        visual.Initialize(tint);
-        visual.SetSortingOrder(RenderOrder.World.Projectiles);
-        if (projectile != null)
-            visual.SetSprite(projectile.sprite);
-        visual.SetVisible(false);
-        projectileVisuals[projectileId] = visual;
-        return visual;
-    }
-
-    private Transform GetOrCreateProjectileVisualRoot()
-    {
-        if (projectileVisualRoot != null)
-            return projectileVisualRoot;
-
-        GameObject rootObject = GameObject.Find("ProjectileDebugRoot");
-        if (rootObject == null)
-            rootObject = new GameObject("ProjectileDebugRoot");
-
-        projectileVisualRoot = rootObject.transform;
-        return projectileVisualRoot;
-    }
-
-    private void RemoveProjectileVisual(int projectileId)
-    {
-        if (projectileVisuals.TryGetValue(projectileId, out DebugBoxVisual visual))
-        {
-            projectileVisuals.Remove(projectileId);
-            if (visual != null)
-                Object.Destroy(visual.gameObject);
-        }
-
-        if (projectileHitboxVisuals.TryGetValue(projectileId, out DebugBoxVisual hitboxVisual))
-        {
-            projectileHitboxVisuals.Remove(projectileId);
-            if (hitboxVisual != null)
-                Object.Destroy(hitboxVisual.gameObject);
         }
     }
 
     private void ClearProjectilesAndVisuals()
     {
-        for (int i = 0; i < projectiles.Count; i++)
-            RemoveProjectileVisual(projectiles[i].id);
-
+        projectileRenderer.ClearAll();
         projectiles.Clear();
-    }
-
-    private DebugBoxVisual GetOrCreateProjectileHitboxVisual(int projectileId)
-    {
-        if (projectileHitboxVisuals.TryGetValue(projectileId, out DebugBoxVisual existing))
-            return existing;
-
-        GameObject visualObject = new GameObject($"ProjectileHitboxVisual_{projectileId}");
-        visualObject.transform.SetParent(GetOrCreateProjectileHitboxVisualRoot(), false);
-        DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
-        visual.Initialize(new Color(1f, 0f, 0f, 0.75f));
-        visual.SetSortingOrder(RenderOrder.World.DebugBoxes);
-        visual.SetVisible(false);
-        projectileHitboxVisuals[projectileId] = visual;
-        return visual;
-    }
-
-    private Transform GetOrCreateProjectileHitboxVisualRoot()
-    {
-        if (projectileHitboxVisualRoot != null)
-            return projectileHitboxVisualRoot;
-
-        GameObject rootObject = GameObject.Find("ProjectileHitboxDebugRoot");
-        if (rootObject == null)
-            rootObject = new GameObject("ProjectileHitboxDebugRoot");
-
-        projectileHitboxVisualRoot = rootObject.transform;
-        return projectileHitboxVisualRoot;
-    }
-
-    private Projectile GetProjectileById(int projectileId)
-    {
-        for (int i = 0; i < projectiles.Count; i++)
-        {
-            if (projectiles[i].id == projectileId)
-                return projectiles[i];
-        }
-
-        return null;
+        nextProjectileId = 1;
     }
 
     private void ClampToStage(Fighter fighter)

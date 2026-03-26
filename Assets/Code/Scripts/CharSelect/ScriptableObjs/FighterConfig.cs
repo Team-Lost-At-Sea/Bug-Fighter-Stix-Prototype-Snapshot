@@ -18,6 +18,7 @@ public class FighterConfig : ScriptableObject
 
     [Header("Hurtbox")]
     public Vector2 hurtboxHalfSize = new Vector2(0.5f, 1.0f);
+    public Vector2 hurtboxOffsetFromFeet = Vector2.zero;
 
     [Header("Shared State Animations")]
     public string idleStateName = "Idle";
