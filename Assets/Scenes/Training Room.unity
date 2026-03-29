@@ -973,10 +973,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fighter1: {fileID: 1520451129}
-  fighter2: {fileID: 0}
+  fighter2: {fileID: 1739284739}
   stage: {fileID: 1187611073}
   smoothSpeed: 5
   yOffset: 10
+  minOrthographicSize: 4.5
+  maxOrthographicSize: 8
+  zoomInStopDistance: 4
+  zoomOutStopDistance: 22
+  zoomSmoothSpeed: 6
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -2800,6 +2805,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ffd7e0fbb853524884086ce9c96ba67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FighterView
+--- !u!4 &1739284739 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2287060288388628142, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
+  m_PrefabInstance: {fileID: 810143032}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1765923543
 GameObject:
   m_ObjectHideFlags: 0

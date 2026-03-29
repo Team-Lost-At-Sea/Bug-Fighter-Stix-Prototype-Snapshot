@@ -19,7 +19,8 @@ MonoBehaviour:
   maxFallSpeed: -400
   groundFriction: 9999
   pushboxHalfWidth: 1.3
-  hurtboxHalfSize: {x: 1.4, y: 8}
+  hurtboxHalfSize: {x: 1.4, y: 3}
+  hurtboxOffsetFromFeet: {x: 0, y: 0}
   idleStateName: Idle
   crouchStateName: Crouching
   crouchTransitionStateName: Crouch Transition
@@ -40,6 +41,9 @@ MonoBehaviour:
   jumpingLightStateName: j_LP
   jumpingMediumStateName: j_MP
   jumpingHeavyStateName: j_HP
+  fireballLightStateName: s_LP
+  fireballMediumStateName: s_MP
+  fireballHeavyStateName: s_HP
   standingLightAttackData:
     startupFrames: 3
     activeFrames: 2
@@ -112,3 +116,35 @@ MonoBehaviour:
     hitstunFrames: 38
     hitboxOffset: {x: 0, y: 2.4}
     hitboxSize: {x: 5, y: 2}
+  fireballLightAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballMediumAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballHeavyAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  fireballProjectileSprite: {fileID: 0}
+  fireballProjectileTint: {r: 1, g: 0.6, b: 0.1, a: 0.9}
+  fireballSpawnOffset: {x: 1, y: 1}
+  fireballProjectileHalfSize: {x: 0.35, y: 0.35}
+  fireballProjectileSpeedPerFrame: 0.42
+  fireballProjectileLifetimeFrames: 120
+  fireballProjectileDamage: 7
+  fireballProjectileHitstunFrames: 16

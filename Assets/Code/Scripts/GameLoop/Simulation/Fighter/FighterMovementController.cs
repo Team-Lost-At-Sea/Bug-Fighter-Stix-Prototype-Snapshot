@@ -85,13 +85,13 @@ public sealed class FighterMovementController
     {
         if (velocity.x > 0f)
         {
-            velocity.x -= config.groundFriction * GameLoop.FIXED_DT;
+            velocity.x -= config.groundFriction * SimulationTime.FixedDt;
             if (velocity.x < 0f)
                 velocity.x = 0f;
         }
         else if (velocity.x < 0f)
         {
-            velocity.x += config.groundFriction * GameLoop.FIXED_DT;
+            velocity.x += config.groundFriction * SimulationTime.FixedDt;
             if (velocity.x > 0f)
                 velocity.x = 0f;
         }
@@ -105,7 +105,7 @@ public sealed class FighterMovementController
             return;
         }
 
-        velocity.y += config.gravity * GameLoop.FIXED_DT;
+        velocity.y += config.gravity * SimulationTime.FixedDt;
 
         if (velocity.y < config.maxFallSpeed)
             velocity.y = config.maxFallSpeed;
@@ -113,7 +113,7 @@ public sealed class FighterMovementController
 
     public void Integrate(ref Vector2 position, Vector2 velocity)
     {
-        position += velocity * GameLoop.FIXED_DT;
+        position += velocity * SimulationTime.FixedDt;
     }
 
     public GroundContactResult ResolveGroundContact(ref Vector2 position, ref Vector2 velocity, ref bool isGrounded)

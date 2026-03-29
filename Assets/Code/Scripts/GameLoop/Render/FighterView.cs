@@ -122,6 +122,7 @@ public class FighterView : MonoBehaviour
         else
             UpdateAnimationPlayback();
 
+        SetPosition(fighter.Position);
         SetFacing(fighter.FacingRight);
         UpdateBoxVisuals();
     }

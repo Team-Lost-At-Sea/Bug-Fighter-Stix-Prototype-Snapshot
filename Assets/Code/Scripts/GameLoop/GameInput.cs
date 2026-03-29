@@ -84,7 +84,7 @@ public class GameInput : MonoBehaviour
 
         Instance = this;
         if (gameLoop == null)
-            gameLoop = FindObjectOfType<GameLoop>();
+            gameLoop = FindFirstObjectByType<GameLoop>();
 
         inputActions = new InputSystem_Actions();
         inputActions.Enable();
@@ -155,11 +155,27 @@ public class GameInput : MonoBehaviour
         }
     }
 
+    public FrameInput ConsumeNextFrameInput(int frameIndex)
+    {
+        return new FrameInput
+        {
+            frameIndex = frameIndex,
+            player1 = ConsumeNextPlayer1Input(),
+            // P2 stays neutral until a second input map is introduced.
+            player2 = InputFrame.Neutral
+        };
+    }
+
     /// <summary>
-    /// Called by Simulation.Tick() to get the next input.
+    /// Called by Simulation.Tick() to get the next P1 input.
     /// Falls back to the most recently captured frame if the buffer is empty.
     /// </summary>
     public InputFrame ConsumeNextInput()
+    {
+        return ConsumeNextPlayer1Input();
+    }
+
+    private InputFrame ConsumeNextPlayer1Input()
     {
         if (inputBuffer.Count > 0)
         {
@@ -329,7 +345,7 @@ public class GameInput : MonoBehaviour
     private string GetPlayer1InputHistoryDebugString()
     {
         if (gameLoop == null)
-            gameLoop = FindObjectOfType<GameLoop>();
+            gameLoop = FindFirstObjectByType<GameLoop>();
 
         if (gameLoop == null || gameLoop.ActiveSimulation == null)
             return "Simulation not available";

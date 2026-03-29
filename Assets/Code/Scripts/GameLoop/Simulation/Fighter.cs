@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Text;
+using System;
 
 // Fighter.cs drives deterministic simulation for one fighter.
 // Gameplay timing is fully frame-based and independent from Animator timing.
@@ -38,7 +39,7 @@ public class Fighter
     private Vector2 position;
     private Vector2 velocity;
     private readonly FighterConfig config;
-    private readonly FighterView view;
+    private readonly string debugName;
     private Fighter opponent;
 
     private bool isGrounded = true;
@@ -70,10 +71,13 @@ public class Fighter
 
     private FighterRenderSnapshot renderSnapshot;
 
-    public Fighter(FighterView view, Vector2 startPosition)
+    public Fighter(FighterConfig config, Vector2 startPosition, string debugName)
     {
-        this.view = view;
-        config = view.Config;
+        if (config == null)
+            throw new ArgumentNullException(nameof(config));
+
+        this.config = config;
+        this.debugName = string.IsNullOrWhiteSpace(debugName) ? "UnknownFighter" : debugName;
         position = startPosition;
         velocity = Vector2.zero;
         renderSnapshot = renderStateBuilder.BuildSnapshot(
@@ -718,9 +722,8 @@ public class Fighter
 
         if (ShouldLogCrouchTransition(previousState, nextState))
         {
-            string fighterName = view != null ? view.name : "UnknownFighter";
             Debug.Log(
-                $"[CrouchState] {fighterName} {previousState} -> {nextState} " +
+                $"[CrouchState] {debugName} {previousState} -> {nextState} " +
                 $"grounded={isGrounded} posY={position.y:F3}"
             );
         }
@@ -745,12 +748,6 @@ public class Fighter
             return;
 
         facingRight = opponent.position.x > position.x;
-    }
-
-    public void Render()
-    {
-        view.SetPosition(position);
-        view.SetFacing(facingRight);
     }
 
     public void SetOpponent(Fighter opponent)

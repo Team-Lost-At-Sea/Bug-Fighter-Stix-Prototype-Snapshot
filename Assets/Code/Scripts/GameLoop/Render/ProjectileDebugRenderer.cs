@@ -5,14 +5,19 @@ public sealed class ProjectileDebugRenderer
 {
     private readonly Dictionary<int, DebugBoxVisual> projectileVisuals = new Dictionary<int, DebugBoxVisual>();
     private readonly Dictionary<int, DebugBoxVisual> projectileHitboxVisuals = new Dictionary<int, DebugBoxVisual>();
+    private readonly HashSet<int> renderActiveIds = new HashSet<int>();
+    private readonly List<int> staleProjectileIds = new List<int>();
     private Transform projectileVisualRoot;
     private Transform projectileHitboxVisualRoot;
 
     public void Render(IReadOnlyList<Projectile> projectiles)
     {
+        renderActiveIds.Clear();
+
         for (int i = 0; i < projectiles.Count; i++)
         {
             Projectile projectile = projectiles[i];
+            renderActiveIds.Add(projectile.id);
 
             DebugBoxVisual visual = GetOrCreateProjectileVisual(projectile);
             visual.SetBox(projectile.CurrentBox);
@@ -22,6 +27,16 @@ public sealed class ProjectileDebugRenderer
             hitboxVisual.SetBox(projectile.CurrentBox);
             hitboxVisual.SetVisible(projectile.active && FighterView.GlobalShowBoxes);
         }
+
+        staleProjectileIds.Clear();
+        foreach (int projectileId in projectileVisuals.Keys)
+        {
+            if (!renderActiveIds.Contains(projectileId))
+                staleProjectileIds.Add(projectileId);
+        }
+
+        for (int i = 0; i < staleProjectileIds.Count; i++)
+            Remove(staleProjectileIds[i]);
     }
 
     public void Remove(int projectileId)

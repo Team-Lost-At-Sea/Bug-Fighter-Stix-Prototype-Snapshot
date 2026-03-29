@@ -6,14 +6,35 @@ using System.Collections.Generic;
 // It encapsulates the main fighting match simulation logic for the game loop.
 public class Simulation
 {
+    private enum PendingHitSource
+    {
+        FighterHitbox,
+        Projectile
+    }
+
+    private struct PendingHitEvent
+    {
+        public PendingHitSource source;
+        public Fighter attacker;
+        public Fighter defender;
+        public Hitbox hitbox;
+        public Projectile projectile;
+    }
+
     private Fighter player1;
     private Fighter player2;
     private readonly List<Projectile> projectiles = new List<Projectile>();
-    private readonly ProjectileDebugRenderer projectileRenderer = new ProjectileDebugRenderer();
+    private readonly List<PendingHitEvent> pendingHitEvents = new List<PendingHitEvent>(8);
     private int nextProjectileId = 1;
+    private int simulationFrame;
     private readonly float fighterStartPositionOffset;
     private readonly float stageLeft;
     private readonly float stageRight;
+    
+    public IReadOnlyList<Projectile> ActiveProjectiles => projectiles;
+    public Fighter Player1 => player1;
+    public Fighter Player2 => player2;
+    public int CurrentFrame => simulationFrame;
 
     public Simulation(MatchConfig config = null)
     {
@@ -31,30 +52,27 @@ public class Simulation
         }
     }
 
-    public void Initialize(FighterView p1View, FighterView p2View)
+    public void Initialize(
+        FighterConfig player1Config,
+        FighterConfig player2Config,
+        string player1Name = "Player1",
+        string player2Name = "Player2"
+    )
     {
-        player1 = new Fighter(p1View, new Vector2(-fighterStartPositionOffset, 0f));
-        player2 = new Fighter(p2View, new Vector2(fighterStartPositionOffset, 0f));
+        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name);
+        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name);
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
 
-        // Connect views to fighters
-        p1View.Initialize(player1);
-        p2View.Initialize(player2);
-
-        ClearProjectilesAndVisuals();
+        ClearProjectiles();
     }
 
-    public void Tick(InputFrame input_p1)
+    public void Tick(FrameInput frameInput)
     {
-        // Get input for the fighters on this simulation tick
-        // Player 2 is still neutral for now
-        InputFrame input_p2 = InputFrame.Neutral; // placeholder for P2
-
         // Update each fighter with their input
-        player1.Tick(input_p1);
-        player2.Tick(input_p2);
+        player1.Tick(frameInput.player1);
+        player2.Tick(frameInput.player2);
 
         SpawnPendingProjectiles();
         UpdateProjectiles();
@@ -64,13 +82,40 @@ public class Simulation
         ResolvePushboxes(); // Prevent overlapping
         ClampToStage(player1);
         ClampToStage(player2);
+        simulationFrame = frameInput.frameIndex > simulationFrame
+            ? frameInput.frameIndex
+            : simulationFrame + 1;
     }
 
-    public void Render()
+    public int ComputeDeterminismHash()
     {
-        player1.Render();
-        player2.Render();
-        projectileRenderer.Render(projectiles);
+        unchecked
+        {
+            int hash = 17;
+            hash = HashInt(hash, simulationFrame);
+            hash = HashFighterState(hash, player1, 1);
+            hash = HashFighterState(hash, player2, 2);
+            hash = HashInt(hash, projectiles.Count);
+
+            for (int i = 0; i < projectiles.Count; i++)
+            {
+                Projectile projectile = projectiles[i];
+                hash = HashInt(hash, projectile.id);
+                hash = HashInt(hash, projectile.active ? 1 : 0);
+                hash = HashInt(hash, projectile.owner == player1 ? 1 : 2);
+                hash = HashInt(hash, QuantizeFloat(projectile.position.x));
+                hash = HashInt(hash, QuantizeFloat(projectile.position.y));
+                hash = HashInt(hash, QuantizeFloat(projectile.velocity.x));
+                hash = HashInt(hash, QuantizeFloat(projectile.velocity.y));
+                hash = HashInt(hash, QuantizeFloat(projectile.halfSize.x));
+                hash = HashInt(hash, QuantizeFloat(projectile.halfSize.y));
+                hash = HashInt(hash, projectile.damage);
+                hash = HashInt(hash, projectile.hitstunFrames);
+                hash = HashInt(hash, projectile.lifetimeFramesRemaining);
+            }
+
+            return hash;
+        }
     }
 
     public string GetPlayer1InputHistoryDebugString(int maxEntries = 30)
@@ -131,22 +176,34 @@ public class Simulation
 
     private void ResolveHitDetection()
     {
-        ResolveHitForPair(player1, player2);
-        ResolveHitForPair(player2, player1);
-        ResolveProjectileHits();
+        pendingHitEvents.Clear();
+        CollectFighterHitEvent(player1, player2);
+        CollectFighterHitEvent(player2, player1);
+        CollectProjectileHitEvents();
+        ResolvePendingHitEvents();
+        PruneInactiveProjectiles();
     }
 
-    private void ResolveHitForPair(Fighter attacker, Fighter defender)
+    private void CollectFighterHitEvent(Fighter attacker, Fighter defender)
     {
+        if (attacker == null || defender == null)
+            return;
+
         if (!attacker.HasActiveUnspentHitbox)
             return;
 
-        if (!attacker.CurrentHitbox.box.Overlaps(defender.CurrentHurtbox))
+        Hitbox hitbox = attacker.CurrentHitbox;
+        if (!hitbox.box.Overlaps(defender.CurrentHurtbox))
             return;
 
-        defender.ApplyHit(attacker.CurrentHitbox);
-        attacker.ApplySuccessfulHitstopAsAttacker();
-        attacker.MarkCurrentHitboxAsSpent();
+        pendingHitEvents.Add(new PendingHitEvent
+        {
+            source = PendingHitSource.FighterHitbox,
+            attacker = attacker,
+            defender = defender,
+            hitbox = hitbox,
+            projectile = null
+        });
     }
 
     private void SpawnPendingProjectiles()
@@ -188,7 +245,6 @@ public class Simulation
             if (!projectile.active || IsProjectileOutOfStage(projectile))
             {
                 projectile.active = false;
-                projectileRenderer.Remove(projectile.id);
                 projectiles.RemoveAt(i);
             }
         }
@@ -200,7 +256,7 @@ public class Simulation
             || projectile.position.x - projectile.halfSize.x > stageRight;
     }
 
-    private void ResolveProjectileHits()
+    private void CollectProjectileHitEvents()
     {
         for (int i = projectiles.Count - 1; i >= 0; i--)
         {
@@ -215,19 +271,56 @@ public class Simulation
             if (!projectile.CurrentBox.Overlaps(defender.CurrentHurtbox))
                 continue;
 
-            defender.ApplyHit(projectile.ToHitbox());
-            projectile.owner.ApplySuccessfulHitstopAsAttacker();
-            projectile.active = false;
-            projectileRenderer.Remove(projectile.id);
-            projectiles.RemoveAt(i);
+            pendingHitEvents.Add(new PendingHitEvent
+            {
+                source = PendingHitSource.Projectile,
+                attacker = projectile.owner,
+                defender = defender,
+                hitbox = projectile.ToHitbox(),
+                projectile = projectile
+            });
         }
     }
 
-    private void ClearProjectilesAndVisuals()
+    private void ResolvePendingHitEvents()
     {
-        projectileRenderer.ClearAll();
+        for (int i = 0; i < pendingHitEvents.Count; i++)
+        {
+            PendingHitEvent hitEvent = pendingHitEvents[i];
+            if (hitEvent.attacker == null || hitEvent.defender == null)
+                continue;
+
+            if (hitEvent.source == PendingHitSource.Projectile)
+            {
+                if (hitEvent.projectile == null || !hitEvent.projectile.active)
+                    continue;
+
+                hitEvent.defender.ApplyHit(hitEvent.hitbox);
+                hitEvent.attacker.ApplySuccessfulHitstopAsAttacker();
+                hitEvent.projectile.active = false;
+                continue;
+            }
+
+            hitEvent.defender.ApplyHit(hitEvent.hitbox);
+            hitEvent.attacker.ApplySuccessfulHitstopAsAttacker();
+            hitEvent.attacker.MarkCurrentHitboxAsSpent();
+        }
+    }
+
+    private void PruneInactiveProjectiles()
+    {
+        for (int i = projectiles.Count - 1; i >= 0; i--)
+        {
+            if (!projectiles[i].active)
+                projectiles.RemoveAt(i);
+        }
+    }
+
+    private void ClearProjectiles()
+    {
         projectiles.Clear();
         nextProjectileId = 1;
+        simulationFrame = 0;
     }
 
     private void ClampToStage(Fighter fighter)
@@ -239,6 +332,39 @@ public class Simulation
 
         if (fighter.Position.x + half > stageRight)
             fighter.SetHorizontal(stageRight - half);
+    }
+
+    private static int HashFighterState(int seed, Fighter fighter, int slot)
+    {
+        if (fighter == null)
+            return HashInt(seed, -slot);
+
+        int hash = seed;
+        hash = HashInt(hash, slot);
+        hash = HashInt(hash, QuantizeFloat(fighter.Position.x));
+        hash = HashInt(hash, QuantizeFloat(fighter.Position.y));
+        hash = HashInt(hash, QuantizeFloat(fighter.Velocity.x));
+        hash = HashInt(hash, QuantizeFloat(fighter.Velocity.y));
+        hash = HashInt(hash, fighter.FacingRight ? 1 : 0);
+        hash = HashInt(hash, fighter.IsGrounded ? 1 : 0);
+        hash = HashInt(hash, fighter.IsInHitstop ? 1 : 0);
+        hash = HashInt(hash, (int)fighter.CurrentState);
+        hash = HashInt(hash, fighter.StateFrame);
+        hash = HashInt(hash, (int)fighter.CurrentMoveType);
+        return hash;
+    }
+
+    private static int QuantizeFloat(float value)
+    {
+        return Mathf.RoundToInt(value * 1000f);
+    }
+
+    private static int HashInt(int seed, int value)
+    {
+        unchecked
+        {
+            return (seed * 31) + value;
+        }
     }
 
 }

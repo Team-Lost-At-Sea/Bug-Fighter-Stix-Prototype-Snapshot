@@ -27,37 +27,68 @@ public class GameLoop : MonoBehaviour
     private MatchConfig matchConfig;
 
     private Simulation simulation;
+    private readonly MatchPresenter presenter = new MatchPresenter();
 
     public Simulation ActiveSimulation => simulation;
 
     void Start()
     {
+        int configuredTicksPerSecond = matchConfig != null
+            ? matchConfig.ticksPerSecond
+            : TICKS_PER_SECOND;
+        SimulationTime.Configure(configuredTicksPerSecond);
+
         simulation = new Simulation(matchConfig);
         Fighter.HitstopFrames = matchConfig != null
             ? Mathf.Max(0, matchConfig.hitstopFrames)
             : Mathf.Max(0, hitstopFrames);
         ApplySelectedCharacters();
-        simulation.Initialize(player1View, player2View);
+
+        FighterConfig player1Config = player1View != null ? player1View.Config : null;
+        FighterConfig player2Config = player2View != null ? player2View.Config : null;
+        if (player1Config == null || player2Config == null)
+        {
+            Debug.LogError(
+                "GameLoop: Missing fighter config(s) on player views. Ensure character definitions are applied before match start."
+            );
+            simulation = null;
+            return;
+        }
+
+        string player1Name = player1View != null ? player1View.name : "Player1";
+        string player2Name = player2View != null ? player2View.name : "Player2";
+        simulation.Initialize(player1Config, player2Config, player1Name, player2Name);
+        presenter.Initialize(simulation, player1View, player2View);
     }
 
     void Update()
     {
+        if (simulation == null)
+            return;
+
         accumulator += Time.deltaTime;
 
         int safety = 0;
-        while (accumulator >= FIXED_DT && safety < 5)
+        float fixedDt = SimulationTime.FixedDt;
+        while (accumulator >= fixedDt && safety < 5)
         {
             // Tick the simulation with the next buffered input
-            InputFrame p1Input = GameInput.Instance.ConsumeNextInput();
+            int nextFrameIndex = simulation.CurrentFrame + 1;
+            FrameInput frameInput = GameInput.Instance.ConsumeNextFrameInput(nextFrameIndex);
 
-            simulation.Tick(p1Input);
+            simulation.Tick(frameInput);
 
-            accumulator -= FIXED_DT;
+            accumulator -= fixedDt;
             safety++;
         }
 
         // Render after simulation updates
-        simulation.Render();
+        presenter.Render(simulation);
+    }
+
+    private void OnDisable()
+    {
+        presenter.Dispose();
     }
 
     private void ApplySelectedCharacters()
