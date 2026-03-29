@@ -1,18 +1,22 @@
 to-do list
 
-crossover
-
-Next week:
-
-Jumps feel floaty, need more gravity
-glasses on casa
-J_HP loops
+DONE crossover
+DONE Jumps feel floaty, need more gravity
+DONE glasses on casa
+DONE J_HP loops
+camera
+cornering
+jasper anims
 blocking
 cpu takeover
 reset state
 special input
 visual confirmation in champ select
 backdashs/fw dash
+
+Next week:
+
+VN module
 
 Ideas to not let go:
 

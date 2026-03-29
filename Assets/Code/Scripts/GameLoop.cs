@@ -21,12 +21,23 @@ public class GameLoop : MonoBehaviour
     [Header("Debug")]
     [SerializeField]
     private int hitstopFrames = 8;
+    
+    [Header("Match")]
+    [SerializeField]
+    private MatchConfig matchConfig;
+
+    private Simulation simulation;
+
+    public Simulation ActiveSimulation => simulation;
 
     void Start()
     {
-        Fighter.HitstopFrames = Mathf.Max(0, hitstopFrames);
+        simulation = new Simulation(matchConfig);
+        Fighter.HitstopFrames = matchConfig != null
+            ? Mathf.Max(0, matchConfig.hitstopFrames)
+            : Mathf.Max(0, hitstopFrames);
         ApplySelectedCharacters();
-        Simulation.Instance.Initialize(player1View, player2View);
+        simulation.Initialize(player1View, player2View);
     }
 
     void Update()
@@ -39,14 +50,14 @@ public class GameLoop : MonoBehaviour
             // Tick the simulation with the next buffered input
             InputFrame p1Input = GameInput.Instance.ConsumeNextInput();
 
-            Simulation.Instance.Tick(p1Input);
+            simulation.Tick(p1Input);
 
             accumulator -= FIXED_DT;
             safety++;
         }
 
         // Render after simulation updates
-        Simulation.Instance.Render();
+        simulation.Render();
     }
 
     private void ApplySelectedCharacters()

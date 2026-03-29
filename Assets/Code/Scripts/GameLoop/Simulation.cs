@@ -6,28 +6,35 @@ using System.Collections.Generic;
 // It encapsulates the main fighting match simulation logic for the game loop.
 public class Simulation
 {
-    private static Simulation _instance;
-    public static Simulation Instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = new Simulation();
-            return _instance;
-        }
-    }
-
     private Fighter player1;
     private Fighter player2;
     private readonly List<Projectile> projectiles = new List<Projectile>();
     private readonly ProjectileDebugRenderer projectileRenderer = new ProjectileDebugRenderer();
     private int nextProjectileId = 1;
-    const float FIGHTER_START_POSITION_OFFSET = 10f;
+    private readonly float fighterStartPositionOffset;
+    private readonly float stageLeft;
+    private readonly float stageRight;
+
+    public Simulation(MatchConfig config = null)
+    {
+        if (config != null)
+        {
+            fighterStartPositionOffset = Mathf.Abs(config.fighterStartPositionOffset);
+            stageLeft = config.stageLeft;
+            stageRight = config.stageRight;
+        }
+        else
+        {
+            fighterStartPositionOffset = 10f;
+            stageLeft = -80f;
+            stageRight = 80f;
+        }
+    }
 
     public void Initialize(FighterView p1View, FighterView p2View)
     {
-        player1 = new Fighter(p1View, new Vector2(-FIGHTER_START_POSITION_OFFSET, 0f));
-        player2 = new Fighter(p2View, new Vector2(FIGHTER_START_POSITION_OFFSET, 0f));
+        player1 = new Fighter(p1View, new Vector2(-fighterStartPositionOffset, 0f));
+        player2 = new Fighter(p2View, new Vector2(fighterStartPositionOffset, 0f));
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
@@ -141,9 +148,6 @@ public class Simulation
         attacker.ApplySuccessfulHitstopAsAttacker();
         attacker.MarkCurrentHitboxAsSpent();
     }
-
-    private float stageLeft = -80f;
-    private float stageRight = 80f;
 
     private void SpawnPendingProjectiles()
     {

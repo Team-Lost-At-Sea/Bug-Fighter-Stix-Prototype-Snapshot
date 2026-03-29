@@ -37,6 +37,10 @@ public class GameInput : MonoBehaviour
     [Header("Menu")]
     [SerializeField]
     private MenuOptionsController menuController;
+    
+    [Header("References")]
+    [SerializeField]
+    private GameLoop gameLoop;
 
     private bool invertYEnabled;
     private float lastRawMoveY;
@@ -79,6 +83,8 @@ public class GameInput : MonoBehaviour
         }
 
         Instance = this;
+        if (gameLoop == null)
+            gameLoop = FindObjectOfType<GameLoop>();
 
         inputActions = new InputSystem_Actions();
         inputActions.Enable();
@@ -280,7 +286,7 @@ public class GameInput : MonoBehaviour
         );
         GUI.Label(
             new Rect(10f, 70f, 900f, 20f),
-            $"P1 history oldest->newest: {Simulation.Instance.GetPlayer1InputHistoryDebugString()}",
+            $"P1 history oldest->newest: {GetPlayer1InputHistoryDebugString()}",
             debugOverlayStyle
         );
     }
@@ -318,5 +324,16 @@ public class GameInput : MonoBehaviour
             || frame.punchLight != lastEnqueuedFrame.punchLight
             || frame.punchMedium != lastEnqueuedFrame.punchMedium
             || frame.punchHeavy != lastEnqueuedFrame.punchHeavy;
+    }
+
+    private string GetPlayer1InputHistoryDebugString()
+    {
+        if (gameLoop == null)
+            gameLoop = FindObjectOfType<GameLoop>();
+
+        if (gameLoop == null || gameLoop.ActiveSimulation == null)
+            return "Simulation not available";
+
+        return gameLoop.ActiveSimulation.GetPlayer1InputHistoryDebugString();
     }
 }

@@ -1768,9 +1768,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1739284738}
-  player1Character: {fileID: 11400000, guid: fc069ae876ad6154797dacf66328731a, type: 2}
+  player1Character: {fileID: 11400000, guid: db4823dd2fac5bf44bfa56bd7bc84566, type: 2}
   player2Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
   hitstopFrames: 6
+  matchConfig: {fileID: 11400000, guid: b11369e8a9bb7f04da7f293888cfbb67, type: 2}
 --- !u!1 &1187611071
 GameObject:
   m_ObjectHideFlags: 0
@@ -2504,6 +2505,7 @@ MonoBehaviour:
   showInputDebugOverlay: 1
   invertYDefault: 0
   menuController: {fileID: 1241168958}
+  gameLoop: {fileID: 1047611638}
 --- !u!1 &1599634753
 GameObject:
   m_ObjectHideFlags: 0
