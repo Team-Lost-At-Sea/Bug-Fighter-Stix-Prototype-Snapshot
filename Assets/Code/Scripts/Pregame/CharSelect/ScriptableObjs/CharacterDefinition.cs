@@ -6,4 +6,5 @@ public class CharacterDefinition : ScriptableObject
     public string characterId;
     public FighterConfig fighterConfig;
     public RuntimeAnimatorController animatorController;
+    public FighterPresentationConfig presentationConfig;
 }

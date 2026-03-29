@@ -52,7 +52,7 @@ public class MenuOptionsController : MonoBehaviour
     private int selectedIndex;
     private float nextNavigationTime;
     private InputMode inputMode = InputMode.Auto;
-    private bool showHitboxView = true;
+    private bool showHitboxView = false;
 
     public bool IsMenuOpen => menuOpen;
     public bool AllowMenuOpening
@@ -70,7 +70,7 @@ public class MenuOptionsController : MonoBehaviour
 
         // Always start in Auto each session.
         inputMode = InputMode.Auto;
-        showHitboxView = true;
+        showHitboxView = false;
         FighterView.GlobalShowBoxes = showHitboxView;
 
         ApplyScale();

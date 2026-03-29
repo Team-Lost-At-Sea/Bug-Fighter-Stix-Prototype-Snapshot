@@ -6,7 +6,7 @@ using UnityEngine;
 public class FighterView : MonoBehaviour
 {
     private static Transform debugBoxRoot;
-    public static bool GlobalShowBoxes { get; set; } = true;
+    public static bool GlobalShowBoxes { get; set; } = false;
 
     [Header("Config")]
     [SerializeField]
@@ -18,6 +18,9 @@ public class FighterView : MonoBehaviour
     [Header("References")]
     [SerializeField]
     private Animator animator;
+
+    [SerializeField]
+    private FighterShadow fighterShadow;
 
     public Animator Animator => animator;
     private Fighter fighter;
@@ -66,6 +69,12 @@ public class FighterView : MonoBehaviour
 
         if (animator != null)
             animator.runtimeAnimatorController = characterDefinition.animatorController;
+
+        if (fighterShadow == null)
+            fighterShadow = GetComponentInChildren<FighterShadow>();
+
+        if (fighterShadow != null)
+            fighterShadow.ApplyPresentationConfig(characterDefinition.presentationConfig);
     }
 
     public void Initialize(Fighter fighter)

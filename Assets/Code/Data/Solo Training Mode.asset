@@ -16,8 +16,10 @@ MonoBehaviour:
   ticksPerSecond: 60
   hitstopFrames: 8
   fighterStartPositionOffset: 10
-  stageLeft: -80
-  stageRight: 80
+  stageLeft: -45
+  stageRight: 45
+  enableBackwalkTether: 1
+  maxBackwalkSeparation: 40
   roundStartHealth: 100
   startingSuperMeter: 3
   useRoundTimer: 1

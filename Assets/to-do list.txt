@@ -4,19 +4,20 @@ DONE crossover
 DONE Jumps feel floaty, need more gravity
 DONE glasses on casa
 DONE J_HP loops
-camera
-cornering
-jasper anims
+DONE camera
+DONE cornering
+DONE jasper anims
 blocking
 cpu takeover
 reset state
-special input
+special inputs, more of them (DP input)
 visual confirmation in champ select
 backdashs/fw dash
 
 Next week:
 
 VN module
+Kara animations/movement
 
 Ideas to not let go:
 

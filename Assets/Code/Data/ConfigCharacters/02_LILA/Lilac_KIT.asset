@@ -15,3 +15,4 @@ MonoBehaviour:
   characterId: LILA
   fighterConfig: {fileID: 11400000, guid: 344960e61af70554399c5db9ec771302, type: 2}
   animatorController: {fileID: 9100000, guid: e8239c0aa29465a448fd608f8c415781, type: 2}
+  presentationConfig: {fileID: 11400000, guid: 69daa3b2dc790a443ae407b7cc18b28b, type: 2}

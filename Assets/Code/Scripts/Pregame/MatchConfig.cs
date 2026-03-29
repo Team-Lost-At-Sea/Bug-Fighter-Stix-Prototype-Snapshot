@@ -15,8 +15,16 @@ public class MatchConfig : ScriptableObject
 
     [Header("Stage")]
     public float fighterStartPositionOffset = 10f;
-    public float stageLeft = -80f;
-    public float stageRight = 80f;
+    public float stageLeft = -40f;
+    public float stageRight = 40f;
+
+    [Header("Spacing Tether")]
+    [Tooltip("When enabled, grounded fighters cannot separate beyond maxBackwalkSeparation.")]
+    public bool enableBackwalkTether = true;
+
+    [Min(0f)]
+    [Tooltip("Tune this against camera max zoom-out distance (for example 22).")]
+    public float maxBackwalkSeparation = 40f;
 
     [Header("Round")]
     [Min(1)]
@@ -46,6 +54,8 @@ public class MatchConfig : ScriptableObject
             stageLeft = stageRight;
             stageRight = temp;
         }
+
+        maxBackwalkSeparation = Mathf.Max(0f, maxBackwalkSeparation);
 
         float halfStageWidth = (stageRight - stageLeft) * 0.5f;
         fighterStartPositionOffset = Mathf.Clamp(

@@ -30,6 +30,10 @@ public class Simulation
     private readonly float fighterStartPositionOffset;
     private readonly float stageLeft;
     private readonly float stageRight;
+    private readonly bool enableBackwalkTether;
+    private readonly float maxBackwalkSeparation;
+    private float previousPlayer1X;
+    private float previousPlayer2X;
     
     public IReadOnlyList<Projectile> ActiveProjectiles => projectiles;
     public Fighter Player1 => player1;
@@ -43,12 +47,16 @@ public class Simulation
             fighterStartPositionOffset = Mathf.Abs(config.fighterStartPositionOffset);
             stageLeft = config.stageLeft;
             stageRight = config.stageRight;
+            enableBackwalkTether = config.enableBackwalkTether;
+            maxBackwalkSeparation = Mathf.Max(0f, config.maxBackwalkSeparation);
         }
         else
         {
             fighterStartPositionOffset = 10f;
             stageLeft = -80f;
             stageRight = 80f;
+            enableBackwalkTether = false;
+            maxBackwalkSeparation = 22f;
         }
     }
 
@@ -64,12 +72,17 @@ public class Simulation
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
+        previousPlayer1X = player1.Position.x;
+        previousPlayer2X = player2.Position.x;
 
         ClearProjectiles();
     }
 
     public void Tick(FrameInput frameInput)
     {
+        previousPlayer1X = player1.Position.x;
+        previousPlayer2X = player2.Position.x;
+
         // Update each fighter with their input
         player1.Tick(frameInput.player1);
         player2.Tick(frameInput.player2);
@@ -82,6 +95,7 @@ public class Simulation
         ResolvePushboxes(); // Prevent overlapping
         ClampToStage(player1);
         ClampToStage(player2);
+        ResolveBackwalkTether();
         simulationFrame = frameInput.frameIndex > simulationFrame
             ? frameInput.frameIndex
             : simulationFrame + 1;
@@ -332,6 +346,55 @@ public class Simulation
 
         if (fighter.Position.x + half > stageRight)
             fighter.SetHorizontal(stageRight - half);
+    }
+
+    private void ResolveBackwalkTether()
+    {
+        if (!enableBackwalkTether || maxBackwalkSeparation <= 0f)
+            return;
+
+        if (player1 == null || player2 == null)
+            return;
+
+        // Apply this as a grounded spacing rule to mimic an artificial corner when both
+        // fighters keep walking away and camera zoom has reached its limit.
+        if (!player1.IsGrounded || !player2.IsGrounded)
+            return;
+
+        bool player1IsLeft = player1.Position.x <= player2.Position.x;
+        Fighter leftFighter = player1IsLeft ? player1 : player2;
+        Fighter rightFighter = player1IsLeft ? player2 : player1;
+        float leftPreviousX = player1IsLeft ? previousPlayer1X : previousPlayer2X;
+        float rightPreviousX = player1IsLeft ? previousPlayer2X : previousPlayer1X;
+        float distance = rightFighter.Position.x - leftFighter.Position.x;
+        float minimumSpacing = player1.PushboxHalfWidth + player2.PushboxHalfWidth;
+        float effectiveMaxSeparation = Mathf.Max(maxBackwalkSeparation, minimumSpacing);
+        if (distance <= effectiveMaxSeparation)
+            return;
+
+        float separationExcess = distance - effectiveMaxSeparation;
+
+        // Retreating means increasing separation: left fighter moving left, right fighter
+        // moving right. Undo only that retreat delta so the opponent is not dragged.
+        float leftRetreatDelta = Mathf.Max(0f, leftPreviousX - leftFighter.Position.x);
+        float rightRetreatDelta = Mathf.Max(0f, rightFighter.Position.x - rightPreviousX);
+
+        if (leftRetreatDelta > 0f)
+        {
+            float correction = Mathf.Min(separationExcess, leftRetreatDelta);
+            leftFighter.SetHorizontal(leftFighter.Position.x + correction);
+            separationExcess -= correction;
+        }
+
+        if (separationExcess > 0f && rightRetreatDelta > 0f)
+        {
+            float correction = Mathf.Min(separationExcess, rightRetreatDelta);
+            rightFighter.SetHorizontal(rightFighter.Position.x - correction);
+            separationExcess -= correction;
+        }
+
+        ClampToStage(player1);
+        ClampToStage(player2);
     }
 
     private static int HashFighterState(int seed, Fighter fighter, int slot)

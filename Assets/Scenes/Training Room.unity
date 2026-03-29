@@ -885,7 +885,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 0
-  orthographic size: 5
+  orthographic size: 13.15
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -910,7 +910,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 10, z: -25}
+  m_LocalPosition: {x: 0, y: 8, z: -25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -975,13 +975,28 @@ MonoBehaviour:
   fighter1: {fileID: 1520451129}
   fighter2: {fileID: 1739284739}
   stage: {fileID: 1187611073}
-  smoothSpeed: 5
-  yOffset: 10
-  minOrthographicSize: 4.5
-  maxOrthographicSize: 8
-  zoomInStopDistance: 4
-  zoomOutStopDistance: 22
-  zoomSmoothSpeed: 6
+  smoothSpeed: 50
+  yOffset: 6
+  leftClampXOffset: 0
+  rightClampXOffset: 0
+  followJumpHeight: 1
+  jumpFollowStrength: 0.4
+  maxJumpFollowOffset: 10
+  minOrthographicSize: 11
+  maxOrthographicSize: 11.5
+  zoomInStopDistance: 10
+  zoomOutStopDistance: 30
+  zoomSmoothSpeed: 50
+  zoomMode: 0
+  perspectiveZoomStyle: 0
+  perspectiveMinDistance: 15
+  perspectiveMaxDistance: 24
+  perspectiveMinFov: 42
+  perspectiveMaxFov: 60
+  perspectiveZoomSmoothSpeed: 50
+  currentFighterDistance: 6.899933
+  currentResolvedMinClampX: -34.596474
+  currentResolvedMaxClampX: 34.596474
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1412,7 +1427,7 @@ PrefabInstance:
     - target: {fileID: 1071053576676423226, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: d43f68b67666655468e09486f92d1afe, type: 2}
+      objectReference: {fileID: 9100000, guid: fd69322e1bea56e4494f325c61b887ca, type: 2}
     - target: {fileID: 2287060288388628142, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -1773,7 +1788,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1739284738}
-  player1Character: {fileID: 11400000, guid: db4823dd2fac5bf44bfa56bd7bc84566, type: 2}
+  player1Character: {fileID: 11400000, guid: d023ae2a265ef3249b150e145b877e36, type: 2}
   player2Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
   hitstopFrames: 6
   matchConfig: {fileID: 11400000, guid: b11369e8a9bb7f04da7f293888cfbb67, type: 2}

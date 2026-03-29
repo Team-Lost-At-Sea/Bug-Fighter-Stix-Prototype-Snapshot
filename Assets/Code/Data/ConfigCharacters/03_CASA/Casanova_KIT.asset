@@ -15,3 +15,4 @@ MonoBehaviour:
   characterId: CASA
   fighterConfig: {fileID: 11400000, guid: c5d7c3d39e4007f418b1bdc81032d18a, type: 2}
   animatorController: {fileID: 9100000, guid: d43f68b67666655468e09486f92d1afe, type: 2}
+  presentationConfig: {fileID: 11400000, guid: 4942f7cc7bdec0d40bcf5fe353ed1bb3, type: 2}

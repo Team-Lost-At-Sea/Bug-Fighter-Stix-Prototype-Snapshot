@@ -15,3 +15,4 @@ MonoBehaviour:
   characterId: JASP
   fighterConfig: {fileID: 11400000, guid: 4db9f36a87786f5448f38f1e680483cd, type: 2}
   animatorController: {fileID: 9100000, guid: fd69322e1bea56e4494f325c61b887ca, type: 2}
+  presentationConfig: {fileID: 11400000, guid: bb386a687abf5e44c9601717dd407e81, type: 2}
