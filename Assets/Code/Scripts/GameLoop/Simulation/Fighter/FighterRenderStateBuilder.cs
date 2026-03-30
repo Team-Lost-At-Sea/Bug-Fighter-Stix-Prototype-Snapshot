@@ -2,6 +2,36 @@ using UnityEngine;
 
 public sealed class FighterRenderStateBuilder
 {
+    public readonly struct Snapshot
+    {
+        public readonly FighterVisualState lastVisualState;
+        public readonly MoveType lastVisualMoveType;
+        public readonly int visualStateFrame;
+        public readonly uint animationSerial;
+        public readonly FighterState lastSimulationState;
+        public readonly bool hasLastSimulationState;
+        public readonly int crouchTransitionFramesRemaining;
+
+        public Snapshot(
+            FighterVisualState lastVisualState,
+            MoveType lastVisualMoveType,
+            int visualStateFrame,
+            uint animationSerial,
+            FighterState lastSimulationState,
+            bool hasLastSimulationState,
+            int crouchTransitionFramesRemaining
+        )
+        {
+            this.lastVisualState = lastVisualState;
+            this.lastVisualMoveType = lastVisualMoveType;
+            this.visualStateFrame = visualStateFrame;
+            this.animationSerial = animationSerial;
+            this.lastSimulationState = lastSimulationState;
+            this.hasLastSimulationState = hasLastSimulationState;
+            this.crouchTransitionFramesRemaining = crouchTransitionFramesRemaining;
+        }
+    }
+
     private const int CROUCH_TRANSITION_FRAMES = 5;
 
     private FighterVisualState lastVisualState = FighterVisualState.None;
@@ -150,5 +180,29 @@ public sealed class FighterRenderStateBuilder
         return visualState == FighterVisualState.Idle
             || visualState == FighterVisualState.WalkForward
             || visualState == FighterVisualState.WalkBackward;
+    }
+
+    public Snapshot CaptureSnapshot()
+    {
+        return new Snapshot(
+            lastVisualState,
+            lastVisualMoveType,
+            visualStateFrame,
+            animationSerial,
+            lastSimulationState,
+            hasLastSimulationState,
+            crouchTransitionFramesRemaining
+        );
+    }
+
+    public void RestoreSnapshot(Snapshot snapshot)
+    {
+        lastVisualState = snapshot.lastVisualState;
+        lastVisualMoveType = snapshot.lastVisualMoveType;
+        visualStateFrame = snapshot.visualStateFrame;
+        animationSerial = snapshot.animationSerial;
+        lastSimulationState = snapshot.lastSimulationState;
+        hasLastSimulationState = snapshot.hasLastSimulationState;
+        crouchTransitionFramesRemaining = snapshot.crouchTransitionFramesRemaining;
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class GameLoop : MonoBehaviour
 {
@@ -26,8 +27,18 @@ public class GameLoop : MonoBehaviour
     [SerializeField]
     private MatchConfig matchConfig;
 
+    [Header("Save State")]
+    [SerializeField]
+    [Min(0.1f)]
+    private float clearSaveHoldDurationSeconds = 2f;
+
     private Simulation simulation;
     private readonly MatchPresenter presenter = new MatchPresenter();
+    private bool hasSavedState;
+    private Simulation.StateSnapshot savedState;
+    private bool saveStateButtonHeldLastFrame;
+    private float saveStateButtonHoldTime;
+    private bool saveStateClearedByHoldThisPress;
 
     public Simulation ActiveSimulation => simulation;
 
@@ -66,6 +77,7 @@ public class GameLoop : MonoBehaviour
         if (simulation == null)
             return;
 
+        HandleSaveStateInput();
         accumulator += Time.deltaTime;
 
         int safety = 0;
@@ -107,5 +119,62 @@ public class GameLoop : MonoBehaviour
 
         if (player2View != null && resolvedPlayer2 != null)
             player2View.ApplyCharacterDefinition(resolvedPlayer2);
+    }
+
+    private void HandleSaveStateInput()
+    {
+        bool isHeld = IsSaveStateButtonHeld();
+        if (isHeld)
+        {
+            saveStateButtonHoldTime += Time.unscaledDeltaTime;
+            if (!saveStateClearedByHoldThisPress && saveStateButtonHoldTime >= clearSaveHoldDurationSeconds)
+            {
+                ClearSavedState();
+                saveStateClearedByHoldThisPress = true;
+            }
+        }
+        else
+        {
+            if (saveStateButtonHeldLastFrame && !saveStateClearedByHoldThisPress)
+                ToggleSaveOrRestore();
+
+            saveStateButtonHoldTime = 0f;
+            saveStateClearedByHoldThisPress = false;
+        }
+
+        saveStateButtonHeldLastFrame = isHeld;
+    }
+
+    private bool IsSaveStateButtonHeld()
+    {
+        bool keyboardHeld = Keyboard.current != null && Keyboard.current.backspaceKey.isPressed;
+        bool gamepadHeld = Gamepad.current != null && Gamepad.current.selectButton.isPressed;
+        return keyboardHeld || gamepadHeld;
+    }
+
+    private void ToggleSaveOrRestore()
+    {
+        if (!hasSavedState)
+        {
+            savedState = simulation.CaptureState();
+            hasSavedState = true;
+            Debug.Log("Save state captured.");
+            return;
+        }
+
+        simulation.RestoreState(savedState);
+        accumulator = 0f;
+        GameInput.Instance?.ClearBufferedInputState();
+        presenter.Render(simulation);
+        Debug.Log("Save state restored.");
+    }
+
+    private void ClearSavedState()
+    {
+        if (!hasSavedState)
+            return;
+
+        hasSavedState = false;
+        Debug.Log("Save state cleared.");
     }
 }

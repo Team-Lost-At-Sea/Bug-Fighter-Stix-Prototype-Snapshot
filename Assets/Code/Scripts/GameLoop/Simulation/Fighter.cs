@@ -6,6 +6,93 @@ using System;
 // Gameplay timing is fully frame-based and independent from Animator timing.
 public class Fighter
 {
+    public readonly struct Snapshot
+    {
+        public readonly Vector2 position;
+        public readonly Vector2 velocity;
+        public readonly bool isGrounded;
+        public readonly bool facingRight;
+        public readonly FighterState state;
+        public readonly int stateFrame;
+        public readonly bool transitionedThisTick;
+        public readonly bool stateFrameFrozenThisTick;
+        public readonly int hitstopFramesRemaining;
+        public readonly int hitstunFramesRemaining;
+        public readonly bool isHoldingBlockInput;
+        public readonly bool canCurrentlyBlock;
+        public readonly bool isHoldingValidBlockDirection;
+        public readonly bool hadAttackInputThisTick;
+        public readonly int debugInputHistoryFreezeFramesRemaining;
+        public readonly string debugInputHistoryDisplay;
+        public readonly bool hasPendingProjectileSpawn;
+        public readonly ProjectileSpawnRequest pendingProjectileSpawn;
+        public readonly int lightPressBufferFramesRemaining;
+        public readonly int mediumPressBufferFramesRemaining;
+        public readonly int heavyPressBufferFramesRemaining;
+        public readonly FighterRenderSnapshot renderSnapshot;
+        public readonly FighterAttackController.Snapshot attackSnapshot;
+        public readonly FighterMovementController.Snapshot movementSnapshot;
+        public readonly FighterRenderStateBuilder.Snapshot renderStateBuilderSnapshot;
+        public readonly InputHistoryBuffer.Snapshot inputHistorySnapshot;
+
+        public Snapshot(
+            Vector2 position,
+            Vector2 velocity,
+            bool isGrounded,
+            bool facingRight,
+            FighterState state,
+            int stateFrame,
+            bool transitionedThisTick,
+            bool stateFrameFrozenThisTick,
+            int hitstopFramesRemaining,
+            int hitstunFramesRemaining,
+            bool isHoldingBlockInput,
+            bool canCurrentlyBlock,
+            bool isHoldingValidBlockDirection,
+            bool hadAttackInputThisTick,
+            int debugInputHistoryFreezeFramesRemaining,
+            string debugInputHistoryDisplay,
+            bool hasPendingProjectileSpawn,
+            ProjectileSpawnRequest pendingProjectileSpawn,
+            int lightPressBufferFramesRemaining,
+            int mediumPressBufferFramesRemaining,
+            int heavyPressBufferFramesRemaining,
+            FighterRenderSnapshot renderSnapshot,
+            FighterAttackController.Snapshot attackSnapshot,
+            FighterMovementController.Snapshot movementSnapshot,
+            FighterRenderStateBuilder.Snapshot renderStateBuilderSnapshot,
+            InputHistoryBuffer.Snapshot inputHistorySnapshot
+        )
+        {
+            this.position = position;
+            this.velocity = velocity;
+            this.isGrounded = isGrounded;
+            this.facingRight = facingRight;
+            this.state = state;
+            this.stateFrame = stateFrame;
+            this.transitionedThisTick = transitionedThisTick;
+            this.stateFrameFrozenThisTick = stateFrameFrozenThisTick;
+            this.hitstopFramesRemaining = hitstopFramesRemaining;
+            this.hitstunFramesRemaining = hitstunFramesRemaining;
+            this.isHoldingBlockInput = isHoldingBlockInput;
+            this.canCurrentlyBlock = canCurrentlyBlock;
+            this.isHoldingValidBlockDirection = isHoldingValidBlockDirection;
+            this.hadAttackInputThisTick = hadAttackInputThisTick;
+            this.debugInputHistoryFreezeFramesRemaining = debugInputHistoryFreezeFramesRemaining;
+            this.debugInputHistoryDisplay = debugInputHistoryDisplay;
+            this.hasPendingProjectileSpawn = hasPendingProjectileSpawn;
+            this.pendingProjectileSpawn = pendingProjectileSpawn;
+            this.lightPressBufferFramesRemaining = lightPressBufferFramesRemaining;
+            this.mediumPressBufferFramesRemaining = mediumPressBufferFramesRemaining;
+            this.heavyPressBufferFramesRemaining = heavyPressBufferFramesRemaining;
+            this.renderSnapshot = renderSnapshot;
+            this.attackSnapshot = attackSnapshot;
+            this.movementSnapshot = movementSnapshot;
+            this.renderStateBuilderSnapshot = renderStateBuilderSnapshot;
+            this.inputHistorySnapshot = inputHistorySnapshot;
+        }
+    }
+
     public static int HitstopFrames { get; set; } = 8;
     public static bool LogSpecialInputReads { get; set; } = true;
     private const int NormalInputBufferFrames = 4;
@@ -770,6 +857,68 @@ public class Fighter
     public void SetHorizontal(float newX)
     {
         position.x = newX;
+    }
+
+    public Snapshot CaptureSnapshot()
+    {
+        return new Snapshot(
+            position,
+            velocity,
+            isGrounded,
+            facingRight,
+            state,
+            stateFrame,
+            transitionedThisTick,
+            stateFrameFrozenThisTick,
+            hitstopFramesRemaining,
+            hitstunFramesRemaining,
+            isHoldingBlockInput,
+            canCurrentlyBlock,
+            isHoldingValidBlockDirection,
+            hadAttackInputThisTick,
+            debugInputHistoryFreezeFramesRemaining,
+            debugInputHistoryDisplay,
+            hasPendingProjectileSpawn,
+            pendingProjectileSpawn,
+            lightPressBufferFramesRemaining,
+            mediumPressBufferFramesRemaining,
+            heavyPressBufferFramesRemaining,
+            renderSnapshot,
+            attackController.CaptureSnapshot(),
+            movementController.CaptureSnapshot(),
+            renderStateBuilder.CaptureSnapshot(),
+            inputHistory.CaptureSnapshot()
+        );
+    }
+
+    public void RestoreSnapshot(Snapshot snapshot)
+    {
+        position = snapshot.position;
+        velocity = snapshot.velocity;
+        isGrounded = snapshot.isGrounded;
+        facingRight = snapshot.facingRight;
+        state = snapshot.state;
+        stateFrame = snapshot.stateFrame;
+        transitionedThisTick = snapshot.transitionedThisTick;
+        stateFrameFrozenThisTick = snapshot.stateFrameFrozenThisTick;
+        hitstopFramesRemaining = snapshot.hitstopFramesRemaining;
+        hitstunFramesRemaining = snapshot.hitstunFramesRemaining;
+        isHoldingBlockInput = snapshot.isHoldingBlockInput;
+        canCurrentlyBlock = snapshot.canCurrentlyBlock;
+        isHoldingValidBlockDirection = snapshot.isHoldingValidBlockDirection;
+        hadAttackInputThisTick = snapshot.hadAttackInputThisTick;
+        debugInputHistoryFreezeFramesRemaining = snapshot.debugInputHistoryFreezeFramesRemaining;
+        debugInputHistoryDisplay = snapshot.debugInputHistoryDisplay ?? "No input history yet";
+        hasPendingProjectileSpawn = snapshot.hasPendingProjectileSpawn;
+        pendingProjectileSpawn = snapshot.pendingProjectileSpawn;
+        lightPressBufferFramesRemaining = snapshot.lightPressBufferFramesRemaining;
+        mediumPressBufferFramesRemaining = snapshot.mediumPressBufferFramesRemaining;
+        heavyPressBufferFramesRemaining = snapshot.heavyPressBufferFramesRemaining;
+        renderSnapshot = snapshot.renderSnapshot;
+        attackController.RestoreSnapshot(snapshot.attackSnapshot);
+        movementController.RestoreSnapshot(snapshot.movementSnapshot);
+        renderStateBuilder.RestoreSnapshot(snapshot.renderStateBuilderSnapshot);
+        inputHistory.RestoreSnapshot(snapshot.inputHistorySnapshot);
     }
 
     private Vector2 GetHurtboxCenter()

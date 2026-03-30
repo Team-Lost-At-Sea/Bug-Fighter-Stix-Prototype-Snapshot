@@ -2,6 +2,22 @@ using UnityEngine;
 
 public sealed class FighterAttackController
 {
+    public readonly struct Snapshot
+    {
+        public readonly MoveType moveType;
+        public readonly AttackData attackData;
+        public readonly int attackFrame;
+        public readonly Hitbox hitbox;
+
+        public Snapshot(MoveType moveType, AttackData attackData, int attackFrame, Hitbox hitbox)
+        {
+            this.moveType = moveType;
+            this.attackData = attackData;
+            this.attackFrame = attackFrame;
+            this.hitbox = hitbox;
+        }
+    }
+
     public MoveType CurrentMoveType => currentMoveType;
     public bool HasActiveUnspentHitbox => hitbox.active && !hitbox.hasHit;
     public Hitbox CurrentHitbox => hitbox;
@@ -103,6 +119,19 @@ public sealed class FighterAttackController
     public void MarkCurrentHitboxAsSpent()
     {
         hitbox.hasHit = true;
+    }
+
+    public Snapshot CaptureSnapshot()
+    {
+        return new Snapshot(currentMoveType, currentAttack, attackFrame, hitbox);
+    }
+
+    public void RestoreSnapshot(Snapshot snapshot)
+    {
+        currentMoveType = snapshot.moveType;
+        currentAttack = snapshot.attackData;
+        attackFrame = snapshot.attackFrame;
+        hitbox = snapshot.hitbox;
     }
 
     private static AttackTiming GetDefaultTiming(MoveType moveType)

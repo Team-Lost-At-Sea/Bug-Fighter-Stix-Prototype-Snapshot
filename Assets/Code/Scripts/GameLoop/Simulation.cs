@@ -6,6 +6,78 @@ using System.Collections.Generic;
 // It encapsulates the main fighting match simulation logic for the game loop.
 public class Simulation
 {
+    public readonly struct ProjectileSnapshot
+    {
+        public readonly int id;
+        public readonly int ownerSlot;
+        public readonly Vector2 position;
+        public readonly Vector2 velocity;
+        public readonly Vector2 halfSize;
+        public readonly int lifetimeFramesRemaining;
+        public readonly int damage;
+        public readonly int hitstunFrames;
+        public readonly Sprite sprite;
+        public readonly Color tint;
+        public readonly bool active;
+
+        public ProjectileSnapshot(
+            int id,
+            int ownerSlot,
+            Vector2 position,
+            Vector2 velocity,
+            Vector2 halfSize,
+            int lifetimeFramesRemaining,
+            int damage,
+            int hitstunFrames,
+            Sprite sprite,
+            Color tint,
+            bool active
+        )
+        {
+            this.id = id;
+            this.ownerSlot = ownerSlot;
+            this.position = position;
+            this.velocity = velocity;
+            this.halfSize = halfSize;
+            this.lifetimeFramesRemaining = lifetimeFramesRemaining;
+            this.damage = damage;
+            this.hitstunFrames = hitstunFrames;
+            this.sprite = sprite;
+            this.tint = tint;
+            this.active = active;
+        }
+    }
+
+    public readonly struct StateSnapshot
+    {
+        public readonly int simulationFrame;
+        public readonly int nextProjectileId;
+        public readonly float previousPlayer1X;
+        public readonly float previousPlayer2X;
+        public readonly Fighter.Snapshot player1Snapshot;
+        public readonly Fighter.Snapshot player2Snapshot;
+        public readonly ProjectileSnapshot[] projectiles;
+
+        public StateSnapshot(
+            int simulationFrame,
+            int nextProjectileId,
+            float previousPlayer1X,
+            float previousPlayer2X,
+            Fighter.Snapshot player1Snapshot,
+            Fighter.Snapshot player2Snapshot,
+            ProjectileSnapshot[] projectiles
+        )
+        {
+            this.simulationFrame = simulationFrame;
+            this.nextProjectileId = nextProjectileId;
+            this.previousPlayer1X = previousPlayer1X;
+            this.previousPlayer2X = previousPlayer2X;
+            this.player1Snapshot = player1Snapshot;
+            this.player2Snapshot = player2Snapshot;
+            this.projectiles = projectiles;
+        }
+    }
+
     private enum PendingHitSource
     {
         FighterHitbox,
@@ -129,6 +201,78 @@ public class Simulation
             }
 
             return hash;
+        }
+    }
+
+    public StateSnapshot CaptureState()
+    {
+        ProjectileSnapshot[] projectileSnapshots = new ProjectileSnapshot[projectiles.Count];
+        for (int i = 0; i < projectiles.Count; i++)
+        {
+            Projectile projectile = projectiles[i];
+            int ownerSlot = projectile.owner == player1 ? 1 : 2;
+            projectileSnapshots[i] = new ProjectileSnapshot(
+                projectile.id,
+                ownerSlot,
+                projectile.position,
+                projectile.velocity,
+                projectile.halfSize,
+                projectile.lifetimeFramesRemaining,
+                projectile.damage,
+                projectile.hitstunFrames,
+                projectile.sprite,
+                projectile.tint,
+                projectile.active
+            );
+        }
+
+        return new StateSnapshot(
+            simulationFrame,
+            nextProjectileId,
+            previousPlayer1X,
+            previousPlayer2X,
+            player1.CaptureSnapshot(),
+            player2.CaptureSnapshot(),
+            projectileSnapshots
+        );
+    }
+
+    public void RestoreState(StateSnapshot snapshot)
+    {
+        simulationFrame = snapshot.simulationFrame;
+        nextProjectileId = snapshot.nextProjectileId;
+        previousPlayer1X = snapshot.previousPlayer1X;
+        previousPlayer2X = snapshot.previousPlayer2X;
+
+        player1.RestoreSnapshot(snapshot.player1Snapshot);
+        player2.RestoreSnapshot(snapshot.player2Snapshot);
+
+        pendingHitEvents.Clear();
+        projectiles.Clear();
+        if (snapshot.projectiles == null)
+            return;
+
+        for (int i = 0; i < snapshot.projectiles.Length; i++)
+        {
+            ProjectileSnapshot projectileSnapshot = snapshot.projectiles[i];
+            Fighter owner = projectileSnapshot.ownerSlot == 1 ? player1 : player2;
+            Projectile projectile = new Projectile(
+                projectileSnapshot.id,
+                owner,
+                projectileSnapshot.position,
+                projectileSnapshot.velocity,
+                projectileSnapshot.halfSize,
+                projectileSnapshot.lifetimeFramesRemaining,
+                projectileSnapshot.damage,
+                projectileSnapshot.hitstunFrames,
+                projectileSnapshot.sprite,
+                projectileSnapshot.tint
+            )
+            {
+                active = projectileSnapshot.active,
+                lifetimeFramesRemaining = projectileSnapshot.lifetimeFramesRemaining
+            };
+            projectiles.Add(projectile);
         }
     }
 

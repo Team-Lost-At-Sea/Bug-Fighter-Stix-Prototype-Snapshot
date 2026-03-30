@@ -107,12 +107,7 @@ public class GameInput : MonoBehaviour
             bool openedThisFrame = menuController.Tick(inputActions, () => SetInvertYEnabled(!invertYEnabled));
             if (openedThisFrame)
             {
-                inputBuffer.Clear();
-                lastCapturedFrame = InputFrame.Neutral;
-                hasLastEnqueuedFrame = false;
-                lastLightPressed = false;
-                lastMediumPressed = false;
-                lastHeavyPressed = false;
+                ClearBufferedInputState();
             }
 
             menuController.UpdateView(invertYEnabled);
@@ -125,6 +120,16 @@ public class GameInput : MonoBehaviour
         }
 
         CapturePlayer1Input();
+    }
+
+    public void ClearBufferedInputState()
+    {
+        inputBuffer.Clear();
+        lastCapturedFrame = InputFrame.Neutral;
+        hasLastEnqueuedFrame = false;
+        lastLightPressed = false;
+        lastMediumPressed = false;
+        lastHeavyPressed = false;
     }
 
     public void SetInvertYEnabled(bool enabled)

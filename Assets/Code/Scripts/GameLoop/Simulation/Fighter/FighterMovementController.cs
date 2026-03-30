@@ -2,6 +2,20 @@ using UnityEngine;
 
 public sealed class FighterMovementController
 {
+    public readonly struct Snapshot
+    {
+        public readonly int landingRecoveryTicksRemaining;
+        public readonly int queuedJumpMoveX;
+        public readonly bool usedAirNormalThisJump;
+
+        public Snapshot(int landingRecoveryTicksRemaining, int queuedJumpMoveX, bool usedAirNormalThisJump)
+        {
+            this.landingRecoveryTicksRemaining = landingRecoveryTicksRemaining;
+            this.queuedJumpMoveX = queuedJumpMoveX;
+            this.usedAirNormalThisJump = usedAirNormalThisJump;
+        }
+    }
+
     private const int JUMP_STARTUP_TICKS = 4;
     private const int LANDING_RECOVERY_TICKS = 3;
 
@@ -136,6 +150,18 @@ public sealed class FighterMovementController
         }
 
         return result;
+    }
+
+    public Snapshot CaptureSnapshot()
+    {
+        return new Snapshot(landingRecoveryTicksRemaining, queuedJumpMoveX, usedAirNormalThisJump);
+    }
+
+    public void RestoreSnapshot(Snapshot snapshot)
+    {
+        landingRecoveryTicksRemaining = snapshot.landingRecoveryTicksRemaining;
+        queuedJumpMoveX = snapshot.queuedJumpMoveX;
+        usedAirNormalThisJump = snapshot.usedAirNormalThisJump;
     }
 }
 
