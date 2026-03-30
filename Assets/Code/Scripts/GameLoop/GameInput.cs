@@ -56,6 +56,7 @@ public class GameInput : MonoBehaviour
     private GUIStyle debugOverlayStyle;
     private InputFrame lastEnqueuedFrame = InputFrame.Neutral;
     private bool hasLastEnqueuedFrame;
+    private uint packetSequence;
 
     public bool InvertYEnabled => invertYEnabled;
     public bool IsMenuOpen => menuController != null && menuController.IsMenuOpen;
@@ -169,6 +170,13 @@ public class GameInput : MonoBehaviour
             // P2 stays neutral until a second input map is introduced.
             player2 = InputFrame.Neutral
         };
+    }
+
+    public FrameInputPacket ConsumeNextPlayerPacket(int frameIndex, int playerId = 1)
+    {
+        InputFrame input = ConsumeNextPlayer1Input();
+        packetSequence++;
+        return InputPacketCodec.Encode(input, frameIndex, playerId, packetSequence);
     }
 
     /// <summary>

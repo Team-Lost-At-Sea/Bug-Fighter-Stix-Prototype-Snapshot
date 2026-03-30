@@ -32,15 +32,55 @@ public class GameLoop : MonoBehaviour
     [Min(0.1f)]
     private float clearSaveHoldDurationSeconds = 2f;
 
+    [Header("Netcode Session")]
+    [SerializeField]
+    private bool useRollbackSession = true;
+
+    [SerializeField]
+    [Min(0)]
+    private int rollbackInputDelayFrames = 2;
+
+    [SerializeField]
+    [Min(10)]
+    private int rollbackWindowFrames = 240;
+
+    [SerializeField]
+    private bool simulateNetworkInEditor;
+
+    [SerializeField]
+    [Min(0)]
+    private int simulatedBaseLatencyFrames = 2;
+
+    [SerializeField]
+    [Min(0)]
+    private int simulatedJitterFrames = 1;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float simulatedDropChance = 0f;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float simulatedReorderChance = 0f;
+
+    [Header("Replay")]
+    [SerializeField]
+    private bool recordReplayPackets = true;
+
     private Simulation simulation;
     private readonly MatchPresenter presenter = new MatchPresenter();
     private bool hasSavedState;
-    private Simulation.StateSnapshot savedState;
+    private NetState savedState;
     private bool saveStateButtonHeldLastFrame;
     private float saveStateButtonHoldTime;
     private bool saveStateClearedByHoldThisPress;
+    private IMatchSession matchSession;
+    private INetStateSerializer netStateSerializer;
+    private ReplayRecorder replayRecorder;
+    private uint localInputSequence;
 
     public Simulation ActiveSimulation => simulation;
+    public RollbackMetrics CurrentRollbackMetrics => matchSession != null ? matchSession.Metrics : default;
 
     void Start()
     {
@@ -50,6 +90,8 @@ public class GameLoop : MonoBehaviour
         SimulationTime.Configure(configuredTicksPerSecond);
 
         simulation = new Simulation(matchConfig);
+        netStateSerializer = new BinaryNetStateSerializer();
+        replayRecorder = new ReplayRecorder();
         Fighter.HitstopFrames = matchConfig != null
             ? Mathf.Max(0, matchConfig.hitstopFrames)
             : Mathf.Max(0, hitstopFrames);
@@ -69,6 +111,7 @@ public class GameLoop : MonoBehaviour
         string player1Name = player1View != null ? player1View.name : "Player1";
         string player2Name = player2View != null ? player2View.name : "Player2";
         simulation.Initialize(player1Config, player2Config, player1Name, player2Name);
+        InitializeSession();
         presenter.Initialize(simulation, player1View, player2View);
     }
 
@@ -84,11 +127,7 @@ public class GameLoop : MonoBehaviour
         float fixedDt = SimulationTime.FixedDt;
         while (accumulator >= fixedDt && safety < 5)
         {
-            // Tick the simulation with the next buffered input
-            int nextFrameIndex = simulation.CurrentFrame + 1;
-            FrameInput frameInput = GameInput.Instance.ConsumeNextFrameInput(nextFrameIndex);
-
-            simulation.Tick(frameInput);
+            TickSimulationOnce();
 
             accumulator -= fixedDt;
             safety++;
@@ -119,6 +158,67 @@ public class GameLoop : MonoBehaviour
 
         if (player2View != null && resolvedPlayer2 != null)
             player2View.ApplyCharacterDefinition(resolvedPlayer2);
+    }
+
+    private void InitializeSession()
+    {
+        if (!useRollbackSession || simulation == null)
+        {
+            matchSession = null;
+            return;
+        }
+
+        INetworkAdapter adapter = null;
+        if (simulateNetworkInEditor)
+        {
+            adapter = new LocalLoopbackNetworkAdapter(
+                mirrorTargetPlayerId: 2,
+                baseLatencyFrames: simulatedBaseLatencyFrames,
+                maxJitterFrames: simulatedJitterFrames,
+                dropChance: simulatedDropChance,
+                reorderChance: simulatedReorderChance
+            );
+        }
+
+        matchSession = new RollbackMatchSession(
+            simulation,
+            localPlayerId: 1,
+            inputDelayFrames: rollbackInputDelayFrames,
+            rollbackWindowFrames: rollbackWindowFrames,
+            networkAdapter: adapter
+        );
+    }
+
+    private void TickSimulationOnce()
+    {
+        if (simulation == null)
+            return;
+
+        if (matchSession != null)
+        {
+            int nextFrame = simulation.CurrentFrame + 1;
+            FrameInputPacket packet = ConsumeLocalPacket(nextFrame);
+            matchSession.SubmitLocalInput(packet);
+            if (recordReplayPackets)
+                replayRecorder.Record(packet);
+
+            matchSession.AdvanceFrame();
+            return;
+        }
+
+        int nextFrameIndex = simulation.CurrentFrame + 1;
+        FrameInput frameInput = GameInput.Instance.ConsumeNextFrameInput(nextFrameIndex);
+        simulation.Tick(frameInput);
+    }
+
+    private FrameInputPacket ConsumeLocalPacket(int nextFrame)
+    {
+        if (GameInput.Instance == null)
+            return FrameInputPacket.Neutral(nextFrame, 1, localInputSequence++);
+
+        FrameInputPacket packet = GameInput.Instance.ConsumeNextPlayerPacket(nextFrame, 1);
+        packet.sequence = localInputSequence++;
+        return packet;
     }
 
     private void HandleSaveStateInput()
@@ -156,13 +256,18 @@ public class GameLoop : MonoBehaviour
     {
         if (!hasSavedState)
         {
-            savedState = simulation.CaptureState();
+            savedState = simulation.CaptureNetState();
+            if (netStateSerializer != null)
+            {
+                byte[] blob = netStateSerializer.Serialize(savedState);
+                savedState = netStateSerializer.Deserialize(blob);
+            }
             hasSavedState = true;
             Debug.Log("Save state captured.");
             return;
         }
 
-        simulation.RestoreState(savedState);
+        simulation.RestoreNetState(savedState);
         accumulator = 0f;
         GameInput.Instance?.ClearBufferedInputState();
         presenter.Render(simulation);

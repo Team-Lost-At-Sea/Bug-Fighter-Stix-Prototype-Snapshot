@@ -27,6 +27,12 @@ public sealed class InputHistoryBuffer
             this.input = input;
             relativeDirection = ToRelativeDirection(input, facingRight);
         }
+
+        public HistoryEntry(InputFrame input, int relativeDirection)
+        {
+            this.input = input;
+            this.relativeDirection = relativeDirection;
+        }
     }
 
     private readonly HistoryEntry[] entries;

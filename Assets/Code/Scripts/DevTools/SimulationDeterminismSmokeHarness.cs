@@ -28,6 +28,9 @@ public class SimulationDeterminismSmokeHarness : MonoBehaviour
     [SerializeField]
     private bool logCheckpointHashes = true;
 
+    [SerializeField]
+    private bool logEveryFrameHash;
+
     private void Start()
     {
         if (runOnStart)
@@ -52,6 +55,8 @@ public class SimulationDeterminismSmokeHarness : MonoBehaviour
                 $"run1={firstRun.frameHashes[mismatchFrame]} run2={secondRun.frameHashes[mismatchFrame]}",
                 this
             );
+            if (logEveryFrameHash)
+                LogPerFrameHashes(firstRun.frameHashes, secondRun.frameHashes);
             return;
         }
 
@@ -61,6 +66,8 @@ public class SimulationDeterminismSmokeHarness : MonoBehaviour
             AppendCheckpointSummary(builder, firstRun.frameHashes);
 
         Debug.Log(builder.ToString(), this);
+        if (logEveryFrameHash)
+            LogPerFrameHashes(firstRun.frameHashes, secondRun.frameHashes);
     }
 
     private bool HasValidSetup()
@@ -128,6 +135,17 @@ public class SimulationDeterminismSmokeHarness : MonoBehaviour
             builder.Append($" [{checkpoint}f:{frameHashes[checkpoint - 1]}]");
             checkpoint += checkpointInterval;
         }
+    }
+
+    private void LogPerFrameHashes(int[] firstRun, int[] secondRun)
+    {
+        int count = Mathf.Min(firstRun.Length, secondRun.Length);
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine("[DeterminismSmoke] Per-frame hash timeline:");
+        for (int i = 0; i < count; i++)
+            builder.AppendLine($"f{i + 1}: run1={firstRun[i]} run2={secondRun[i]}");
+
+        Debug.Log(builder.ToString(), this);
     }
 
     private static InputFrame BuildInputForFrame(int frame)

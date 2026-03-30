@@ -1,0 +1,128 @@
+public struct NetInputHistoryEntry
+{
+    public InputFrame input;
+    public int relativeDirection;
+}
+
+public struct NetPendingProjectileRequestState
+{
+    public bool hasPending;
+    public int ownerPlayerId;
+    public float positionX;
+    public float positionY;
+    public float velocityX;
+    public float velocityY;
+    public float halfSizeX;
+    public float halfSizeY;
+    public int lifetimeFrames;
+    public int damage;
+    public int hitstunFrames;
+}
+
+public struct NetFighterState
+{
+    public float positionX;
+    public float positionY;
+    public float velocityX;
+    public float velocityY;
+    public bool isGrounded;
+    public bool facingRight;
+    public int fighterState;
+    public int stateFrame;
+    public bool transitionedThisTick;
+    public bool stateFrameFrozenThisTick;
+    public int hitstopFramesRemaining;
+    public int hitstunFramesRemaining;
+    public bool isHoldingBlockInput;
+    public bool canCurrentlyBlock;
+    public bool isHoldingValidBlockDirection;
+    public bool hadAttackInputThisTick;
+    public int debugInputHistoryFreezeFramesRemaining;
+    public string debugInputHistoryDisplay;
+    public int lightPressBufferFramesRemaining;
+    public int mediumPressBufferFramesRemaining;
+    public int heavyPressBufferFramesRemaining;
+    public NetPendingProjectileRequestState pendingProjectileRequest;
+
+    public int renderVisualState;
+    public int renderMoveType;
+    public int renderVisualStateFrame;
+    public uint renderAnimationSerial;
+    public bool renderRestartAnimation;
+    public bool renderFreezeAnimation;
+
+    public int attackMoveType;
+    public int attackFrame;
+    public bool attackHasData;
+    public float hitboxCenterX;
+    public float hitboxCenterY;
+    public float hitboxHalfX;
+    public float hitboxHalfY;
+    public int hitboxDamage;
+    public int hitboxHitstunFrames;
+    public bool hitboxActive;
+    public bool hitboxHasHit;
+
+    public int landingRecoveryTicksRemaining;
+    public int queuedJumpMoveX;
+    public bool usedAirNormalThisJump;
+
+    public int builderLastVisualState;
+    public int builderLastVisualMoveType;
+    public int builderVisualStateFrame;
+    public uint builderAnimationSerial;
+    public int builderLastSimulationState;
+    public bool builderHasLastSimulationState;
+    public int builderCrouchTransitionFramesRemaining;
+
+    public NetInputHistoryEntry[] inputHistoryEntries;
+    public int inputHistoryNextWriteIndex;
+    public int inputHistoryCount;
+}
+
+public struct NetProjectileState
+{
+    public int id;
+    public int ownerPlayerId;
+    public float positionX;
+    public float positionY;
+    public float velocityX;
+    public float velocityY;
+    public float halfSizeX;
+    public float halfSizeY;
+    public int lifetimeFramesRemaining;
+    public int damage;
+    public int hitstunFrames;
+    public bool active;
+}
+
+public struct NetState
+{
+    public const int CurrentVersion = 1;
+
+    public int stateVersion;
+    public int frame;
+    public int nextProjectileId;
+    public int randomSeed;
+    public int roundTimerFramesRemaining;
+    public bool roundTimerEnabled;
+    public float previousPlayer1X;
+    public float previousPlayer2X;
+    public NetFighterState player1;
+    public NetFighterState player2;
+    public NetProjectileState[] projectiles;
+
+    public static NetState CreateDefault()
+    {
+        return new NetState
+        {
+            stateVersion = CurrentVersion,
+            frame = 0,
+            nextProjectileId = 1,
+            randomSeed = 0,
+            roundTimerFramesRemaining = 0,
+            roundTimerEnabled = false,
+            projectiles = System.Array.Empty<NetProjectileState>()
+        };
+    }
+}

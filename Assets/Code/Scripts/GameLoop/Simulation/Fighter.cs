@@ -122,6 +122,7 @@ public class Fighter
     public bool CanCurrentlyBlock => canCurrentlyBlock;
     public bool IsHoldingValidBlockDirection => isHoldingValidBlockDirection;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
+    public FighterConfig Config => config;
 
     private Vector2 position;
     private Vector2 velocity;
@@ -559,6 +560,11 @@ public class Fighter
     private AttackData ResolveAttackData(MoveType moveType)
     {
         return attackController.ResolveAttackData(moveType, config, facingRight);
+    }
+
+    public AttackData ResolveAttackDataForNetState(MoveType moveType, bool forFacingRight)
+    {
+        return attackController.ResolveAttackData(moveType, config, forFacingRight);
     }
 
     private MoveType ResolveMoveType(AttackStrength strength, InputFrame input)
