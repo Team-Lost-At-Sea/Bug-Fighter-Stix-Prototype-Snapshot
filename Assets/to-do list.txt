@@ -1,17 +1,13 @@
 to-do list
 
-DONE crossover
-DONE Jumps feel floaty, need more gravity
-DONE glasses on casa
-DONE J_HP loops
-DONE camera
-DONE cornering
-DONE jasper anims
+jasper anims
 blocking
 cpu takeover
 standing heavy punch on Casanova needs more recovery frames in frame data
-DONE reset state
-DONW special inputs, more of them (DP input)
+timer UI
+health UI
+stage select UI with cursor
+
 visual confirmation in champ select
 backdashs/fw dash
 
