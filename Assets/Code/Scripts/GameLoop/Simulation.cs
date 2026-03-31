@@ -17,8 +17,6 @@ public class Simulation : ISimulationCore
         public readonly int lifetimeFramesRemaining;
         public readonly int damage;
         public readonly int hitstunFrames;
-        public readonly Sprite sprite;
-        public readonly Color tint;
         public readonly bool active;
 
         public ProjectileSnapshot(
@@ -30,8 +28,6 @@ public class Simulation : ISimulationCore
             int lifetimeFramesRemaining,
             int damage,
             int hitstunFrames,
-            Sprite sprite,
-            Color tint,
             bool active
         )
         {
@@ -43,8 +39,6 @@ public class Simulation : ISimulationCore
             this.lifetimeFramesRemaining = lifetimeFramesRemaining;
             this.damage = damage;
             this.hitstunFrames = hitstunFrames;
-            this.sprite = sprite;
-            this.tint = tint;
             this.active = active;
         }
     }
@@ -313,8 +307,6 @@ public class Simulation : ISimulationCore
                     netProjectile.lifetimeFramesRemaining,
                     netProjectile.damage,
                     netProjectile.hitstunFrames,
-                    ResolveProjectileSprite(netProjectile.ownerPlayerId),
-                    ResolveProjectileTint(netProjectile.ownerPlayerId),
                     netProjectile.active
                 );
             }
@@ -347,8 +339,6 @@ public class Simulation : ISimulationCore
                 projectile.lifetimeFramesRemaining,
                 projectile.damage,
                 projectile.hitstunFrames,
-                projectile.sprite,
-                projectile.tint,
                 projectile.active
             );
         }
@@ -393,9 +383,7 @@ public class Simulation : ISimulationCore
                 projectileSnapshot.halfSize,
                 projectileSnapshot.lifetimeFramesRemaining,
                 projectileSnapshot.damage,
-                projectileSnapshot.hitstunFrames,
-                projectileSnapshot.sprite,
-                projectileSnapshot.tint
+                projectileSnapshot.hitstunFrames
             )
             {
                 active = projectileSnapshot.active,
@@ -515,9 +503,7 @@ public class Simulation : ISimulationCore
             request.halfSize,
             request.lifetimeFrames,
             request.damage,
-            request.hitstunFrames,
-            request.sprite,
-            request.tint
+            request.hitstunFrames
         );
         projectiles.Add(projectile);
     }
@@ -729,8 +715,6 @@ public class Simulation : ISimulationCore
             canCurrentlyBlock = snapshot.canCurrentlyBlock,
             isHoldingValidBlockDirection = snapshot.isHoldingValidBlockDirection,
             hadAttackInputThisTick = snapshot.hadAttackInputThisTick,
-            debugInputHistoryFreezeFramesRemaining = snapshot.debugInputHistoryFreezeFramesRemaining,
-            debugInputHistoryDisplay = snapshot.debugInputHistoryDisplay,
             lightPressBufferFramesRemaining = snapshot.lightPressBufferFramesRemaining,
             mediumPressBufferFramesRemaining = snapshot.mediumPressBufferFramesRemaining,
             heavyPressBufferFramesRemaining = snapshot.heavyPressBufferFramesRemaining,
@@ -800,9 +784,7 @@ public class Simulation : ISimulationCore
             halfSize: new Vector2(pending.halfSizeX, pending.halfSizeY),
             lifetimeFrames: Mathf.Max(1, pending.lifetimeFrames),
             damage: pending.damage,
-            hitstunFrames: Mathf.Max(1, pending.hitstunFrames),
-            sprite: fighter != null ? fighter.Config.fireballProjectileSprite : null,
-            tint: fighter != null ? fighter.Config.fireballProjectileTint : Color.white
+            hitstunFrames: Mathf.Max(1, pending.hitstunFrames)
         );
 
         NetInputHistoryEntry[] sourceEntries = state.inputHistoryEntries ?? Array.Empty<NetInputHistoryEntry>();
@@ -830,8 +812,8 @@ public class Simulation : ISimulationCore
             state.canCurrentlyBlock,
             state.isHoldingValidBlockDirection,
             state.hadAttackInputThisTick,
-            state.debugInputHistoryFreezeFramesRemaining,
-            state.debugInputHistoryDisplay,
+            0,
+            "No input history yet",
             pending.hasPending,
             pendingProjectile,
             state.lightPressBufferFramesRemaining,
@@ -871,24 +853,6 @@ public class Simulation : ISimulationCore
                 state.inputHistoryCount
             )
         );
-    }
-
-    private Sprite ResolveProjectileSprite(int ownerPlayerId)
-    {
-        Fighter owner = ownerPlayerId == 2 ? player2 : player1;
-        if (owner == null || owner.Config == null)
-            return null;
-
-        return owner.Config.fireballProjectileSprite;
-    }
-
-    private Color ResolveProjectileTint(int ownerPlayerId)
-    {
-        Fighter owner = ownerPlayerId == 2 ? player2 : player1;
-        if (owner == null || owner.Config == null)
-            return Color.white;
-
-        return owner.Config.fireballProjectileTint;
     }
 
     private static int HashFighterState(int seed, Fighter fighter, int slot)

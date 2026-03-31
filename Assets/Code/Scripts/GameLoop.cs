@@ -27,10 +27,32 @@ public class GameLoop : MonoBehaviour
     [SerializeField]
     private MatchConfig matchConfig;
 
+    [Header("Audio")]
+    [SerializeField]
+    private AudioSource battleMusicSource;
+
+    [Tooltip("Used when entering the match scene without character select setup.")]
+    [SerializeField]
+    private AudioClip fallbackBattleMusic;
+
     [Header("Save State")]
     [SerializeField]
     [Min(0.1f)]
-    private float clearSaveHoldDurationSeconds = 2f;
+    private float clearSaveHoldDurationSeconds = 1f;
+
+    [SerializeField]
+    [Min(0.01f)]
+    private float saveStateFlashDurationSeconds = 0.12f;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float saveStateFlashMaxAlpha = 0.6f;
+
+    [SerializeField]
+    private Color saveStateFlashColor = Color.green;
+
+    [SerializeField]
+    private Color clearStateFlashColor = Color.red;
 
     [Header("Netcode Session")]
     [SerializeField]
@@ -63,6 +85,9 @@ public class GameLoop : MonoBehaviour
     [Range(0f, 1f)]
     private float simulatedReorderChance = 0f;
 
+    [SerializeField]
+    private bool useLocalP2PacketStream = true;
+
     [Header("Replay")]
     [SerializeField]
     private bool recordReplayPackets = true;
@@ -78,6 +103,8 @@ public class GameLoop : MonoBehaviour
     private INetStateSerializer netStateSerializer;
     private ReplayRecorder replayRecorder;
     private uint localInputSequence;
+    private float flashTimeRemaining;
+    private Color activeFlashColor;
 
     public Simulation ActiveSimulation => simulation;
     public RollbackMetrics CurrentRollbackMetrics => matchSession != null ? matchSession.Metrics : default;
@@ -96,6 +123,7 @@ public class GameLoop : MonoBehaviour
             ? Mathf.Max(0, matchConfig.hitstopFrames)
             : Mathf.Max(0, hitstopFrames);
         ApplySelectedCharacters();
+        ApplyBattleMusic();
 
         FighterConfig player1Config = player1View != null ? player1View.Config : null;
         FighterConfig player2Config = player2View != null ? player2View.Config : null;
@@ -121,6 +149,8 @@ public class GameLoop : MonoBehaviour
             return;
 
         HandleSaveStateInput();
+        if (flashTimeRemaining > 0f)
+            flashTimeRemaining = Mathf.Max(0f, flashTimeRemaining - Time.unscaledDeltaTime);
         accumulator += Time.deltaTime;
 
         int safety = 0;
@@ -142,6 +172,24 @@ public class GameLoop : MonoBehaviour
         presenter.Dispose();
     }
 
+    private void OnGUI()
+    {
+        if (flashTimeRemaining <= 0f)
+            return;
+
+        float normalized = saveStateFlashDurationSeconds > 0f
+            ? Mathf.Clamp01(flashTimeRemaining / saveStateFlashDurationSeconds)
+            : 0f;
+        float alpha = saveStateFlashMaxAlpha * normalized;
+        if (alpha <= 0f)
+            return;
+
+        Color previousColor = GUI.color;
+        GUI.color = new Color(activeFlashColor.r, activeFlashColor.g, activeFlashColor.b, alpha);
+        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+        GUI.color = previousColor;
+    }
+
     private void ApplySelectedCharacters()
     {
         CharacterDefinition resolvedPlayer1 = player1Character;
@@ -158,6 +206,22 @@ public class GameLoop : MonoBehaviour
 
         if (player2View != null && resolvedPlayer2 != null)
             player2View.ApplyCharacterDefinition(resolvedPlayer2);
+    }
+
+    private void ApplyBattleMusic()
+    {
+        if (battleMusicSource == null)
+            return;
+
+        AudioClip selectedClip = MatchSetup.BattleMusic != null ? MatchSetup.BattleMusic : fallbackBattleMusic;
+        if (selectedClip == null)
+            return;
+
+        if (battleMusicSource.clip != selectedClip)
+            battleMusicSource.clip = selectedClip;
+
+        if (!battleMusicSource.isPlaying)
+            battleMusicSource.Play();
     }
 
     private void InitializeSession()
@@ -194,10 +258,27 @@ public class GameLoop : MonoBehaviour
         if (simulation == null)
             return;
 
+        if (useLocalP2PacketStream)
+        {
+            int nextFrame = simulation.CurrentFrame + 1;
+            FrameInputPacket player1Packet = ConsumeLocalPacket(nextFrame, 1);
+            FrameInputPacket player2Packet = ConsumeLocalPacket(nextFrame, 2);
+            simulation.Tick(player1Packet);
+            simulation.Tick(player2Packet);
+
+            if (recordReplayPackets)
+            {
+                replayRecorder.Record(player1Packet);
+                replayRecorder.Record(player2Packet);
+            }
+
+            return;
+        }
+
         if (matchSession != null)
         {
             int nextFrame = simulation.CurrentFrame + 1;
-            FrameInputPacket packet = ConsumeLocalPacket(nextFrame);
+            FrameInputPacket packet = ConsumeLocalPacket(nextFrame, 1);
             matchSession.SubmitLocalInput(packet);
             if (recordReplayPackets)
                 replayRecorder.Record(packet);
@@ -211,12 +292,12 @@ public class GameLoop : MonoBehaviour
         simulation.Tick(frameInput);
     }
 
-    private FrameInputPacket ConsumeLocalPacket(int nextFrame)
+    private FrameInputPacket ConsumeLocalPacket(int nextFrame, int playerId)
     {
         if (GameInput.Instance == null)
-            return FrameInputPacket.Neutral(nextFrame, 1, localInputSequence++);
+            return FrameInputPacket.Neutral(nextFrame, playerId, localInputSequence++);
 
-        FrameInputPacket packet = GameInput.Instance.ConsumeNextPlayerPacket(nextFrame, 1);
+        FrameInputPacket packet = GameInput.Instance.ConsumeNextPlayerPacket(nextFrame, playerId);
         packet.sequence = localInputSequence++;
         return packet;
     }
@@ -263,6 +344,7 @@ public class GameLoop : MonoBehaviour
                 savedState = netStateSerializer.Deserialize(blob);
             }
             hasSavedState = true;
+            TriggerScreenFlash(saveStateFlashColor);
             Debug.Log("Save state captured.");
             return;
         }
@@ -280,6 +362,13 @@ public class GameLoop : MonoBehaviour
             return;
 
         hasSavedState = false;
+        TriggerScreenFlash(clearStateFlashColor);
         Debug.Log("Save state cleared.");
+    }
+
+    private void TriggerScreenFlash(Color color)
+    {
+        activeFlashColor = color;
+        flashTimeRemaining = Mathf.Max(0.01f, saveStateFlashDurationSeconds);
     }
 }

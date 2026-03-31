@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MenuOptionsController : MonoBehaviour
 {
@@ -34,6 +35,9 @@ public class MenuOptionsController : MonoBehaviour
     [SerializeField]
     private TMP_Text hitboxViewLabel;
 
+    [SerializeField]
+    private TMP_Text returnToCharSelectLabel;
+
     [Header("Hints")]
     [SerializeField]
     private TMP_Text toggleHintLabel;
@@ -47,6 +51,10 @@ public class MenuOptionsController : MonoBehaviour
 
     [SerializeField]
     private TMP_Text closeHintLabel;
+
+    [Header("Scene Navigation")]
+    [SerializeField]
+    private string characterSelectSceneName = "Character Select";
 
     private bool menuOpen;
     private int selectedIndex;
@@ -119,6 +127,8 @@ public class MenuOptionsController : MonoBehaviour
                     onToggleInvertY?.Invoke();
                 else if (selectedIndex == 3)
                     ToggleHitboxView();
+                else if (selectedIndex == 4)
+                    ReturnToCharacterSelect();
             }
         }
 
@@ -127,6 +137,7 @@ public class MenuOptionsController : MonoBehaviour
 
     public void UpdateView(bool invertYEnabled)
     {
+        selectedIndex = Mathf.Clamp(selectedIndex, 0, GetMaxSelectableIndex());
         UpdateMenuVisibility();
         string optionState = invertYEnabled ? "On" : "Off";
         if (optionLabel != null)
@@ -137,9 +148,13 @@ public class MenuOptionsController : MonoBehaviour
             inputModeLabel.text = $"{GetPrefix(2)}Input Mode: {GetInputModeLabel(inputMode)}";
         if (hitboxViewLabel != null)
             hitboxViewLabel.text = $"{GetPrefix(3)}Hitbox View: {(showHitboxView ? "On" : "Off")}";
+        if (returnToCharSelectLabel != null)
+            returnToCharSelectLabel.text = $"{GetPrefix(4)}Return to Character Select";
         if (toggleHintLabel != null)
         {
-            string hint = "Press Submit to toggle - Left/Right to adjust";
+            string hint = selectedIndex == 4
+                ? "Press Submit to return to character select"
+                : "Press Submit to toggle - Left/Right to adjust";
             toggleHintLabel.text = hint;
         }
         if (closeHintLabel != null)
@@ -176,7 +191,7 @@ public class MenuOptionsController : MonoBehaviour
             if (nav.y > 0.5f)
                 selectedIndex = Mathf.Max(0, selectedIndex - 1);
             else if (nav.y < -0.5f)
-                selectedIndex = Mathf.Min(3, selectedIndex + 1);
+                selectedIndex = Mathf.Min(GetMaxSelectableIndex(), selectedIndex + 1);
         }
         else
         {
@@ -201,6 +216,11 @@ public class MenuOptionsController : MonoBehaviour
         {
             CycleInputMode(direction);
         }
+    }
+
+    private int GetMaxSelectableIndex()
+    {
+        return returnToCharSelectLabel != null ? 4 : 3;
     }
 
     private void AdjustUIScale(float delta)
@@ -296,9 +316,23 @@ public class MenuOptionsController : MonoBehaviour
                 return "Device mode is mainly for local or tournament setups.";
             case 3:
                 return "Hitbox View shows hitboxes and hurtboxes for debugging.";
+            case 4:
+                return "Leave this match and go back to character select.";
             default:
                 return string.Empty;
         }
+    }
+
+    private void ReturnToCharacterSelect()
+    {
+        if (string.IsNullOrWhiteSpace(characterSelectSceneName))
+        {
+            Debug.LogWarning("MenuOptionsController: Character select scene name is not configured.");
+            return;
+        }
+
+        MatchSetup.ClearSelections();
+        SceneManager.LoadScene(characterSelectSceneName);
     }
 
     private void OnValidate()

@@ -7,4 +7,5 @@ public class CharacterDefinition : ScriptableObject
     public FighterConfig fighterConfig;
     public RuntimeAnimatorController animatorController;
     public FighterPresentationConfig presentationConfig;
+    public AudioClip characterTheme;
 }

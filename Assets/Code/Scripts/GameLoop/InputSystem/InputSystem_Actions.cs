@@ -261,7 +261,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""negative"",
                     ""id"": ""993fff27-2f6f-4830-989a-ed08d4eaf67d"",
-                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""path"": """",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -272,7 +272,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""positive"",
                     ""id"": ""4b004978-fb72-4c3d-b2b8-e3902dd99177"",
-                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""path"": """",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -393,7 +393,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""negative"",
                     ""id"": ""8b62a80c-a58d-41b3-aaf6-b7cf242e4a29"",
-                    ""path"": ""<Keyboard>/downArrow"",
+                    ""path"": """",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
@@ -404,7 +404,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""positive"",
                     ""id"": ""da4b8158-5c24-4da6-8811-e21985a5fd5e"",
-                    ""path"": ""<Keyboard>/upArrow"",
+                    ""path"": """",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",

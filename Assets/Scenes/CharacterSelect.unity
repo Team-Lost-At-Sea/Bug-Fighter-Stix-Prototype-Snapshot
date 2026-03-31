@@ -1508,6 +1508,7 @@ MonoBehaviour:
   navigationRepeatDelay: 0.2
   matchSceneName: Training Room
   backSceneName: 
+  stageTheme: {fileID: 8300000, guid: 4a9d19b24e78bf34e9b3ac2dad62c89a, type: 3}
 --- !u!1 &1254924138
 GameObject:
   m_ObjectHideFlags: 0
@@ -1976,7 +1977,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: da6a35328bd7a8c4b87352137091d0a1, type: 3}
+  m_Resource: {fileID: 8300000, guid: fe52847158d78de4385f5b3b0b22c09f, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.02
   m_Pitch: 1
@@ -2489,11 +2490,26 @@ MonoBehaviour:
   stage: {fileID: 0}
   smoothSpeed: 5
   yOffset: 10
+  leftClampXOffset: 0
+  rightClampXOffset: 0
+  followJumpHeight: 1
+  jumpFollowStrength: 0.35
+  maxJumpFollowOffset: 2.5
   minOrthographicSize: 4.5
   maxOrthographicSize: 8
   zoomInStopDistance: 4
   zoomOutStopDistance: 22
   zoomSmoothSpeed: 6
+  zoomMode: 0
+  perspectiveZoomStyle: 0
+  perspectiveMinDistance: 9
+  perspectiveMaxDistance: 16
+  perspectiveMinFov: 42
+  perspectiveMaxFov: 60
+  perspectiveZoomSmoothSpeed: 6
+  currentFighterDistance: 0
+  currentResolvedMinClampX: 0
+  currentResolvedMaxClampX: 0
 --- !u!114 &2049637959
 MonoBehaviour:
   m_ObjectHideFlags: 0

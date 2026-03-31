@@ -144,18 +144,24 @@ public sealed class FighterAttackController
                 return new AttackTiming(4, 3, 14);
             case MoveType.FireballLight:
                 return new AttackTiming(10, 0, 18);
+            case MoveType.DragonPunchLight:
+                return new AttackTiming(6, 5, 22);
             case MoveType.StandingMedium:
             case MoveType.CrouchingMedium:
             case MoveType.JumpingMedium:
                 return new AttackTiming(10, 4, 19);
             case MoveType.FireballMedium:
                 return new AttackTiming(12, 0, 20);
+            case MoveType.DragonPunchMedium:
+                return new AttackTiming(8, 6, 24);
             case MoveType.StandingHeavy:
             case MoveType.CrouchingHeavy:
             case MoveType.JumpingHeavy:
                 return new AttackTiming(16, 5, 24);
             case MoveType.FireballHeavy:
                 return new AttackTiming(14, 0, 22);
+            case MoveType.DragonPunchHeavy:
+                return new AttackTiming(10, 7, 26);
             default:
                 return new AttackTiming(0, 0, 0);
         }

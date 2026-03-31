@@ -84,12 +84,28 @@ public sealed class ProjectileDebugRenderer
         GameObject visualObject = new GameObject($"ProjectileVisual_{projectile.id}");
         visualObject.transform.SetParent(GetOrCreateProjectileVisualRoot(), false);
         DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
-        visual.Initialize(projectile.tint);
+        visual.Initialize(ResolveTint(projectile));
         visual.SetSortingOrder(RenderOrder.World.Projectiles);
-        visual.SetSprite(projectile.sprite);
+        visual.SetSprite(ResolveSprite(projectile));
         visual.SetVisible(false);
         projectileVisuals[projectile.id] = visual;
         return visual;
+    }
+
+    private static Sprite ResolveSprite(Projectile projectile)
+    {
+        if (projectile == null || projectile.owner == null || projectile.owner.Config == null)
+            return null;
+
+        return projectile.owner.Config.fireballProjectileSprite;
+    }
+
+    private static Color ResolveTint(Projectile projectile)
+    {
+        if (projectile == null || projectile.owner == null || projectile.owner.Config == null)
+            return Color.white;
+
+        return projectile.owner.Config.fireballProjectileTint;
     }
 
     private Transform GetOrCreateProjectileVisualRoot()

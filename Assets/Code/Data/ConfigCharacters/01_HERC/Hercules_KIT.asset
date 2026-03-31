@@ -16,3 +16,4 @@ MonoBehaviour:
   fighterConfig: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   animatorController: {fileID: 9100000, guid: f0dadf298fc29884399d3ffdedb6f8a3, type: 2}
   presentationConfig: {fileID: 11400000, guid: 7dbff32e62aa3fa4aaa8402e49138bd0, type: 2}
+  characterTheme: {fileID: 8300000, guid: 388dd296a59a9d84db0d332b9cd7b8ba, type: 3}

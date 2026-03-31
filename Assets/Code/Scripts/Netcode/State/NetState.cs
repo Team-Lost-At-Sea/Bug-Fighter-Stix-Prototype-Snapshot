@@ -37,8 +37,6 @@ public struct NetFighterState
     public bool canCurrentlyBlock;
     public bool isHoldingValidBlockDirection;
     public bool hadAttackInputThisTick;
-    public int debugInputHistoryFreezeFramesRemaining;
-    public string debugInputHistoryDisplay;
     public int lightPressBufferFramesRemaining;
     public int mediumPressBufferFramesRemaining;
     public int heavyPressBufferFramesRemaining;
@@ -98,7 +96,7 @@ public struct NetProjectileState
 
 public struct NetState
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     public int stateVersion;
     public int frame;

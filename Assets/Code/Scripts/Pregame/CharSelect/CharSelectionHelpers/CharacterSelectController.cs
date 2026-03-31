@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class CharacterSelectController : MonoBehaviour
 {
@@ -46,6 +47,11 @@ public class CharacterSelectController : MonoBehaviour
 
     [SerializeField]
     private string backSceneName = "";
+
+    [Header("Audio")]
+    [Tooltip("Placeholder stage theme until stage-specific themes are added.")]
+    [SerializeField]
+    private AudioClip stageTheme;
 
     private InputSystem_Actions inputActions;
     private InputAction navigateAction;
@@ -232,7 +238,8 @@ public class CharacterSelectController : MonoBehaviour
             return;
         }
 
-        MatchSetup.SetSelections(player1, player2);
+        AudioClip battleMusic = ResolveBattleMusicTrack(player1, player2);
+        MatchSetup.SetSelections(player1, player2, battleMusic);
 
         if (!string.IsNullOrWhiteSpace(matchSceneName))
             SceneManager.LoadScene(matchSceneName);
@@ -260,5 +267,27 @@ public class CharacterSelectController : MonoBehaviour
             return ((index % count) + count) % count;
 
         return Mathf.Clamp(index, 0, count - 1);
+    }
+
+    private AudioClip ResolveBattleMusicTrack(CharacterDefinition player1, CharacterDefinition player2)
+    {
+        List<AudioClip> candidates = new List<AudioClip>(3);
+        AddClipIfAssigned(candidates, stageTheme);
+        AddClipIfAssigned(candidates, player1 != null ? player1.characterTheme : null);
+        AddClipIfAssigned(candidates, player2 != null ? player2.characterTheme : null);
+
+        if (candidates.Count == 0)
+            return null;
+
+        int randomIndex = Random.Range(0, candidates.Count);
+        return candidates[randomIndex];
+    }
+
+    private static void AddClipIfAssigned(List<AudioClip> clips, AudioClip clip)
+    {
+        if (clip == null)
+            return;
+
+        clips.Add(clip);
     }
 }

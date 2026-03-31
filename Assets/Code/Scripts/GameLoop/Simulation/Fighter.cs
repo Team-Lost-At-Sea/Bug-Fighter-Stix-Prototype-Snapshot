@@ -459,11 +459,22 @@ public class Fighter
 
     private bool TryResolveGroundedSpecial(InputFrame input, out MoveType moveType)
     {
+        const int dragonPunchWindow = 20;
         const int quarterCircleForwardWindow = 20;
         moveType = MoveType.None;
 
         if (!isGrounded || !input.HasAttackPress)
             return false;
+
+        if (ContainsDragonPunchForward(dragonPunchWindow))
+        {
+            moveType = ResolveDragonPunchMoveType(input);
+            if (moveType != MoveType.None && LogSpecialInputReads)
+                Debug.Log($"[SpecialInput] Dragon Punch read: {moveType}");
+
+            if (moveType != MoveType.None)
+                return true;
+        }
 
         if (!ContainsQuarterCircleForward(quarterCircleForwardWindow))
             return false;
@@ -479,6 +490,25 @@ public class Fighter
             Debug.Log($"[SpecialInput] Fireball read: {moveType}");
 
         return moveType != MoveType.None;
+    }
+
+    private MoveType ResolveDragonPunchMoveType(InputFrame input)
+    {
+        if (input.punchLightPressed)
+            return MoveType.DragonPunchLight;
+        if (input.punchMediumPressed)
+            return MoveType.DragonPunchMedium;
+        if (input.punchHeavyPressed)
+            return MoveType.DragonPunchHeavy;
+
+        return MoveType.None;
+    }
+
+    private bool ContainsDragonPunchForward(int maxFrames)
+    {
+        // Search backward from the attack-press frame and require
+        // 6 <- 3 <- 2 <- 6 (equivalent to 6236 in forward time).
+        return ContainsMotionSequence(maxFrames, 6, 3, 2, 6);
     }
 
     private bool ContainsQuarterCircleForward(int maxFrames)
@@ -512,6 +542,30 @@ public class Fighter
                 case 3:
                     return true;
             }
+        }
+
+        return false;
+    }
+
+    private bool ContainsMotionSequence(int maxFrames, params int[] sequence)
+    {
+        if (sequence == null || sequence.Length == 0)
+            return false;
+
+        int searchCount = inputHistory.Count < maxFrames ? inputHistory.Count : maxFrames;
+        int requiredStep = 0;
+
+        // We allow extra directions between required steps, but the required
+        // sequence must appear in order when scanning backward from press.
+        for (int framesAgo = 0; framesAgo < searchCount; framesAgo++)
+        {
+            int direction = inputHistory.GetRecent(framesAgo).relativeDirection;
+            if (direction != sequence[requiredStep])
+                continue;
+
+            requiredStep++;
+            if (requiredStep >= sequence.Length)
+                return true;
         }
 
         return false;
@@ -672,9 +726,7 @@ public class Fighter
             halfSize: config.fireballProjectileHalfSize,
             lifetimeFrames: config.fireballProjectileLifetimeFrames,
             damage: config.fireballProjectileDamage,
-            hitstunFrames: config.fireballProjectileHitstunFrames,
-            sprite: config.fireballProjectileSprite,
-            tint: config.fireballProjectileTint
+            hitstunFrames: config.fireballProjectileHitstunFrames
         );
         hasPendingProjectileSpawn = true;
     }

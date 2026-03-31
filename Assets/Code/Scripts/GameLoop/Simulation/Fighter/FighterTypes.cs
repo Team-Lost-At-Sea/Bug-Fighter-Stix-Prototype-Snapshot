@@ -80,6 +80,9 @@ public enum MoveType
     FireballLight = 10,
     FireballMedium = 11,
     FireballHeavy = 12,
+    DragonPunchLight = 13,
+    DragonPunchMedium = 14,
+    DragonPunchHeavy = 15,
 }
 
 public static class MoveTypeExtensions
@@ -89,5 +92,12 @@ public static class MoveTypeExtensions
         return moveType == MoveType.FireballLight
             || moveType == MoveType.FireballMedium
             || moveType == MoveType.FireballHeavy;
+    }
+
+    public static bool IsDragonPunch(this MoveType moveType)
+    {
+        return moveType == MoveType.DragonPunchLight
+            || moveType == MoveType.DragonPunchMedium
+            || moveType == MoveType.DragonPunchHeavy;
     }
 }

@@ -58,8 +58,8 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.roundTimerEnabled = reader.ReadBoolean();
         state.previousPlayer1X = reader.ReadSingle();
         state.previousPlayer2X = reader.ReadSingle();
-        state.player1 = ReadFighterState(reader);
-        state.player2 = ReadFighterState(reader);
+        state.player1 = ReadFighterState(reader, state.stateVersion);
+        state.player2 = ReadFighterState(reader, state.stateVersion);
 
         int projectileCount = reader.ReadInt32();
         if (projectileCount < 0)
@@ -90,8 +90,6 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.canCurrentlyBlock);
         writer.Write(state.isHoldingValidBlockDirection);
         writer.Write(state.hadAttackInputThisTick);
-        writer.Write(state.debugInputHistoryFreezeFramesRemaining);
-        writer.Write(state.debugInputHistoryDisplay ?? string.Empty);
         writer.Write(state.lightPressBufferFramesRemaining);
         writer.Write(state.mediumPressBufferFramesRemaining);
         writer.Write(state.heavyPressBufferFramesRemaining);
@@ -136,7 +134,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.inputHistoryCount);
     }
 
-    private static NetFighterState ReadFighterState(BinaryReader reader)
+    private static NetFighterState ReadFighterState(BinaryReader reader, int stateVersion)
     {
         NetFighterState state = default;
         state.positionX = reader.ReadSingle();
@@ -155,8 +153,12 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.canCurrentlyBlock = reader.ReadBoolean();
         state.isHoldingValidBlockDirection = reader.ReadBoolean();
         state.hadAttackInputThisTick = reader.ReadBoolean();
-        state.debugInputHistoryFreezeFramesRemaining = reader.ReadInt32();
-        state.debugInputHistoryDisplay = reader.ReadString();
+        if (stateVersion <= 1)
+        {
+            // Legacy v1 payload fields removed in v2. Consume and discard.
+            reader.ReadInt32();
+            reader.ReadString();
+        }
         state.lightPressBufferFramesRemaining = reader.ReadInt32();
         state.mediumPressBufferFramesRemaining = reader.ReadInt32();
         state.heavyPressBufferFramesRemaining = reader.ReadInt32();

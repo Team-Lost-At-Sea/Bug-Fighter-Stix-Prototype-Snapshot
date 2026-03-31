@@ -9,8 +9,6 @@ public readonly struct ProjectileSpawnRequest
     public readonly int lifetimeFrames;
     public readonly int damage;
     public readonly int hitstunFrames;
-    public readonly Sprite sprite;
-    public readonly Color tint;
 
     public ProjectileSpawnRequest(
         Fighter owner,
@@ -19,9 +17,7 @@ public readonly struct ProjectileSpawnRequest
         Vector2 halfSize,
         int lifetimeFrames,
         int damage,
-        int hitstunFrames,
-        Sprite sprite,
-        Color tint
+        int hitstunFrames
     )
     {
         this.owner = owner;
@@ -31,7 +27,5 @@ public readonly struct ProjectileSpawnRequest
         this.lifetimeFrames = Mathf.Max(1, lifetimeFrames);
         this.damage = Mathf.Max(0, damage);
         this.hitstunFrames = Mathf.Max(1, hitstunFrames);
-        this.sprite = sprite;
-        this.tint = tint;
     }
 }

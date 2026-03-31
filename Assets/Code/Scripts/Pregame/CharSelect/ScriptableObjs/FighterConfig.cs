@@ -46,6 +46,9 @@ public class FighterConfig : ScriptableObject
     public string fireballLightStateName = "s_LP";
     public string fireballMediumStateName = "s_MP";
     public string fireballHeavyStateName = "s_HP";
+    public string dragonPunchLightStateName = "s_LP";
+    public string dragonPunchMediumStateName = "s_MP";
+    public string dragonPunchHeavyStateName = "s_HP";
 
     [Header("Shared Moves")]
     public AttackData standingLightAttackData;
@@ -60,6 +63,9 @@ public class FighterConfig : ScriptableObject
     public AttackData fireballLightAttackData;
     public AttackData fireballMediumAttackData;
     public AttackData fireballHeavyAttackData;
+    public AttackData dragonPunchLightAttackData;
+    public AttackData dragonPunchMediumAttackData;
+    public AttackData dragonPunchHeavyAttackData;
 
     [Header("Fireball Projectile")]
     public Sprite fireballProjectileSprite;
@@ -99,6 +105,12 @@ public class FighterConfig : ScriptableObject
                 return fireballMediumAttackData;
             case MoveType.FireballHeavy:
                 return fireballHeavyAttackData;
+            case MoveType.DragonPunchLight:
+                return dragonPunchLightAttackData;
+            case MoveType.DragonPunchMedium:
+                return dragonPunchMediumAttackData;
+            case MoveType.DragonPunchHeavy:
+                return dragonPunchHeavyAttackData;
             default:
                 return null;
         }
@@ -163,6 +175,12 @@ public class FighterConfig : ScriptableObject
                 return fireballMediumStateName;
             case MoveType.FireballHeavy:
                 return fireballHeavyStateName;
+            case MoveType.DragonPunchLight:
+                return dragonPunchLightStateName;
+            case MoveType.DragonPunchMedium:
+                return dragonPunchMediumStateName;
+            case MoveType.DragonPunchHeavy:
+                return dragonPunchHeavyStateName;
             default:
                 return null;
         }

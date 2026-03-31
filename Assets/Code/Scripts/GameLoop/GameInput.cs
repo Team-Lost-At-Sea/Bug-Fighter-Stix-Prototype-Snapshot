@@ -18,6 +18,7 @@ public class GameInput : MonoBehaviour
 
     // Simple queue of inputs for the next simulation ticks
     private Queue<InputFrame> inputBuffer = new Queue<InputFrame>();
+    private Queue<InputFrame> player2InputBuffer = new Queue<InputFrame>();
 
     // Maximum number of frames to buffer
     [SerializeField]
@@ -37,6 +38,31 @@ public class GameInput : MonoBehaviour
     [Header("Menu")]
     [SerializeField]
     private MenuOptionsController menuController;
+
+    [Header("Local P2")]
+    [SerializeField]
+    private bool enableLocalPlayer2Input = true;
+
+    [SerializeField]
+    private Key p2LeftKey = Key.LeftArrow;
+
+    [SerializeField]
+    private Key p2RightKey = Key.RightArrow;
+
+    [SerializeField]
+    private Key p2DownKey = Key.DownArrow;
+
+    [SerializeField]
+    private Key p2UpKey = Key.UpArrow;
+
+    [SerializeField]
+    private Key p2LightKey = Key.Numpad1;
+
+    [SerializeField]
+    private Key p2MediumKey = Key.Numpad2;
+
+    [SerializeField]
+    private Key p2HeavyKey = Key.Numpad3;
     
     [Header("References")]
     [SerializeField]
@@ -53,10 +79,15 @@ public class GameInput : MonoBehaviour
     private bool lastLightPressed;
     private bool lastMediumPressed;
     private bool lastHeavyPressed;
+    private bool lastP2LightPressed;
+    private bool lastP2MediumPressed;
+    private bool lastP2HeavyPressed;
     private GUIStyle debugOverlayStyle;
     private InputFrame lastEnqueuedFrame = InputFrame.Neutral;
+    private InputFrame lastEnqueuedPlayer2Frame = InputFrame.Neutral;
     private bool hasLastEnqueuedFrame;
-    private uint packetSequence;
+    private bool hasLastEnqueuedPlayer2Frame;
+    private InputFrame lastCapturedPlayer2Frame = InputFrame.Neutral;
 
     public bool InvertYEnabled => invertYEnabled;
     public bool IsMenuOpen => menuController != null && menuController.IsMenuOpen;
@@ -116,21 +147,28 @@ public class GameInput : MonoBehaviour
             if (menuController.IsMenuOpen)
             {
                 lastCapturedFrame = InputFrame.Neutral;
+                lastCapturedPlayer2Frame = InputFrame.Neutral;
                 return;
             }
         }
 
-        CapturePlayer1Input();
+        CapturePlayerInputs();
     }
 
     public void ClearBufferedInputState()
     {
         inputBuffer.Clear();
+        player2InputBuffer.Clear();
         lastCapturedFrame = InputFrame.Neutral;
+        lastCapturedPlayer2Frame = InputFrame.Neutral;
         hasLastEnqueuedFrame = false;
+        hasLastEnqueuedPlayer2Frame = false;
         lastLightPressed = false;
         lastMediumPressed = false;
         lastHeavyPressed = false;
+        lastP2LightPressed = false;
+        lastP2MediumPressed = false;
+        lastP2HeavyPressed = false;
     }
 
     public void SetInvertYEnabled(bool enabled)
@@ -144,20 +182,38 @@ public class GameInput : MonoBehaviour
         Debug.Log($"Invert Y: {(invertYEnabled ? "ON" : "OFF")}");
     }
 
-    private void CapturePlayer1Input()
+    private void CapturePlayerInputs()
     {
-        InputFrame frame = BuildCurrentInputFrame();
-        lastCapturedFrame = frame;
+        InputFrame player1Frame = BuildCurrentPlayer1InputFrame();
+        lastCapturedFrame = player1Frame;
 
-        if (ShouldEnqueueFrame(frame))
+        if (ShouldEnqueueFrame(player1Frame))
         {
             // Limit buffer size to avoid ghost inputs.
             if (inputBuffer.Count >= maxBufferedFrames)
                 inputBuffer.Dequeue();
 
-            inputBuffer.Enqueue(frame);
-            lastEnqueuedFrame = frame;
+            inputBuffer.Enqueue(player1Frame);
+            lastEnqueuedFrame = player1Frame;
             hasLastEnqueuedFrame = true;
+        }
+
+        InputFrame player2Frame = enableLocalPlayer2Input
+            ? BuildCurrentPlayer2InputFrame()
+            : InputFrame.Neutral;
+        lastCapturedPlayer2Frame = player2Frame;
+
+        if (!enableLocalPlayer2Input)
+            return;
+
+        if (ShouldEnqueuePlayer2Frame(player2Frame))
+        {
+            if (player2InputBuffer.Count >= maxBufferedFrames)
+                player2InputBuffer.Dequeue();
+
+            player2InputBuffer.Enqueue(player2Frame);
+            lastEnqueuedPlayer2Frame = player2Frame;
+            hasLastEnqueuedPlayer2Frame = true;
         }
     }
 
@@ -167,16 +223,16 @@ public class GameInput : MonoBehaviour
         {
             frameIndex = frameIndex,
             player1 = ConsumeNextPlayer1Input(),
-            // P2 stays neutral until a second input map is introduced.
-            player2 = InputFrame.Neutral
+            player2 = enableLocalPlayer2Input ? ConsumeNextPlayer2Input() : InputFrame.Neutral
         };
     }
 
     public FrameInputPacket ConsumeNextPlayerPacket(int frameIndex, int playerId = 1)
     {
-        InputFrame input = ConsumeNextPlayer1Input();
-        packetSequence++;
-        return InputPacketCodec.Encode(input, frameIndex, playerId, packetSequence);
+        InputFrame input = playerId == 2 && enableLocalPlayer2Input
+            ? ConsumeNextPlayer2Input()
+            : ConsumeNextPlayer1Input();
+        return InputPacketCodec.Encode(input, frameIndex, playerId, 0);
     }
 
     /// <summary>
@@ -203,7 +259,18 @@ public class GameInput : MonoBehaviour
         return lastCapturedFrame;
     }
 
-    private InputFrame BuildCurrentInputFrame()
+    private InputFrame ConsumeNextPlayer2Input()
+    {
+        if (!enableLocalPlayer2Input)
+            return InputFrame.Neutral;
+
+        if (player2InputBuffer.Count > 0)
+            return player2InputBuffer.Dequeue();
+
+        return lastCapturedPlayer2Frame;
+    }
+
+    private InputFrame BuildCurrentPlayer1InputFrame()
     {
         if (menuController != null && menuController.IsMenuOpen)
         {
@@ -259,6 +326,72 @@ public class GameInput : MonoBehaviour
         lastLightPressed = lightPressed;
         lastMediumPressed = mediumPressed;
         lastHeavyPressed = heavyPressed;
+        return frame;
+    }
+
+    private InputFrame BuildCurrentPlayer2InputFrame()
+    {
+        if (menuController != null && menuController.IsMenuOpen)
+            return InputFrame.Neutral;
+
+        int moveX = 0;
+        int moveY = 0;
+        bool lightPressed = false;
+        bool mediumPressed = false;
+        bool heavyPressed = false;
+
+        Gamepad secondaryPad = GetSecondaryGamepad();
+        if (secondaryPad != null)
+        {
+            float padX = secondaryPad.leftStick.x.ReadValue();
+            float padY = secondaryPad.leftStick.y.ReadValue();
+
+            if (padX > 0.5f)
+                moveX = 1;
+            else if (padX < -0.5f)
+                moveX = -1;
+
+            if (padY > 0.5f)
+                moveY = 1;
+            else if (padY < -0.5f)
+                moveY = -1;
+
+            lightPressed = secondaryPad.buttonSouth.isPressed;
+            mediumPressed = secondaryPad.buttonEast.isPressed;
+            heavyPressed = secondaryPad.buttonNorth.isPressed;
+        }
+        else if (Keyboard.current != null)
+        {
+            if (Keyboard.current[p2LeftKey].isPressed)
+                moveX = -1;
+            else if (Keyboard.current[p2RightKey].isPressed)
+                moveX = 1;
+
+            if (Keyboard.current[p2UpKey].isPressed)
+                moveY = 1;
+            else if (Keyboard.current[p2DownKey].isPressed)
+                moveY = -1;
+
+            lightPressed = Keyboard.current[p2LightKey].isPressed;
+            mediumPressed = Keyboard.current[p2MediumKey].isPressed;
+            heavyPressed = Keyboard.current[p2HeavyKey].isPressed;
+        }
+
+        InputFrame frame = new InputFrame
+        {
+            moveX = moveX,
+            moveY = moveY,
+            punchLight = lightPressed,
+            punchMedium = mediumPressed,
+            punchHeavy = heavyPressed,
+            punchLightPressed = lightPressed && !lastP2LightPressed,
+            punchMediumPressed = mediumPressed && !lastP2MediumPressed,
+            punchHeavyPressed = heavyPressed && !lastP2HeavyPressed
+        };
+
+        lastP2LightPressed = lightPressed;
+        lastP2MediumPressed = mediumPressed;
+        lastP2HeavyPressed = heavyPressed;
         return frame;
     }
 
@@ -353,6 +486,39 @@ public class GameInput : MonoBehaviour
             || frame.punchLight != lastEnqueuedFrame.punchLight
             || frame.punchMedium != lastEnqueuedFrame.punchMedium
             || frame.punchHeavy != lastEnqueuedFrame.punchHeavy;
+    }
+
+    private bool ShouldEnqueuePlayer2Frame(InputFrame frame)
+    {
+        bool hasAnyInput =
+            frame.moveX != 0
+            || frame.moveY != 0
+            || frame.punchLight
+            || frame.punchMedium
+            || frame.punchHeavy;
+
+        if (!hasAnyInput)
+            return false;
+
+        if (frame.HasAttackPress)
+            return true;
+
+        if (!hasLastEnqueuedPlayer2Frame)
+            return true;
+
+        return frame.moveX != lastEnqueuedPlayer2Frame.moveX
+            || frame.moveY != lastEnqueuedPlayer2Frame.moveY
+            || frame.punchLight != lastEnqueuedPlayer2Frame.punchLight
+            || frame.punchMedium != lastEnqueuedPlayer2Frame.punchMedium
+            || frame.punchHeavy != lastEnqueuedPlayer2Frame.punchHeavy;
+    }
+
+    private static Gamepad GetSecondaryGamepad()
+    {
+        if (Gamepad.all.Count < 2)
+            return null;
+
+        return Gamepad.all[1];
     }
 
     private string GetPlayer1InputHistoryDebugString()

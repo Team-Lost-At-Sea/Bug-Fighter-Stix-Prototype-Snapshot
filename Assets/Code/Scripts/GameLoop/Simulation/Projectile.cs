@@ -7,8 +7,6 @@ public sealed class Projectile
     public readonly int damage;
     public readonly int hitstunFrames;
     public readonly Vector2 halfSize;
-    public readonly Sprite sprite;
-    public readonly Color tint;
 
     public Vector2 position;
     public Vector2 velocity;
@@ -23,9 +21,7 @@ public sealed class Projectile
         Vector2 halfSize,
         int lifetimeFrames,
         int damage,
-        int hitstunFrames,
-        Sprite sprite,
-        Color tint
+        int hitstunFrames
     )
     {
         this.id = id;
@@ -36,8 +32,6 @@ public sealed class Projectile
         lifetimeFramesRemaining = lifetimeFrames;
         this.damage = damage;
         this.hitstunFrames = hitstunFrames;
-        this.sprite = sprite;
-        this.tint = tint;
     }
 
     public Box CurrentBox => new Box(position, halfSize);
