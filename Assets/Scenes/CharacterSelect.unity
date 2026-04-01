@@ -832,7 +832,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 13.259998, y: 7}
+  m_AnchoredPosition: {x: 13.259998, y: 9.55}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &793970551
@@ -2754,6 +2754,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1487058103}
     m_Modifications:
+    - target: {fileID: 2175796205453761091, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 376725871, guid: dfd1aba819b7d784ea8cdd5daee8c0a0, type: 3}
     - target: {fileID: 2628714738596661362, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 13.26
@@ -2794,9 +2798,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3761347172648755781, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -1787048253, guid: 17d0289bd9d54d34d858bebcffea7d7c, type: 3}
     - target: {fileID: 4065689857985907905, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
       propertyPath: m_Name
       value: HERC_CharacterButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 8654209709377755721, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8654209709377755721, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8654209709377755721, guid: 88b3edbefcc52814a8d5bcf133a6643a, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.18
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
