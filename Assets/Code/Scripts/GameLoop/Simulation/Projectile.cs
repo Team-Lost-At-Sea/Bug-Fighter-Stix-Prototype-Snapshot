@@ -6,6 +6,11 @@ public sealed class Projectile
     public readonly Fighter owner;
     public readonly int damage;
     public readonly int hitstunFrames;
+    public readonly int blockstunFrames;
+    public readonly float blockPushback;
+    public readonly int chipDamage;
+    public readonly int attackerBlockstopFrames;
+    public readonly HitLevel hitLevel;
     public readonly Vector2 halfSize;
 
     public Vector2 position;
@@ -21,7 +26,12 @@ public sealed class Projectile
         Vector2 halfSize,
         int lifetimeFrames,
         int damage,
-        int hitstunFrames
+        int hitstunFrames,
+        int blockstunFrames,
+        float blockPushback,
+        int chipDamage,
+        int attackerBlockstopFrames,
+        HitLevel hitLevel
     )
     {
         this.id = id;
@@ -32,6 +42,11 @@ public sealed class Projectile
         lifetimeFramesRemaining = lifetimeFrames;
         this.damage = damage;
         this.hitstunFrames = hitstunFrames;
+        this.blockstunFrames = blockstunFrames;
+        this.blockPushback = blockPushback;
+        this.chipDamage = chipDamage;
+        this.attackerBlockstopFrames = attackerBlockstopFrames;
+        this.hitLevel = hitLevel;
     }
 
     public Box CurrentBox => new Box(position, halfSize);
@@ -43,6 +58,12 @@ public sealed class Projectile
             box = CurrentBox,
             damage = damage,
             hitstunFrames = hitstunFrames,
+            blockstunFrames = blockstunFrames,
+            blockPushback = blockPushback,
+            chipDamage = chipDamage,
+            attackerBlockstopFrames = attackerBlockstopFrames,
+            hitLevel = hitLevel,
+            isProjectile = true,
             active = active,
             hasHit = false
         };

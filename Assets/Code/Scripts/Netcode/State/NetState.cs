@@ -17,6 +17,11 @@ public struct NetPendingProjectileRequestState
     public int lifetimeFrames;
     public int damage;
     public int hitstunFrames;
+    public int blockstunFrames;
+    public float blockPushback;
+    public int chipDamage;
+    public int attackerBlockstopFrames;
+    public int hitLevel;
 }
 
 public struct NetFighterState
@@ -33,9 +38,21 @@ public struct NetFighterState
     public bool stateFrameFrozenThisTick;
     public int hitstopFramesRemaining;
     public int hitstunFramesRemaining;
+    public int blockstunFramesRemaining;
     public bool isHoldingBlockInput;
     public bool canCurrentlyBlock;
     public bool isHoldingValidBlockDirection;
+    public bool parryInputPressedThisTick;
+    public int parryLastMoveXSign;
+    public int parryWindowFramesRemaining;
+    public int parryLockoutFramesRemaining;
+    public int health;
+    public int totalDamageTaken;
+    public int totalChipDamageTaken;
+    public int lastReceivedHitResult;
+    public int lastReceivedHitLevel;
+    public int lastReceivedStunFrames;
+    public int lastReceivedChipDamage;
     public bool hadAttackInputThisTick;
     public int lightPressBufferFramesRemaining;
     public int mediumPressBufferFramesRemaining;
@@ -58,6 +75,12 @@ public struct NetFighterState
     public float hitboxHalfY;
     public int hitboxDamage;
     public int hitboxHitstunFrames;
+    public int hitboxBlockstunFrames;
+    public float hitboxBlockPushback;
+    public int hitboxChipDamage;
+    public int hitboxAttackerBlockstopFrames;
+    public int hitboxHitLevel;
+    public bool hitboxIsProjectile;
     public bool hitboxActive;
     public bool hitboxHasHit;
 
@@ -91,12 +114,17 @@ public struct NetProjectileState
     public int lifetimeFramesRemaining;
     public int damage;
     public int hitstunFrames;
+    public int blockstunFrames;
+    public float blockPushback;
+    public int chipDamage;
+    public int attackerBlockstopFrames;
+    public int hitLevel;
     public bool active;
 }
 
 public struct NetState
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int stateVersion;
     public int frame;

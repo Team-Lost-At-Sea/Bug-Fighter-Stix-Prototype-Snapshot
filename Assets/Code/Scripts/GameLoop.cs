@@ -22,6 +22,9 @@ public class GameLoop : MonoBehaviour
     [Header("Debug")]
     [SerializeField]
     private int hitstopFrames = 8;
+
+    [SerializeField]
+    private bool showCombatDebugHud = true;
     
     [Header("Match")]
     [SerializeField]
@@ -175,19 +178,47 @@ public class GameLoop : MonoBehaviour
     private void OnGUI()
     {
         if (flashTimeRemaining <= 0f)
+        {
+            DrawCombatDebugHud();
             return;
+        }
 
         float normalized = saveStateFlashDurationSeconds > 0f
             ? Mathf.Clamp01(flashTimeRemaining / saveStateFlashDurationSeconds)
             : 0f;
         float alpha = saveStateFlashMaxAlpha * normalized;
-        if (alpha <= 0f)
+        if (alpha > 0f)
+        {
+            Color previousColor = GUI.color;
+            GUI.color = new Color(activeFlashColor.r, activeFlashColor.g, activeFlashColor.b, alpha);
+            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+            GUI.color = previousColor;
+        }
+
+        DrawCombatDebugHud();
+    }
+
+    private void DrawCombatDebugHud()
+    {
+        if (!showCombatDebugHud || simulation == null)
             return;
 
-        Color previousColor = GUI.color;
-        GUI.color = new Color(activeFlashColor.r, activeFlashColor.g, activeFlashColor.b, alpha);
-        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = previousColor;
+        Fighter p1 = simulation.Player1;
+        Fighter p2 = simulation.Player2;
+        if (p1 == null || p2 == null)
+            return;
+
+        Simulation.CombatInteractionSnapshot interaction = simulation.LatestCombatInteraction;
+        Rect rect = new Rect(8f, 8f, 560f, 124f);
+        GUI.Box(rect, GUIContent.none);
+
+        string text =
+            $"Frame: {simulation.CurrentFrame}  Last: {interaction.resultType} ({interaction.hitLevel})\n" +
+            $"A{interaction.attackerPlayerId} -> D{interaction.defenderPlayerId}  stun={interaction.stunFrames} chip={interaction.chipDamage} push={interaction.pushback:F2} adv={interaction.attackerAdvantageEstimate}\n" +
+            $"P1 HP={p1.Health}  State={p1.CurrentState}  Hitstun={p1.HitstunFramesRemaining}  Blockstun={p1.BlockstunFramesRemaining}  Last={p1.LastReceivedHitResult}\n" +
+            $"P2 HP={p2.Health}  State={p2.CurrentState}  Hitstun={p2.HitstunFramesRemaining}  Blockstun={p2.BlockstunFramesRemaining}  Last={p2.LastReceivedHitResult}";
+
+        GUI.Label(new Rect(rect.x + 8f, rect.y + 8f, rect.width - 16f, rect.height - 16f), text);
     }
 
     private void ApplySelectedCharacters()

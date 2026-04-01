@@ -53,6 +53,11 @@ public sealed class FighterAttackController
             recoveryFrames = timing.recoveryFrames,
             damage = 5,
             hitstunFrames = 10,
+            blockstunFrames = 8,
+            blockPushback = 0.45f,
+            chipDamage = moveType.IsFireball() || moveType.IsDragonPunch() ? 1 : 0,
+            attackerBlockstopFrames = -1,
+            hitLevel = ResolveDefaultHitLevel(moveType),
             hitboxOffset = new Vector2(facingRight ? 0.9f : -0.9f, 0.9f),
             hitboxSize = new Vector2(1.0f, 0.8f),
         };
@@ -77,6 +82,12 @@ public sealed class FighterAttackController
                 hitbox.hasHit = false;
                 hitbox.damage = currentAttack.damage;
                 hitbox.hitstunFrames = currentAttack.hitstunFrames;
+                hitbox.blockstunFrames = Mathf.Max(1, currentAttack.blockstunFrames);
+                hitbox.blockPushback = Mathf.Max(0f, currentAttack.blockPushback);
+                hitbox.chipDamage = Mathf.Max(0, currentAttack.chipDamage);
+                hitbox.attackerBlockstopFrames = currentAttack.attackerBlockstopFrames;
+                hitbox.hitLevel = currentAttack.hitLevel;
+                hitbox.isProjectile = false;
             }
         }
 
@@ -132,6 +143,26 @@ public sealed class FighterAttackController
         currentAttack = snapshot.attackData;
         attackFrame = snapshot.attackFrame;
         hitbox = snapshot.hitbox;
+    }
+
+    public int GetRemainingRecoveryFrames()
+    {
+        if (currentAttack == null)
+            return 0;
+
+        int totalFrames = currentAttack.startupFrames + currentAttack.activeFrames + currentAttack.recoveryFrames;
+        return Mathf.Max(0, totalFrames - attackFrame);
+    }
+
+    private static HitLevel ResolveDefaultHitLevel(MoveType moveType)
+    {
+        if (moveType == MoveType.CrouchingLight || moveType == MoveType.CrouchingMedium || moveType == MoveType.CrouchingHeavy)
+            return HitLevel.Low;
+
+        if (moveType == MoveType.JumpingLight || moveType == MoveType.JumpingMedium || moveType == MoveType.JumpingHeavy)
+            return HitLevel.High;
+
+        return HitLevel.Mid;
     }
 
     private static AttackTiming GetDefaultTiming(MoveType moveType)

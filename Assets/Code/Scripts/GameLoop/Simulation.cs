@@ -17,6 +17,11 @@ public class Simulation : ISimulationCore
         public readonly int lifetimeFramesRemaining;
         public readonly int damage;
         public readonly int hitstunFrames;
+        public readonly int blockstunFrames;
+        public readonly float blockPushback;
+        public readonly int chipDamage;
+        public readonly int attackerBlockstopFrames;
+        public readonly HitLevel hitLevel;
         public readonly bool active;
 
         public ProjectileSnapshot(
@@ -28,6 +33,11 @@ public class Simulation : ISimulationCore
             int lifetimeFramesRemaining,
             int damage,
             int hitstunFrames,
+            int blockstunFrames,
+            float blockPushback,
+            int chipDamage,
+            int attackerBlockstopFrames,
+            HitLevel hitLevel,
             bool active
         )
         {
@@ -39,7 +49,48 @@ public class Simulation : ISimulationCore
             this.lifetimeFramesRemaining = lifetimeFramesRemaining;
             this.damage = damage;
             this.hitstunFrames = hitstunFrames;
+            this.blockstunFrames = blockstunFrames;
+            this.blockPushback = blockPushback;
+            this.chipDamage = chipDamage;
+            this.attackerBlockstopFrames = attackerBlockstopFrames;
+            this.hitLevel = hitLevel;
             this.active = active;
+        }
+    }
+
+    public readonly struct CombatInteractionSnapshot
+    {
+        public readonly int frame;
+        public readonly int attackerPlayerId;
+        public readonly int defenderPlayerId;
+        public readonly HitLevel hitLevel;
+        public readonly HitResultType resultType;
+        public readonly int stunFrames;
+        public readonly int chipDamage;
+        public readonly float pushback;
+        public readonly int attackerAdvantageEstimate;
+
+        public CombatInteractionSnapshot(
+            int frame,
+            int attackerPlayerId,
+            int defenderPlayerId,
+            HitLevel hitLevel,
+            HitResultType resultType,
+            int stunFrames,
+            int chipDamage,
+            float pushback,
+            int attackerAdvantageEstimate
+        )
+        {
+            this.frame = frame;
+            this.attackerPlayerId = attackerPlayerId;
+            this.defenderPlayerId = defenderPlayerId;
+            this.hitLevel = hitLevel;
+            this.resultType = resultType;
+            this.stunFrames = stunFrames;
+            this.chipDamage = chipDamage;
+            this.pushback = pushback;
+            this.attackerAdvantageEstimate = attackerAdvantageEstimate;
         }
     }
 
@@ -103,11 +154,25 @@ public class Simulation : ISimulationCore
     private float previousPlayer2X;
     private readonly Dictionary<int, InputFrame> pendingPlayer1Packets = new Dictionary<int, InputFrame>();
     private readonly Dictionary<int, InputFrame> pendingPlayer2Packets = new Dictionary<int, InputFrame>();
+    private readonly bool enableAdvancedGuardRules;
+    private readonly bool enableAirBlock;
+    private readonly bool enableChipOnBlock;
+    private readonly bool enableCounterHit;
+    private readonly bool enableParry;
+    private readonly int counterHitBonusHitstunFrames;
+    private readonly int parryAttackerHitstopFrames;
+    private readonly int parryDefenderHitstopFrames;
+    private readonly int parryActiveWindowFrames;
+    private readonly int parryWhiffLockoutFrames;
+    private readonly bool verboseCombatDebugLogs;
+    private readonly int roundStartHealth;
+    private CombatInteractionSnapshot latestCombatInteraction;
     
     public IReadOnlyList<Projectile> ActiveProjectiles => projectiles;
     public Fighter Player1 => player1;
     public Fighter Player2 => player2;
     public int CurrentFrame => simulationFrame;
+    public CombatInteractionSnapshot LatestCombatInteraction => latestCombatInteraction;
 
     public Simulation(MatchConfig config = null)
     {
@@ -118,6 +183,18 @@ public class Simulation : ISimulationCore
             stageRight = config.stageRight;
             enableBackwalkTether = config.enableBackwalkTether;
             maxBackwalkSeparation = Mathf.Max(0f, config.maxBackwalkSeparation);
+            enableAdvancedGuardRules = config.enableAdvancedGuardRules;
+            enableAirBlock = config.enableAirBlock;
+            enableChipOnBlock = config.enableChipOnBlock;
+            enableCounterHit = config.enableCounterHit;
+            enableParry = config.enableParry;
+            counterHitBonusHitstunFrames = Mathf.Max(0, config.counterHitBonusHitstunFrames);
+            parryAttackerHitstopFrames = Mathf.Max(0, config.parryAttackerHitstopFrames);
+            parryDefenderHitstopFrames = Mathf.Max(0, config.parryDefenderHitstopFrames);
+            parryActiveWindowFrames = Mathf.Max(1, config.parryActiveWindowFrames);
+            parryWhiffLockoutFrames = Mathf.Max(0, config.parryWhiffLockoutFrames);
+            verboseCombatDebugLogs = config.verboseCombatDebugLogs;
+            roundStartHealth = Mathf.Max(1, config.roundStartHealth);
         }
         else
         {
@@ -126,6 +203,18 @@ public class Simulation : ISimulationCore
             stageRight = 80f;
             enableBackwalkTether = false;
             maxBackwalkSeparation = 22f;
+            enableAdvancedGuardRules = true;
+            enableAirBlock = true;
+            enableChipOnBlock = true;
+            enableCounterHit = true;
+            enableParry = false;
+            counterHitBonusHitstunFrames = 2;
+            parryAttackerHitstopFrames = 10;
+            parryDefenderHitstopFrames = 3;
+            parryActiveWindowFrames = 3;
+            parryWhiffLockoutFrames = 12;
+            verboseCombatDebugLogs = false;
+            roundStartHealth = 100;
         }
     }
 
@@ -136,8 +225,14 @@ public class Simulation : ISimulationCore
         string player2Name = "Player2"
     )
     {
-        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name);
-        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name);
+        int startHealth = roundStartHealth;
+
+        Fighter.EnableParry = enableParry;
+        Fighter.ParryActiveWindowFrames = parryActiveWindowFrames;
+        Fighter.ParryWhiffLockoutFrames = parryWhiffLockoutFrames;
+
+        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name, startHealth);
+        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name, startHealth);
 
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
@@ -145,6 +240,7 @@ public class Simulation : ISimulationCore
         previousPlayer2X = player2.Position.x;
         pendingPlayer1Packets.Clear();
         pendingPlayer2Packets.Clear();
+        latestCombatInteraction = default;
 
         ClearProjectiles();
     }
@@ -234,6 +330,11 @@ public class Simulation : ISimulationCore
                 hash = HashInt(hash, QuantizeFloat(projectile.halfSize.y));
                 hash = HashInt(hash, projectile.damage);
                 hash = HashInt(hash, projectile.hitstunFrames);
+                hash = HashInt(hash, projectile.blockstunFrames);
+                hash = HashInt(hash, QuantizeFloat(projectile.blockPushback));
+                hash = HashInt(hash, projectile.chipDamage);
+                hash = HashInt(hash, projectile.attackerBlockstopFrames);
+                hash = HashInt(hash, (int)projectile.hitLevel);
                 hash = HashInt(hash, projectile.lifetimeFramesRemaining);
             }
 
@@ -272,6 +373,11 @@ public class Simulation : ISimulationCore
                 lifetimeFramesRemaining = source.lifetimeFramesRemaining,
                 damage = source.damage,
                 hitstunFrames = source.hitstunFrames,
+                blockstunFrames = source.blockstunFrames,
+                blockPushback = source.blockPushback,
+                chipDamage = source.chipDamage,
+                attackerBlockstopFrames = source.attackerBlockstopFrames,
+                hitLevel = (int)source.hitLevel,
                 active = source.active
             };
         }
@@ -307,6 +413,11 @@ public class Simulation : ISimulationCore
                     netProjectile.lifetimeFramesRemaining,
                     netProjectile.damage,
                     netProjectile.hitstunFrames,
+                    netProjectile.blockstunFrames,
+                    netProjectile.blockPushback,
+                    netProjectile.chipDamage,
+                    netProjectile.attackerBlockstopFrames,
+                    (HitLevel)netProjectile.hitLevel,
                     netProjectile.active
                 );
             }
@@ -339,6 +450,11 @@ public class Simulation : ISimulationCore
                 projectile.lifetimeFramesRemaining,
                 projectile.damage,
                 projectile.hitstunFrames,
+                projectile.blockstunFrames,
+                projectile.blockPushback,
+                projectile.chipDamage,
+                projectile.attackerBlockstopFrames,
+                projectile.hitLevel,
                 projectile.active
             );
         }
@@ -383,7 +499,12 @@ public class Simulation : ISimulationCore
                 projectileSnapshot.halfSize,
                 projectileSnapshot.lifetimeFramesRemaining,
                 projectileSnapshot.damage,
-                projectileSnapshot.hitstunFrames
+                projectileSnapshot.hitstunFrames,
+                projectileSnapshot.blockstunFrames,
+                projectileSnapshot.blockPushback,
+                projectileSnapshot.chipDamage,
+                projectileSnapshot.attackerBlockstopFrames,
+                projectileSnapshot.hitLevel
             )
             {
                 active = projectileSnapshot.active,
@@ -503,7 +624,12 @@ public class Simulation : ISimulationCore
             request.halfSize,
             request.lifetimeFrames,
             request.damage,
-            request.hitstunFrames
+            request.hitstunFrames,
+            request.blockstunFrames,
+            request.blockPushback,
+            request.chipDamage,
+            request.attackerBlockstopFrames,
+            request.hitLevel
         );
         projectiles.Add(projectile);
     }
@@ -563,20 +689,157 @@ public class Simulation : ISimulationCore
             if (hitEvent.attacker == null || hitEvent.defender == null)
                 continue;
 
+            if (!hitEvent.hitbox.active)
+                continue;
+
+            bool isProjectile = hitEvent.source == PendingHitSource.Projectile;
+            if (isProjectile && (hitEvent.projectile == null || !hitEvent.projectile.active))
+                continue;
+
+            ResolveHitEvent(hitEvent);
+
             if (hitEvent.source == PendingHitSource.Projectile)
             {
-                if (hitEvent.projectile == null || !hitEvent.projectile.active)
-                    continue;
-
-                hitEvent.defender.ApplyHit(hitEvent.hitbox);
-                hitEvent.attacker.ApplySuccessfulHitstopAsAttacker();
                 hitEvent.projectile.active = false;
-                continue;
             }
+            else
+            {
+                hitEvent.attacker.MarkCurrentHitboxAsSpent();
+            }
+        }
+    }
 
-            hitEvent.defender.ApplyHit(hitEvent.hitbox);
-            hitEvent.attacker.ApplySuccessfulHitstopAsAttacker();
-            hitEvent.attacker.MarkCurrentHitboxAsSpent();
+    private void ResolveHitEvent(PendingHitEvent hitEvent)
+    {
+        Fighter attacker = hitEvent.attacker;
+        Fighter defender = hitEvent.defender;
+        Hitbox hitbox = hitEvent.hitbox;
+
+        if (enableParry && defender.CanPerformParryNow() && IsParryEligible(hitbox))
+        {
+            defender.ApplyParry(parryDefenderHitstopFrames, parryWhiffLockoutFrames);
+            attacker.ApplySuccessfulHitstopAsAttacker(parryAttackerHitstopFrames);
+            EmitCombatInteraction(attacker, defender, hitbox, HitResultType.Parry, 0, 0, 0f);
+            return;
+        }
+
+        bool blocked = enableAdvancedGuardRules
+            ? IsLegalBlock(defender, hitbox)
+            : defender.IsHoldingValidBlockDirection;
+
+        int counterHitBonus = 0;
+        bool isCounterHit = false;
+        if (enableCounterHit && !blocked && defender.IsInAttackStartup())
+        {
+            isCounterHit = true;
+            counterHitBonus = counterHitBonusHitstunFrames;
+        }
+
+        if (blocked)
+        {
+            bool allowChip = enableChipOnBlock && (hitbox.isProjectile || attacker.CurrentMoveType.IsFireball() || attacker.CurrentMoveType.IsDragonPunch());
+            HitResultType resultType = isCounterHit ? HitResultType.CounterHitBlocked : HitResultType.Blocked;
+            defender.ApplyBlockedHit(hitbox, allowChip, resultType);
+            int attackerStop = hitbox.attackerBlockstopFrames >= 0 ? hitbox.attackerBlockstopFrames : Fighter.HitstopFrames;
+            attacker.ApplySuccessfulHitstopAsAttacker(attackerStop);
+            ApplyBlockPushback(attacker, defender, hitbox.blockPushback);
+            EmitCombatInteraction(attacker, defender, hitbox, resultType, defender.BlockstunFramesRemaining, defender.LastReceivedChipDamage, hitbox.blockPushback);
+            return;
+        }
+
+        HitResultType onHitResult = isCounterHit ? HitResultType.CounterHit : HitResultType.Hit;
+        defender.ApplyHit(hitbox, counterHitBonus, onHitResult);
+        attacker.ApplySuccessfulHitstopAsAttacker();
+        EmitCombatInteraction(attacker, defender, hitbox, onHitResult, defender.HitstunFramesRemaining, 0, 0f);
+    }
+
+    private bool IsParryEligible(Hitbox hitbox)
+    {
+        if (hitbox.hitLevel == HitLevel.Unblockable || hitbox.hitLevel == HitLevel.AirUnblockable)
+            return false;
+
+        return true;
+    }
+
+    private bool IsLegalBlock(Fighter defender, Hitbox hitbox)
+    {
+        if (!defender.IsHoldingBlockInput)
+            return false;
+
+        if (hitbox.hitLevel == HitLevel.Unblockable)
+            return false;
+
+        if (!defender.IsGrounded)
+        {
+            if (!enableAirBlock)
+                return false;
+
+            return hitbox.hitLevel != HitLevel.AirUnblockable;
+        }
+
+        switch (hitbox.hitLevel)
+        {
+            case HitLevel.High:
+                return defender.CurrentState != FighterState.Crouching;
+            case HitLevel.Low:
+                return defender.CurrentState == FighterState.Crouching;
+            case HitLevel.Mid:
+                return true;
+            case HitLevel.AirUnblockable:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void ApplyBlockPushback(Fighter attacker, Fighter defender, float amount)
+    {
+        float pushback = Mathf.Max(0f, amount);
+        if (pushback <= 0f)
+            return;
+
+        float direction = attacker.Position.x < defender.Position.x ? 1f : -1f;
+        attacker.MoveHorizontal(-direction * (pushback * 0.35f));
+        defender.MoveHorizontal(direction * (pushback * 0.65f));
+
+        ClampToStage(attacker);
+        ClampToStage(defender);
+        ResolvePushboxes();
+    }
+
+    private void EmitCombatInteraction(
+        Fighter attacker,
+        Fighter defender,
+        Hitbox hitbox,
+        HitResultType resultType,
+        int stunFrames,
+        int chipDamage,
+        float pushback
+    )
+    {
+        int attackerId = attacker == player1 ? 1 : 2;
+        int defenderId = defender == player1 ? 1 : 2;
+        int attackerRecovery = attacker.GetEstimatedRemainingRecoveryFrames();
+        int attackerAdvantageEstimate = stunFrames - attackerRecovery;
+
+        latestCombatInteraction = new CombatInteractionSnapshot(
+            simulationFrame,
+            attackerId,
+            defenderId,
+            hitbox.hitLevel,
+            resultType,
+            stunFrames,
+            chipDamage,
+            pushback,
+            attackerAdvantageEstimate
+        );
+
+        if (verboseCombatDebugLogs)
+        {
+            Debug.Log(
+                $"[Combat] f={simulationFrame} a={attackerId} d={defenderId} result={resultType} " +
+                $"lvl={hitbox.hitLevel} stun={stunFrames} chip={chipDamage} push={pushback:F2} adv={attackerAdvantageEstimate}"
+            );
         }
     }
 
@@ -693,7 +956,12 @@ public class Simulation : ISimulationCore
             halfSizeY = pendingRequest.halfSize.y,
             lifetimeFrames = pendingRequest.lifetimeFrames,
             damage = pendingRequest.damage,
-            hitstunFrames = pendingRequest.hitstunFrames
+            hitstunFrames = pendingRequest.hitstunFrames,
+            blockstunFrames = pendingRequest.blockstunFrames,
+            blockPushback = pendingRequest.blockPushback,
+            chipDamage = pendingRequest.chipDamage,
+            attackerBlockstopFrames = pendingRequest.attackerBlockstopFrames,
+            hitLevel = (int)pendingRequest.hitLevel
         };
 
         Hitbox hitbox = snapshot.attackSnapshot.hitbox;
@@ -711,9 +979,21 @@ public class Simulation : ISimulationCore
             stateFrameFrozenThisTick = snapshot.stateFrameFrozenThisTick,
             hitstopFramesRemaining = snapshot.hitstopFramesRemaining,
             hitstunFramesRemaining = snapshot.hitstunFramesRemaining,
+            blockstunFramesRemaining = snapshot.blockstunFramesRemaining,
             isHoldingBlockInput = snapshot.isHoldingBlockInput,
             canCurrentlyBlock = snapshot.canCurrentlyBlock,
             isHoldingValidBlockDirection = snapshot.isHoldingValidBlockDirection,
+            parryInputPressedThisTick = snapshot.parryInputPressedThisTick,
+            parryLastMoveXSign = snapshot.lastMoveXSign,
+            parryWindowFramesRemaining = snapshot.parryWindowFramesRemaining,
+            parryLockoutFramesRemaining = snapshot.parryLockoutFramesRemaining,
+            health = snapshot.health,
+            totalDamageTaken = snapshot.totalDamageTaken,
+            totalChipDamageTaken = snapshot.totalChipDamageTaken,
+            lastReceivedHitResult = (int)snapshot.lastReceivedHitResult,
+            lastReceivedHitLevel = (int)snapshot.lastReceivedHitLevel,
+            lastReceivedStunFrames = snapshot.lastReceivedStunFrames,
+            lastReceivedChipDamage = snapshot.lastReceivedChipDamage,
             hadAttackInputThisTick = snapshot.hadAttackInputThisTick,
             lightPressBufferFramesRemaining = snapshot.lightPressBufferFramesRemaining,
             mediumPressBufferFramesRemaining = snapshot.mediumPressBufferFramesRemaining,
@@ -736,6 +1016,12 @@ public class Simulation : ISimulationCore
             hitboxHalfY = hitbox.box.halfSize.y,
             hitboxDamage = hitbox.damage,
             hitboxHitstunFrames = hitbox.hitstunFrames,
+            hitboxBlockstunFrames = hitbox.blockstunFrames,
+            hitboxBlockPushback = hitbox.blockPushback,
+            hitboxChipDamage = hitbox.chipDamage,
+            hitboxAttackerBlockstopFrames = hitbox.attackerBlockstopFrames,
+            hitboxHitLevel = (int)hitbox.hitLevel,
+            hitboxIsProjectile = hitbox.isProjectile,
             hitboxActive = hitbox.active,
             hitboxHasHit = hitbox.hasHit,
 
@@ -772,6 +1058,12 @@ public class Simulation : ISimulationCore
             ),
             damage = state.hitboxDamage,
             hitstunFrames = state.hitboxHitstunFrames,
+            blockstunFrames = state.hitboxBlockstunFrames,
+            blockPushback = state.hitboxBlockPushback,
+            chipDamage = state.hitboxChipDamage,
+            attackerBlockstopFrames = state.hitboxAttackerBlockstopFrames,
+            hitLevel = (HitLevel)state.hitboxHitLevel,
+            isProjectile = state.hitboxIsProjectile,
             active = state.hitboxActive,
             hasHit = state.hitboxHasHit
         };
@@ -784,7 +1076,12 @@ public class Simulation : ISimulationCore
             halfSize: new Vector2(pending.halfSizeX, pending.halfSizeY),
             lifetimeFrames: Mathf.Max(1, pending.lifetimeFrames),
             damage: pending.damage,
-            hitstunFrames: Mathf.Max(1, pending.hitstunFrames)
+            hitstunFrames: Mathf.Max(1, pending.hitstunFrames),
+            blockstunFrames: Mathf.Max(1, pending.blockstunFrames),
+            blockPushback: Mathf.Max(0f, pending.blockPushback),
+            chipDamage: Mathf.Max(0, pending.chipDamage),
+            attackerBlockstopFrames: pending.attackerBlockstopFrames,
+            hitLevel: (HitLevel)pending.hitLevel
         );
 
         NetInputHistoryEntry[] sourceEntries = state.inputHistoryEntries ?? Array.Empty<NetInputHistoryEntry>();
@@ -808,9 +1105,21 @@ public class Simulation : ISimulationCore
             state.stateFrameFrozenThisTick,
             state.hitstopFramesRemaining,
             state.hitstunFramesRemaining,
+            state.blockstunFramesRemaining,
             state.isHoldingBlockInput,
             state.canCurrentlyBlock,
             state.isHoldingValidBlockDirection,
+            state.parryInputPressedThisTick,
+            state.parryLastMoveXSign,
+            state.parryWindowFramesRemaining,
+            state.parryLockoutFramesRemaining,
+            state.health,
+            state.totalDamageTaken,
+            state.totalChipDamageTaken,
+            (HitResultType)state.lastReceivedHitResult,
+            (HitLevel)state.lastReceivedHitLevel,
+            state.lastReceivedStunFrames,
+            state.lastReceivedChipDamage,
             state.hadAttackInputThisTick,
             0,
             "No input history yet",
@@ -872,6 +1181,11 @@ public class Simulation : ISimulationCore
         hash = HashInt(hash, (int)fighter.CurrentState);
         hash = HashInt(hash, fighter.StateFrame);
         hash = HashInt(hash, (int)fighter.CurrentMoveType);
+        hash = HashInt(hash, fighter.HitstunFramesRemaining);
+        hash = HashInt(hash, fighter.BlockstunFramesRemaining);
+        hash = HashInt(hash, fighter.Health);
+        hash = HashInt(hash, (int)fighter.LastReceivedHitResult);
+        hash = HashInt(hash, (int)fighter.LastReceivedHitLevel);
         return hash;
     }
 

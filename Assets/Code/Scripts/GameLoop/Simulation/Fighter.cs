@@ -18,9 +18,21 @@ public class Fighter
         public readonly bool stateFrameFrozenThisTick;
         public readonly int hitstopFramesRemaining;
         public readonly int hitstunFramesRemaining;
+        public readonly int blockstunFramesRemaining;
         public readonly bool isHoldingBlockInput;
         public readonly bool canCurrentlyBlock;
         public readonly bool isHoldingValidBlockDirection;
+        public readonly bool parryInputPressedThisTick;
+        public readonly int lastMoveXSign;
+        public readonly int parryWindowFramesRemaining;
+        public readonly int parryLockoutFramesRemaining;
+        public readonly int health;
+        public readonly int totalDamageTaken;
+        public readonly int totalChipDamageTaken;
+        public readonly HitResultType lastReceivedHitResult;
+        public readonly HitLevel lastReceivedHitLevel;
+        public readonly int lastReceivedStunFrames;
+        public readonly int lastReceivedChipDamage;
         public readonly bool hadAttackInputThisTick;
         public readonly int debugInputHistoryFreezeFramesRemaining;
         public readonly string debugInputHistoryDisplay;
@@ -46,9 +58,21 @@ public class Fighter
             bool stateFrameFrozenThisTick,
             int hitstopFramesRemaining,
             int hitstunFramesRemaining,
+            int blockstunFramesRemaining,
             bool isHoldingBlockInput,
             bool canCurrentlyBlock,
             bool isHoldingValidBlockDirection,
+            bool parryInputPressedThisTick,
+            int lastMoveXSign,
+            int parryWindowFramesRemaining,
+            int parryLockoutFramesRemaining,
+            int health,
+            int totalDamageTaken,
+            int totalChipDamageTaken,
+            HitResultType lastReceivedHitResult,
+            HitLevel lastReceivedHitLevel,
+            int lastReceivedStunFrames,
+            int lastReceivedChipDamage,
             bool hadAttackInputThisTick,
             int debugInputHistoryFreezeFramesRemaining,
             string debugInputHistoryDisplay,
@@ -74,9 +98,21 @@ public class Fighter
             this.stateFrameFrozenThisTick = stateFrameFrozenThisTick;
             this.hitstopFramesRemaining = hitstopFramesRemaining;
             this.hitstunFramesRemaining = hitstunFramesRemaining;
+            this.blockstunFramesRemaining = blockstunFramesRemaining;
             this.isHoldingBlockInput = isHoldingBlockInput;
             this.canCurrentlyBlock = canCurrentlyBlock;
             this.isHoldingValidBlockDirection = isHoldingValidBlockDirection;
+            this.parryInputPressedThisTick = parryInputPressedThisTick;
+            this.lastMoveXSign = lastMoveXSign;
+            this.parryWindowFramesRemaining = parryWindowFramesRemaining;
+            this.parryLockoutFramesRemaining = parryLockoutFramesRemaining;
+            this.health = health;
+            this.totalDamageTaken = totalDamageTaken;
+            this.totalChipDamageTaken = totalChipDamageTaken;
+            this.lastReceivedHitResult = lastReceivedHitResult;
+            this.lastReceivedHitLevel = lastReceivedHitLevel;
+            this.lastReceivedStunFrames = lastReceivedStunFrames;
+            this.lastReceivedChipDamage = lastReceivedChipDamage;
             this.hadAttackInputThisTick = hadAttackInputThisTick;
             this.debugInputHistoryFreezeFramesRemaining = debugInputHistoryFreezeFramesRemaining;
             this.debugInputHistoryDisplay = debugInputHistoryDisplay;
@@ -95,6 +131,9 @@ public class Fighter
 
     public static int HitstopFrames { get; set; } = 8;
     public static bool LogSpecialInputReads { get; set; } = true;
+    public static bool EnableParry { get; set; }
+    public static int ParryActiveWindowFrames { get; set; } = 3;
+    public static int ParryWhiffLockoutFrames { get; set; } = 12;
     private const int NormalInputBufferFrames = 4;
     private const int DebugInputHistoryDisplayLength = 30;
     private const int DebugInputFreezeFrames = 75;
@@ -118,9 +157,20 @@ public class Fighter
     public int StateFrame => stateFrame;
     public MoveType CurrentMoveType => attackController.CurrentMoveType;
     public bool IsInHitstop => hitstopFramesRemaining > 0;
+    public int HitstunFramesRemaining => hitstunFramesRemaining;
+    public int BlockstunFramesRemaining => blockstunFramesRemaining;
     public bool IsHoldingBlockInput => isHoldingBlockInput;
     public bool CanCurrentlyBlock => canCurrentlyBlock;
     public bool IsHoldingValidBlockDirection => isHoldingValidBlockDirection;
+    public bool IsParryWindowActive => parryWindowFramesRemaining > 0;
+    public bool ParryInputPressedThisTick => parryInputPressedThisTick;
+    public int Health => health;
+    public HitResultType LastReceivedHitResult => lastReceivedHitResult;
+    public HitLevel LastReceivedHitLevel => lastReceivedHitLevel;
+    public int LastReceivedStunFrames => lastReceivedStunFrames;
+    public int LastReceivedChipDamage => lastReceivedChipDamage;
+    public int TotalDamageTaken => totalDamageTaken;
+    public int TotalChipDamageTaken => totalChipDamageTaken;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
     public FighterConfig Config => config;
 
@@ -145,9 +195,21 @@ public class Fighter
 
     private int hitstopFramesRemaining;
     private int hitstunFramesRemaining;
+    private int blockstunFramesRemaining;
     private bool isHoldingBlockInput;
     private bool canCurrentlyBlock;
     private bool isHoldingValidBlockDirection;
+    private bool parryInputPressedThisTick;
+    private int parryWindowFramesRemaining;
+    private int parryLockoutFramesRemaining;
+    private int lastMoveXSign;
+    private int health;
+    private int totalDamageTaken;
+    private int totalChipDamageTaken;
+    private HitResultType lastReceivedHitResult = HitResultType.None;
+    private HitLevel lastReceivedHitLevel = HitLevel.Mid;
+    private int lastReceivedStunFrames;
+    private int lastReceivedChipDamage;
     private bool hadAttackInputThisTick;
     private int debugInputHistoryFreezeFramesRemaining;
     private string debugInputHistoryDisplay = "No input history yet";
@@ -159,7 +221,7 @@ public class Fighter
 
     private FighterRenderSnapshot renderSnapshot;
 
-    public Fighter(FighterConfig config, Vector2 startPosition, string debugName)
+    public Fighter(FighterConfig config, Vector2 startPosition, string debugName, int startHealth = 100)
     {
         if (config == null)
             throw new ArgumentNullException(nameof(config));
@@ -168,6 +230,7 @@ public class Fighter
         this.debugName = string.IsNullOrWhiteSpace(debugName) ? "UnknownFighter" : debugName;
         position = startPosition;
         velocity = Vector2.zero;
+        health = Mathf.Max(1, startHealth);
         renderSnapshot = renderStateBuilder.BuildSnapshot(
             state,
             velocity,
@@ -186,6 +249,7 @@ public class Fighter
         // 4) finalize facing/render snapshot in EndTick.
         transitionedThisTick = false;
         stateFrameFrozenThisTick = false;
+        parryInputPressedThisTick = false;
         hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
         inputHistory.Push(input, facingRight);
         UpdateNormalPressBuffers(input);
@@ -205,6 +269,10 @@ public class Fighter
         if (state == FighterState.Hitstun)
         {
             SimulateHitstun();
+        }
+        else if (state == FighterState.Blockstun)
+        {
+            SimulateBlockstun();
         }
         else
         {
@@ -320,11 +388,30 @@ public class Fighter
     {
         // "Holding block" and "can block" are tracked separately so visuals/gameplay
         // can reason about intent vs availability independently.
+        int moveXSign = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f));
+        int forwardDirection = facingRight ? 1 : -1;
+        parryInputPressedThisTick = moveXSign == forwardDirection && lastMoveXSign != forwardDirection;
+        lastMoveXSign = moveXSign;
+
+        if (parryLockoutFramesRemaining > 0)
+            parryLockoutFramesRemaining--;
+
         int backDirection = facingRight ? -1 : 1;
-        bool holdingBack = Mathf.RoundToInt(Mathf.Clamp(input.moveX, -1f, 1f)) == backDirection;
+        bool holdingBack = moveXSign == backDirection;
         isHoldingBlockInput = holdingBack;
         canCurrentlyBlock = FighterStateRules.CanHoldBlock(state, isGrounded);
         isHoldingValidBlockDirection = isHoldingBlockInput && canCurrentlyBlock;
+
+        if (EnableParry && canCurrentlyBlock && parryInputPressedThisTick && parryLockoutFramesRemaining <= 0)
+        {
+            parryWindowFramesRemaining = Mathf.Max(1, ParryActiveWindowFrames);
+        }
+        else if (parryWindowFramesRemaining > 0)
+        {
+            parryWindowFramesRemaining--;
+            if (parryWindowFramesRemaining == 0 && EnableParry)
+                parryLockoutFramesRemaining = Mathf.Max(parryLockoutFramesRemaining, ParryWhiffLockoutFrames);
+        }
     }
 
     private void SimulateHitstun()
@@ -337,6 +424,19 @@ public class Fighter
         ResolveGroundContact();
 
         if (hitstunFramesRemaining <= 0)
+            EnterState(isGrounded ? FighterState.NeutralGround : FighterState.NeutralAir);
+    }
+
+    private void SimulateBlockstun()
+    {
+        if (blockstunFramesRemaining > 0)
+            blockstunFramesRemaining--;
+
+        movementController.ApplyGravity(isGrounded, ref velocity, config);
+        movementController.Integrate(ref position, velocity);
+        ResolveGroundContact();
+
+        if (blockstunFramesRemaining <= 0)
             EnterState(isGrounded ? FighterState.NeutralGround : FighterState.NeutralAir);
     }
 
@@ -726,7 +826,12 @@ public class Fighter
             halfSize: config.fireballProjectileHalfSize,
             lifetimeFrames: config.fireballProjectileLifetimeFrames,
             damage: config.fireballProjectileDamage,
-            hitstunFrames: config.fireballProjectileHitstunFrames
+            hitstunFrames: config.fireballProjectileHitstunFrames,
+            blockstunFrames: Mathf.Max(1, config.fireballProjectileHitstunFrames - 2),
+            blockPushback: 0.6f,
+            chipDamage: 1,
+            attackerBlockstopFrames: -1,
+            hitLevel: HitLevel.Mid
         );
         hasPendingProjectileSpawn = true;
     }
@@ -751,17 +856,64 @@ public class Fighter
             || moveType == MoveType.CrouchingHeavy;
     }
 
-    public void ApplyHit(Hitbox hit)
+    public bool IsInAttackStartup()
+    {
+        return state == FighterState.AttackStartup;
+    }
+
+    public int GetEstimatedRemainingRecoveryFrames()
+    {
+        return attackController.GetRemainingRecoveryFrames();
+    }
+
+    public void ApplyHit(Hitbox hit, int bonusHitstunFrames, HitResultType resultType)
     {
         ApplyHitstop(HitstopFrames);
-        hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames);
+        hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames + Mathf.Max(0, bonusHitstunFrames));
+        blockstunFramesRemaining = 0;
         attackController.EndAttack();
+        int damageApplied = Mathf.Max(0, hit.damage);
+        health = Mathf.Max(0, health - damageApplied);
+        totalDamageTaken += damageApplied;
+        lastReceivedHitResult = resultType;
+        lastReceivedHitLevel = hit.hitLevel;
+        lastReceivedStunFrames = hitstunFramesRemaining;
+        lastReceivedChipDamage = 0;
         EnterState(FighterState.Hitstun);
     }
 
-    public void ApplySuccessfulHitstopAsAttacker()
+    public void ApplyBlockedHit(Hitbox hit, bool applyChipDamage, HitResultType resultType)
     {
         ApplyHitstop(HitstopFrames);
+        blockstunFramesRemaining = Mathf.Max(1, hit.blockstunFrames);
+        hitstunFramesRemaining = 0;
+        attackController.EndAttack();
+        int chipDamage = applyChipDamage ? Mathf.Max(0, hit.chipDamage) : 0;
+        health = Mathf.Max(0, health - chipDamage);
+        totalDamageTaken += chipDamage;
+        totalChipDamageTaken += chipDamage;
+        lastReceivedHitResult = resultType;
+        lastReceivedHitLevel = hit.hitLevel;
+        lastReceivedStunFrames = blockstunFramesRemaining;
+        lastReceivedChipDamage = chipDamage;
+        EnterState(FighterState.Blockstun);
+    }
+
+    public void ApplyParry(int defenderHitstopFrames, int lockoutFrames)
+    {
+        ApplyHitstop(defenderHitstopFrames);
+        hitstunFramesRemaining = 0;
+        blockstunFramesRemaining = 0;
+        parryWindowFramesRemaining = 0;
+        parryLockoutFramesRemaining = Mathf.Max(parryLockoutFramesRemaining, lockoutFrames);
+        lastReceivedHitResult = HitResultType.Parry;
+        lastReceivedStunFrames = 0;
+        lastReceivedChipDamage = 0;
+    }
+
+    public void ApplySuccessfulHitstopAsAttacker(int frames = -1)
+    {
+        ApplyHitstop(frames >= 0 ? frames : HitstopFrames);
     }
 
     public void ApplyHitstop(int frames)
@@ -917,6 +1069,16 @@ public class Fighter
         position.x = newX;
     }
 
+    public bool CanPerformParryNow()
+    {
+        return EnableParry && parryWindowFramesRemaining > 0;
+    }
+
+    public bool IsCrouchingGuard()
+    {
+        return isGrounded && state == FighterState.Crouching;
+    }
+
     public Snapshot CaptureSnapshot()
     {
         return new Snapshot(
@@ -930,9 +1092,21 @@ public class Fighter
             stateFrameFrozenThisTick,
             hitstopFramesRemaining,
             hitstunFramesRemaining,
+            blockstunFramesRemaining,
             isHoldingBlockInput,
             canCurrentlyBlock,
             isHoldingValidBlockDirection,
+            parryInputPressedThisTick,
+            lastMoveXSign,
+            parryWindowFramesRemaining,
+            parryLockoutFramesRemaining,
+            health,
+            totalDamageTaken,
+            totalChipDamageTaken,
+            lastReceivedHitResult,
+            lastReceivedHitLevel,
+            lastReceivedStunFrames,
+            lastReceivedChipDamage,
             hadAttackInputThisTick,
             debugInputHistoryFreezeFramesRemaining,
             debugInputHistoryDisplay,
@@ -961,9 +1135,21 @@ public class Fighter
         stateFrameFrozenThisTick = snapshot.stateFrameFrozenThisTick;
         hitstopFramesRemaining = snapshot.hitstopFramesRemaining;
         hitstunFramesRemaining = snapshot.hitstunFramesRemaining;
+        blockstunFramesRemaining = snapshot.blockstunFramesRemaining;
         isHoldingBlockInput = snapshot.isHoldingBlockInput;
         canCurrentlyBlock = snapshot.canCurrentlyBlock;
         isHoldingValidBlockDirection = snapshot.isHoldingValidBlockDirection;
+        parryInputPressedThisTick = snapshot.parryInputPressedThisTick;
+        lastMoveXSign = snapshot.lastMoveXSign;
+        parryWindowFramesRemaining = snapshot.parryWindowFramesRemaining;
+        parryLockoutFramesRemaining = snapshot.parryLockoutFramesRemaining;
+        health = snapshot.health;
+        totalDamageTaken = snapshot.totalDamageTaken;
+        totalChipDamageTaken = snapshot.totalChipDamageTaken;
+        lastReceivedHitResult = snapshot.lastReceivedHitResult;
+        lastReceivedHitLevel = snapshot.lastReceivedHitLevel;
+        lastReceivedStunFrames = snapshot.lastReceivedStunFrames;
+        lastReceivedChipDamage = snapshot.lastReceivedChipDamage;
         hadAttackInputThisTick = snapshot.hadAttackInputThisTick;
         debugInputHistoryFreezeFramesRemaining = snapshot.debugInputHistoryFreezeFramesRemaining;
         debugInputHistoryDisplay = snapshot.debugInputHistoryDisplay ?? "No input history yet";

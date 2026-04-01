@@ -13,6 +13,31 @@ public class MatchConfig : ScriptableObject
     [Min(0)]
     public int hitstopFrames = 8;
 
+    [Header("Combat Rules")]
+    public bool enableAdvancedGuardRules = true;
+    public bool enableAirBlock = true;
+    public bool enableChipOnBlock = true;
+    public bool enableCounterHit = true;
+    public bool enableParry = false;
+
+    [Min(0)]
+    public int counterHitBonusHitstunFrames = 2;
+
+    [Min(1)]
+    public int parryActiveWindowFrames = 3;
+
+    [Min(0)]
+    public int parryWhiffLockoutFrames = 12;
+
+    [Min(0)]
+    public int parryAttackerHitstopFrames = 10;
+
+    [Min(0)]
+    public int parryDefenderHitstopFrames = 3;
+
+    [Header("Combat Debug")]
+    public bool verboseCombatDebugLogs = false;
+
     [Header("Stage")]
     public float fighterStartPositionOffset = 10f;
     public float stageLeft = -40f;
@@ -47,6 +72,11 @@ public class MatchConfig : ScriptableObject
         roundStartHealth = Mathf.Max(1, roundStartHealth);
         startingSuperMeter = Mathf.Max(0, startingSuperMeter);
         roundTimerSeconds = Mathf.Max(1, roundTimerSeconds);
+        counterHitBonusHitstunFrames = Mathf.Max(0, counterHitBonusHitstunFrames);
+        parryActiveWindowFrames = Mathf.Max(1, parryActiveWindowFrames);
+        parryWhiffLockoutFrames = Mathf.Max(0, parryWhiffLockoutFrames);
+        parryAttackerHitstopFrames = Mathf.Max(0, parryAttackerHitstopFrames);
+        parryDefenderHitstopFrames = Mathf.Max(0, parryDefenderHitstopFrames);
 
         if (stageRight < stageLeft)
         {

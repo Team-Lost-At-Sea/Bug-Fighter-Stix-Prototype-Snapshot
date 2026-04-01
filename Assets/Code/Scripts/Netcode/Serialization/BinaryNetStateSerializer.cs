@@ -67,7 +67,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
 
         state.projectiles = new NetProjectileState[projectileCount];
         for (int i = 0; i < projectileCount; i++)
-            state.projectiles[i] = ReadProjectileState(reader);
+            state.projectiles[i] = ReadProjectileState(reader, state.stateVersion);
 
         return state;
     }
@@ -86,9 +86,21 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.stateFrameFrozenThisTick);
         writer.Write(state.hitstopFramesRemaining);
         writer.Write(state.hitstunFramesRemaining);
+        writer.Write(state.blockstunFramesRemaining);
         writer.Write(state.isHoldingBlockInput);
         writer.Write(state.canCurrentlyBlock);
         writer.Write(state.isHoldingValidBlockDirection);
+        writer.Write(state.parryInputPressedThisTick);
+        writer.Write(state.parryLastMoveXSign);
+        writer.Write(state.parryWindowFramesRemaining);
+        writer.Write(state.parryLockoutFramesRemaining);
+        writer.Write(state.health);
+        writer.Write(state.totalDamageTaken);
+        writer.Write(state.totalChipDamageTaken);
+        writer.Write(state.lastReceivedHitResult);
+        writer.Write(state.lastReceivedHitLevel);
+        writer.Write(state.lastReceivedStunFrames);
+        writer.Write(state.lastReceivedChipDamage);
         writer.Write(state.hadAttackInputThisTick);
         writer.Write(state.lightPressBufferFramesRemaining);
         writer.Write(state.mediumPressBufferFramesRemaining);
@@ -111,6 +123,12 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.hitboxHalfY);
         writer.Write(state.hitboxDamage);
         writer.Write(state.hitboxHitstunFrames);
+        writer.Write(state.hitboxBlockstunFrames);
+        writer.Write(state.hitboxBlockPushback);
+        writer.Write(state.hitboxChipDamage);
+        writer.Write(state.hitboxAttackerBlockstopFrames);
+        writer.Write(state.hitboxHitLevel);
+        writer.Write(state.hitboxIsProjectile);
         writer.Write(state.hitboxActive);
         writer.Write(state.hitboxHasHit);
 
@@ -149,9 +167,38 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.stateFrameFrozenThisTick = reader.ReadBoolean();
         state.hitstopFramesRemaining = reader.ReadInt32();
         state.hitstunFramesRemaining = reader.ReadInt32();
+        state.blockstunFramesRemaining = stateVersion >= 3 ? reader.ReadInt32() : 0;
         state.isHoldingBlockInput = reader.ReadBoolean();
         state.canCurrentlyBlock = reader.ReadBoolean();
         state.isHoldingValidBlockDirection = reader.ReadBoolean();
+        if (stateVersion >= 3)
+        {
+            state.parryInputPressedThisTick = reader.ReadBoolean();
+            state.parryLastMoveXSign = reader.ReadInt32();
+            state.parryWindowFramesRemaining = reader.ReadInt32();
+            state.parryLockoutFramesRemaining = reader.ReadInt32();
+            state.health = reader.ReadInt32();
+            state.totalDamageTaken = reader.ReadInt32();
+            state.totalChipDamageTaken = reader.ReadInt32();
+            state.lastReceivedHitResult = reader.ReadInt32();
+            state.lastReceivedHitLevel = reader.ReadInt32();
+            state.lastReceivedStunFrames = reader.ReadInt32();
+            state.lastReceivedChipDamage = reader.ReadInt32();
+        }
+        else
+        {
+            state.parryInputPressedThisTick = false;
+            state.parryLastMoveXSign = 0;
+            state.parryWindowFramesRemaining = 0;
+            state.parryLockoutFramesRemaining = 0;
+            state.health = 100;
+            state.totalDamageTaken = 0;
+            state.totalChipDamageTaken = 0;
+            state.lastReceivedHitResult = (int)HitResultType.None;
+            state.lastReceivedHitLevel = (int)HitLevel.Mid;
+            state.lastReceivedStunFrames = 0;
+            state.lastReceivedChipDamage = 0;
+        }
         state.hadAttackInputThisTick = reader.ReadBoolean();
         if (stateVersion <= 1)
         {
@@ -162,7 +209,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.lightPressBufferFramesRemaining = reader.ReadInt32();
         state.mediumPressBufferFramesRemaining = reader.ReadInt32();
         state.heavyPressBufferFramesRemaining = reader.ReadInt32();
-        state.pendingProjectileRequest = ReadPendingProjectileRequest(reader);
+        state.pendingProjectileRequest = ReadPendingProjectileRequest(reader, stateVersion);
 
         state.renderVisualState = reader.ReadInt32();
         state.renderMoveType = reader.ReadInt32();
@@ -180,6 +227,24 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.hitboxHalfY = reader.ReadSingle();
         state.hitboxDamage = reader.ReadInt32();
         state.hitboxHitstunFrames = reader.ReadInt32();
+        if (stateVersion >= 3)
+        {
+            state.hitboxBlockstunFrames = reader.ReadInt32();
+            state.hitboxBlockPushback = reader.ReadSingle();
+            state.hitboxChipDamage = reader.ReadInt32();
+            state.hitboxAttackerBlockstopFrames = reader.ReadInt32();
+            state.hitboxHitLevel = reader.ReadInt32();
+            state.hitboxIsProjectile = reader.ReadBoolean();
+        }
+        else
+        {
+            state.hitboxBlockstunFrames = 1;
+            state.hitboxBlockPushback = 0f;
+            state.hitboxChipDamage = 0;
+            state.hitboxAttackerBlockstopFrames = -1;
+            state.hitboxHitLevel = (int)HitLevel.Mid;
+            state.hitboxIsProjectile = false;
+        }
         state.hitboxActive = reader.ReadBoolean();
         state.hitboxHasHit = reader.ReadBoolean();
 
@@ -219,10 +284,15 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.lifetimeFramesRemaining);
         writer.Write(state.damage);
         writer.Write(state.hitstunFrames);
+        writer.Write(state.blockstunFrames);
+        writer.Write(state.blockPushback);
+        writer.Write(state.chipDamage);
+        writer.Write(state.attackerBlockstopFrames);
+        writer.Write(state.hitLevel);
         writer.Write(state.active);
     }
 
-    private static NetProjectileState ReadProjectileState(BinaryReader reader)
+    private static NetProjectileState ReadProjectileState(BinaryReader reader, int stateVersion)
     {
         NetProjectileState state = default;
         state.id = reader.ReadInt32();
@@ -236,6 +306,22 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.lifetimeFramesRemaining = reader.ReadInt32();
         state.damage = reader.ReadInt32();
         state.hitstunFrames = reader.ReadInt32();
+        if (stateVersion >= 3)
+        {
+            state.blockstunFrames = reader.ReadInt32();
+            state.blockPushback = reader.ReadSingle();
+            state.chipDamage = reader.ReadInt32();
+            state.attackerBlockstopFrames = reader.ReadInt32();
+            state.hitLevel = reader.ReadInt32();
+        }
+        else
+        {
+            state.blockstunFrames = 1;
+            state.blockPushback = 0f;
+            state.chipDamage = 0;
+            state.attackerBlockstopFrames = -1;
+            state.hitLevel = (int)HitLevel.Mid;
+        }
         state.active = reader.ReadBoolean();
         return state;
     }
@@ -253,9 +339,14 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(request.lifetimeFrames);
         writer.Write(request.damage);
         writer.Write(request.hitstunFrames);
+        writer.Write(request.blockstunFrames);
+        writer.Write(request.blockPushback);
+        writer.Write(request.chipDamage);
+        writer.Write(request.attackerBlockstopFrames);
+        writer.Write(request.hitLevel);
     }
 
-    private static NetPendingProjectileRequestState ReadPendingProjectileRequest(BinaryReader reader)
+    private static NetPendingProjectileRequestState ReadPendingProjectileRequest(BinaryReader reader, int stateVersion)
     {
         NetPendingProjectileRequestState request = default;
         request.hasPending = reader.ReadBoolean();
@@ -269,6 +360,22 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         request.lifetimeFrames = reader.ReadInt32();
         request.damage = reader.ReadInt32();
         request.hitstunFrames = reader.ReadInt32();
+        if (stateVersion >= 3)
+        {
+            request.blockstunFrames = reader.ReadInt32();
+            request.blockPushback = reader.ReadSingle();
+            request.chipDamage = reader.ReadInt32();
+            request.attackerBlockstopFrames = reader.ReadInt32();
+            request.hitLevel = reader.ReadInt32();
+        }
+        else
+        {
+            request.blockstunFrames = 1;
+            request.blockPushback = 0f;
+            request.chipDamage = 0;
+            request.attackerBlockstopFrames = -1;
+            request.hitLevel = (int)HitLevel.Mid;
+        }
         return request;
     }
 
