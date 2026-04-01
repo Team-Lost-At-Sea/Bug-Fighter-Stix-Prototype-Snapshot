@@ -45,12 +45,12 @@ public sealed class InputDisplayWidget : MonoBehaviour
     [SerializeField, Range(0.5f, 1f)]
     private float diagonalRadiusScale = 0.9f;
 
-    [Header("Render Ordering")]
+    [Header("Joystick Trail Render Ordering")]
     [SerializeField]
-    private bool forceTrailCanvasOverrideSorting = true;
+    private bool forceJoystickTrailCanvasOverrideSorting = true;
 
     [SerializeField]
-    private int trailSortingOrder = RenderOrder.UI.InputDisplay;
+    private int joystickTrailSortingOrder = RenderOrder.UI.InputDisplay;
 
     [Header("Buttons")]
     [SerializeField]
@@ -285,7 +285,7 @@ public sealed class InputDisplayWidget : MonoBehaviour
 
     private void EnsureLayerCanvasSorting(RectTransform layer)
     {
-        if (!forceTrailCanvasOverrideSorting || layer == null)
+        if (!forceJoystickTrailCanvasOverrideSorting || layer == null)
             return;
 
         Canvas layerCanvas = layer.GetComponent<Canvas>();
@@ -293,7 +293,7 @@ public sealed class InputDisplayWidget : MonoBehaviour
             layerCanvas = layer.gameObject.AddComponent<Canvas>();
 
         layerCanvas.overrideSorting = true;
-        layerCanvas.sortingOrder = trailSortingOrder;
+        layerCanvas.sortingOrder = joystickTrailSortingOrder;
 
         if (layer.GetComponent<GraphicRaycaster>() == null)
             layer.gameObject.AddComponent<GraphicRaycaster>();
