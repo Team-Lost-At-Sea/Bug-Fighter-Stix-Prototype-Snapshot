@@ -26,7 +26,7 @@ public class CharacterSelectController : MonoBehaviour
 
     [Tooltip("UI/world anchors representing character slot positions for cursor snapping and hover checks.")]
     [SerializeField]
-    private RectTransform[] slotAnchors;
+    private Transform[] slotAnchors;
 
     [Header("Defaults")]
     [Tooltip("Initial slot index for Player 1 when character select opens.")]
@@ -136,7 +136,7 @@ public class CharacterSelectController : MonoBehaviour
         UpdateActiveCursor();
     }
 
-    public void SetSlotAnchors(RectTransform[] anchors)
+    public void SetSlotAnchors(Transform[] anchors)
     {
         slotAnchors = anchors;
         if (!isInitialized)
@@ -233,7 +233,7 @@ public class CharacterSelectController : MonoBehaviour
             if (!IsSelectableSlot(i, blockedIndex))
                 continue;
 
-            RectTransform anchor = slotAnchors[i];
+            Transform anchor = slotAnchors[i];
             if (anchor == null)
                 continue;
 

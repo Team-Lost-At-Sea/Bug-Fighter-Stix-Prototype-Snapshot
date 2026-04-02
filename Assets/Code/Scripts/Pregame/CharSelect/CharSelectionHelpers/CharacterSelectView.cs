@@ -9,16 +9,16 @@ public class CharacterSelectView : MonoBehaviour
     private CharacterSelectController controller;
 
     [SerializeField]
-    private RectTransform[] slotAnchors;
+    private Transform[] slotAnchors;
 
     [Header("Cursors")]
     [SerializeField]
     [FormerlySerializedAs("player1Highlight")]
-    private RectTransform player1Cursor;
+    private Transform player1Cursor;
 
     [SerializeField]
     [FormerlySerializedAs("player2Highlight")]
-    private RectTransform player2Cursor;
+    private Transform player2Cursor;
 
     [Header("Cursor Animation")]
     [SerializeField]
@@ -37,9 +37,14 @@ public class CharacterSelectView : MonoBehaviour
     private string selectedStateName = "Selected";
 
     [Header("Slot Hover Highlight")]
-    [Tooltip("Optional explicit slot visuals to tint. If empty, will auto-pull Graphic components from slotAnchors.")]
+    [Tooltip("Optional explicit UI graphics to tint. If empty, will auto-pull Graphic components from slotAnchors.")]
     [SerializeField]
-    private Graphic[] slotHighlightTargets;
+    [FormerlySerializedAs("slotHighlightTargets")]
+    private Graphic[] slotHighlightGraphics;
+
+    [Tooltip("Optional explicit sprite renderers to tint. If empty, will auto-pull SpriteRenderer components from slotAnchors.")]
+    [SerializeField]
+    private SpriteRenderer[] slotHighlightSprites;
 
     [SerializeField]
     private Color slotNormalColor = Color.white;
@@ -55,7 +60,7 @@ public class CharacterSelectView : MonoBehaviour
         if (controller != null && slotAnchors != null && slotAnchors.Length > 0)
             controller.SetSlotAnchors(slotAnchors);
 
-        EnsureSlotHighlightTargets();
+        EnsureSlotHighlightRenderTargets();
         lastPlayer1AnimatedState = null;
         lastPlayer2AnimatedState = null;
     }
@@ -74,7 +79,7 @@ public class CharacterSelectView : MonoBehaviour
         // Colors are controlled by the scene, not the view script.
     }
 
-    private void UpdateCursorPosition(RectTransform cursor, Vector3 worldPosition)
+    private void UpdateCursorPosition(Transform cursor, Vector3 worldPosition)
     {
         if (cursor == null)
             return;
@@ -121,46 +126,80 @@ public class CharacterSelectView : MonoBehaviour
         }
     }
 
-    private void EnsureSlotHighlightTargets()
+    private void EnsureSlotHighlightRenderTargets()
     {
         if (slotAnchors == null)
         {
-            slotHighlightTargets = new Graphic[0];
+            slotHighlightGraphics = new Graphic[0];
+            slotHighlightSprites = new SpriteRenderer[0];
             return;
         }
 
-        if (slotHighlightTargets != null && slotHighlightTargets.Length == slotAnchors.Length)
+        bool hasExplicitGraphics = slotHighlightGraphics != null && slotHighlightGraphics.Length == slotAnchors.Length;
+        bool hasExplicitSprites = slotHighlightSprites != null && slotHighlightSprites.Length == slotAnchors.Length;
+        if (hasExplicitGraphics && hasExplicitSprites)
             return;
 
         if (slotAnchors.Length == 0)
         {
-            slotHighlightTargets = new Graphic[0];
+            slotHighlightGraphics = new Graphic[0];
+            slotHighlightSprites = new SpriteRenderer[0];
             return;
         }
 
-        slotHighlightTargets = new Graphic[slotAnchors.Length];
+        if (!hasExplicitGraphics)
+            slotHighlightGraphics = new Graphic[slotAnchors.Length];
+
+        if (!hasExplicitSprites)
+            slotHighlightSprites = new SpriteRenderer[slotAnchors.Length];
+
         for (int i = 0; i < slotAnchors.Length; i++)
         {
-            RectTransform anchor = slotAnchors[i];
+            Transform anchor = slotAnchors[i];
             if (anchor == null)
                 continue;
 
-            slotHighlightTargets[i] = anchor.GetComponent<Graphic>();
+            if (!hasExplicitGraphics)
+                slotHighlightGraphics[i] = anchor.GetComponent<Graphic>();
+
+            if (!hasExplicitSprites)
+                slotHighlightSprites[i] = anchor.GetComponent<SpriteRenderer>();
         }
     }
 
     private void UpdateSlotHoverHighlight(int hoveredSlotIndex)
     {
-        if (slotHighlightTargets == null || slotHighlightTargets.Length == 0)
+        UpdateGraphicHighlight(hoveredSlotIndex);
+        UpdateSpriteHighlight(hoveredSlotIndex);
+    }
+
+    private void UpdateGraphicHighlight(int hoveredSlotIndex)
+    {
+        if (slotHighlightGraphics == null || slotHighlightGraphics.Length == 0)
             return;
 
-        for (int i = 0; i < slotHighlightTargets.Length; i++)
+        for (int i = 0; i < slotHighlightGraphics.Length; i++)
         {
-            Graphic slotGraphic = slotHighlightTargets[i];
+            Graphic slotGraphic = slotHighlightGraphics[i];
             if (slotGraphic == null)
                 continue;
 
             slotGraphic.color = i == hoveredSlotIndex ? slotHoverColor : slotNormalColor;
+        }
+    }
+
+    private void UpdateSpriteHighlight(int hoveredSlotIndex)
+    {
+        if (slotHighlightSprites == null || slotHighlightSprites.Length == 0)
+            return;
+
+        for (int i = 0; i < slotHighlightSprites.Length; i++)
+        {
+            SpriteRenderer slotSprite = slotHighlightSprites[i];
+            if (slotSprite == null)
+                continue;
+
+            slotSprite.color = i == hoveredSlotIndex ? slotHoverColor : slotNormalColor;
         }
     }
 

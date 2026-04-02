@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: dfd1aba819b7d784ea8cdd5daee8c0a0
+guid: 9dedd49be0e775545b51050b55a533c6
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,73 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_0
-      rect:
-        serializedVersion: 2
-        x: 9
-        y: 151
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3f548129593a3a9409d2609bd2b604c1
-      internalID: 376725871
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_1
-      rect:
-        serializedVersion: 2
-        x: 59
-        y: 151
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 0090f40843c72bd40abccc45a503e60c
-      internalID: 1778486382
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_2
-      rect:
-        serializedVersion: 2
-        x: 109
-        y: 151
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e02da3e09fdc9d045aebbd915a3a1b52
-      internalID: -228700341
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_3
+      name: CombFilled_0
       rect:
         serializedVersion: 2
         x: 9
@@ -191,14 +125,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1672d21eb5c36fe438c31d9dc20d3c6b
-      internalID: 837758645
+      spriteID: 310fbf3ab03bbfe47a5579a2c651b01f
+      internalID: 2052085251
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_4
+      name: CombFilled_1
       rect:
         serializedVersion: 2
         x: 59
@@ -213,36 +147,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0b6e915b005d60349b8a9282dc81c795
-      internalID: 956414904
+      spriteID: 064a45c9600f1204b842d40aa520449d
+      internalID: 1362727739
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_5
-      rect:
-        serializedVersion: 2
-        x: 109
-        y: 101
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 45ec2d6e640f4e444879c4c8fbfbacc0
-      internalID: -1444512071
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_6
+      name: CombFilled_2
       rect:
         serializedVersion: 2
         x: 9
@@ -257,14 +169,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 836d91b86e6e1454e9288fdb7cec09c8
-      internalID: -868562017
+      spriteID: 7d4f8d12098dacc4d9b186ade0f9408b
+      internalID: -749316300
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_7
+      name: CombFilled_3
       rect:
         serializedVersion: 2
         x: 59
@@ -279,36 +191,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e945f6d8c29af094f9a656fe63c006ce
-      internalID: -1224513489
+      spriteID: 7055106da946b7449af6ea43a2af89ff
+      internalID: -587282114
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_8
-      rect:
-        serializedVersion: 2
-        x: 109
-        y: 51
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d5cf636898c9a1c408a08815b393cc7f
-      internalID: -594573685
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombEmpty_9
+      name: CombFilled_4
       rect:
         serializedVersion: 2
         x: 9
@@ -323,8 +213,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f04b7415b5c9d3e41ae7d178c2f3f48c
-      internalID: -1224831895
+      spriteID: 3ae4cefaa8bbf624ea45702ba757e587
+      internalID: 36420065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombFilled_5
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 1
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6279cd14dad61994e9e68ec983825d80
+      internalID: 1231569053
       vertices: []
       indices: 
       edges: []
@@ -343,18 +255,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":7.0},"gridSpriteSize":{"x":70.0,"y":25.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      UserInterfaceCharacterCombEmpty_0: 376725871
-      UserInterfaceCharacterCombEmpty_1: 1778486382
-      UserInterfaceCharacterCombEmpty_2: -228700341
-      UserInterfaceCharacterCombEmpty_3: 837758645
-      UserInterfaceCharacterCombEmpty_4: 956414904
-      UserInterfaceCharacterCombEmpty_5: -1444512071
-      UserInterfaceCharacterCombEmpty_6: -868562017
-      UserInterfaceCharacterCombEmpty_7: -1224513489
-      UserInterfaceCharacterCombEmpty_8: -594573685
-      UserInterfaceCharacterCombEmpty_9: -1224831895
+      CombFilled_0: 2052085251
+      CombFilled_1: 1362727739
+      CombFilled_2: -749316300
+      CombFilled_3: -587282114
+      CombFilled_4: 36420065
+      CombFilled_5: 1231569053
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

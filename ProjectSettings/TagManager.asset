@@ -41,8 +41,20 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Fighters
+  - name: Background
+    uniqueID: 1162780001
+    locked: 0
+  - name: WorldGameplay
     uniqueID: 1105404331
+    locked: 0
+  - name: GameplayOverlay
+    uniqueID: 1162780002
+    locked: 0
+  - name: UI
+    uniqueID: 1162780004
+    locked: 0
+  - name: UIOverlay
+    uniqueID: 1162780005
     locked: 0
   m_RenderingLayers:
   - Default

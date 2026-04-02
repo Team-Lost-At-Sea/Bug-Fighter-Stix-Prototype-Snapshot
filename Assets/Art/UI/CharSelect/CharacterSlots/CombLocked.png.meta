@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 17d0289bd9d54d34d858bebcffea7d7c
+guid: dfd1aba819b7d784ea8cdd5daee8c0a0
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,7 +110,73 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_0
+      name: CombLocked_0
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 151
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4009605be6831ee47ab47c9744757fca
+      internalID: -1181490315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombLocked_1
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 151
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6669a6dfcbffd074aa1dfd005ef46aa1
+      internalID: -666849755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombLocked_2
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 151
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 27c0d344d8ab29e4d909c461dc522a76
+      internalID: -171557373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombLocked_3
       rect:
         serializedVersion: 2
         x: 9
@@ -125,14 +191,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6de67d7c805e5fb4090c7ec1535660da
-      internalID: -1787048253
+      spriteID: 6fac06a7fe88d254f9867effe382f31e
+      internalID: 415851876
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_1
+      name: CombLocked_4
       rect:
         serializedVersion: 2
         x: 59
@@ -147,14 +213,36 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 005d168aa2fdab446bf2f8a68b35caad
-      internalID: 1176964668
+      spriteID: d8e0aca225c0a4849a57c1f4d9ca2a35
+      internalID: 83275779
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_2
+      name: CombLocked_5
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 101
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59a9d1ab6a1b27a4d844a8dc2377d8cf
+      internalID: 864776380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombLocked_6
       rect:
         serializedVersion: 2
         x: 9
@@ -169,14 +257,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5e2ce59972894a44bbc218adcab36ab9
-      internalID: 684503645
+      spriteID: 6c8d2779c1316c848902c817b428299b
+      internalID: 2020566401
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_3
+      name: CombLocked_7
       rect:
         serializedVersion: 2
         x: 59
@@ -191,14 +279,36 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 362acec0218c78a4290319a2f36f39d2
-      internalID: 1029619480
+      spriteID: 5c921eddf9dc48e4d9e7b3a60fb9dc01
+      internalID: 564955951
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_4
+      name: CombLocked_8
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 51
+        width: 31
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be41c7a6e24806748a8b410c09ff65ea
+      internalID: -627133647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: CombLocked_9
       rect:
         serializedVersion: 2
         x: 9
@@ -213,30 +323,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 43d756854abbcdc4c93ef5de699265c5
-      internalID: -2034151558
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: UserInterfaceCharacterCombFilled_5
-      rect:
-        serializedVersion: 2
-        x: 59
-        y: 1
-        width: 31
-        height: 49
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: bacdc0e34cb223142b202948b7d1fec7
-      internalID: 950115266
+      spriteID: 77ee55a5974011143a1f67f93a54dd0b
+      internalID: -1592699658
       vertices: []
       indices: 
       edges: []
@@ -255,14 +343,18 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":7.0},"gridSpriteSize":{"x":70.0,"y":25.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      UserInterfaceCharacterCombFilled_0: -1787048253
-      UserInterfaceCharacterCombFilled_1: 1176964668
-      UserInterfaceCharacterCombFilled_2: 684503645
-      UserInterfaceCharacterCombFilled_3: 1029619480
-      UserInterfaceCharacterCombFilled_4: -2034151558
-      UserInterfaceCharacterCombFilled_5: 950115266
+      CombLocked_0: -1181490315
+      CombLocked_1: -666849755
+      CombLocked_2: -171557373
+      CombLocked_3: 415851876
+      CombLocked_4: 83275779
+      CombLocked_5: 864776380
+      CombLocked_6: 2020566401
+      CombLocked_7: 564955951
+      CombLocked_8: -627133647
+      CombLocked_9: -1592699658
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
