@@ -115,6 +115,7 @@ public class FightingGameCamera : MonoBehaviour
 
     private Camera cam;
     private float cameraZSign = -1f;
+    public Vector3 ResolvedPosition { get; private set; }
 
     void Awake()
     {
@@ -122,6 +123,7 @@ public class FightingGameCamera : MonoBehaviour
         cameraZSign = transform.position.z >= 0f ? 1f : -1f;
         if (Mathf.Approximately(transform.position.z, 0f))
             cameraZSign = -1f;
+        ResolvedPosition = transform.position;
     }
 
     void LateUpdate()
@@ -162,6 +164,7 @@ public class FightingGameCamera : MonoBehaviour
             targetPos,
             smoothSpeed * Time.deltaTime
         );
+        ResolvedPosition = transform.position;
     }
 
     private void UpdateZoom()

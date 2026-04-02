@@ -50,6 +50,12 @@ public class DebugBoxVisual : MonoBehaviour
             sprite.sortingOrder = sortingOrder;
     }
 
+    public void SetSortingLayer(string sortingLayerName)
+    {
+        if (sprite != null && !string.IsNullOrWhiteSpace(sortingLayerName))
+            sprite.sortingLayerName = sortingLayerName;
+    }
+
     private static Sprite GetFallbackSprite()
     {
         if (fallbackSprite != null)

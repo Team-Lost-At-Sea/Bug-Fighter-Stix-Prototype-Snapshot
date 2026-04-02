@@ -85,6 +85,7 @@ public sealed class ProjectileDebugRenderer
         visualObject.transform.SetParent(GetOrCreateProjectileVisualRoot(), false);
         DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
         visual.Initialize(ResolveTint(projectile));
+        visual.SetSortingLayer(RenderOrder.Layers.WorldGameplay);
         visual.SetSortingOrder(RenderOrder.World.Projectiles);
         visual.SetSprite(ResolveSprite(projectile));
         visual.SetVisible(false);
@@ -130,6 +131,7 @@ public sealed class ProjectileDebugRenderer
         visualObject.transform.SetParent(GetOrCreateProjectileHitboxVisualRoot(), false);
         DebugBoxVisual visual = visualObject.AddComponent<DebugBoxVisual>();
         visual.Initialize(new Color(1f, 0f, 0f, 0.75f));
+        visual.SetSortingLayer(RenderOrder.Layers.WorldGameplay);
         visual.SetSortingOrder(RenderOrder.World.DebugBoxes);
         visual.SetVisible(false);
         projectileHitboxVisuals[projectileId] = visual;

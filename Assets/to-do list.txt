@@ -25,4 +25,8 @@ Dung Paper Scissors + Frog (eats the laser gun and switches player ownership eve
 
 Scratch tickets
 
-I want to add a menu option to reset game state quickly. Ideally, this should be done without a scene reload, since proper fighting game architecture means being able to serialize the roundstart state. However, I just want to most temporary solution for this week, just so that we don't have to restart the whole program to reset for now. I want to consider this option when I fully understand serialization of game state from you.
+monetization:
+
+base game free + online package is paid (online play, online friend lobbies)
+
+DLC can be unlocked for free
