@@ -41,6 +41,7 @@ public class Fighter
         public readonly int lightPressBufferFramesRemaining;
         public readonly int mediumPressBufferFramesRemaining;
         public readonly int heavyPressBufferFramesRemaining;
+        public readonly bool isDefeated;
         public readonly FighterRenderSnapshot renderSnapshot;
         public readonly FighterAttackController.Snapshot attackSnapshot;
         public readonly FighterMovementController.Snapshot movementSnapshot;
@@ -81,6 +82,7 @@ public class Fighter
             int lightPressBufferFramesRemaining,
             int mediumPressBufferFramesRemaining,
             int heavyPressBufferFramesRemaining,
+            bool isDefeated,
             FighterRenderSnapshot renderSnapshot,
             FighterAttackController.Snapshot attackSnapshot,
             FighterMovementController.Snapshot movementSnapshot,
@@ -121,6 +123,7 @@ public class Fighter
             this.lightPressBufferFramesRemaining = lightPressBufferFramesRemaining;
             this.mediumPressBufferFramesRemaining = mediumPressBufferFramesRemaining;
             this.heavyPressBufferFramesRemaining = heavyPressBufferFramesRemaining;
+            this.isDefeated = isDefeated;
             this.renderSnapshot = renderSnapshot;
             this.attackSnapshot = attackSnapshot;
             this.movementSnapshot = movementSnapshot;
@@ -165,6 +168,7 @@ public class Fighter
     public bool IsParryWindowActive => parryWindowFramesRemaining > 0;
     public bool ParryInputPressedThisTick => parryInputPressedThisTick;
     public int Health => health;
+    public bool IsDefeated => isDefeated;
     public HitResultType LastReceivedHitResult => lastReceivedHitResult;
     public HitLevel LastReceivedHitLevel => lastReceivedHitLevel;
     public int LastReceivedStunFrames => lastReceivedStunFrames;
@@ -173,6 +177,7 @@ public class Fighter
     public int TotalChipDamageTaken => totalChipDamageTaken;
     public FighterRenderSnapshot RenderSnapshot => renderSnapshot;
     public FighterConfig Config => config;
+    public string DebugName => debugName;
 
     private Vector2 position;
     private Vector2 velocity;
@@ -218,6 +223,7 @@ public class Fighter
     private int lightPressBufferFramesRemaining;
     private int mediumPressBufferFramesRemaining;
     private int heavyPressBufferFramesRemaining;
+    private bool isDefeated;
 
     private FighterRenderSnapshot renderSnapshot;
 
@@ -250,6 +256,20 @@ public class Fighter
         transitionedThisTick = false;
         stateFrameFrozenThisTick = false;
         parryInputPressedThisTick = false;
+        if (isDefeated)
+        {
+            hadAttackInputThisTick = false;
+            stateFrameFrozenThisTick = true;
+            hitstopFramesRemaining = 0;
+            hitstunFramesRemaining = 0;
+            blockstunFramesRemaining = 0;
+            velocity = Vector2.zero;
+            isGrounded = true;
+            EnterState(FighterState.Knockdown);
+            EndTick();
+            return;
+        }
+
         hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
         inputHistory.Push(input, facingRight);
         UpdateNormalPressBuffers(input);
@@ -868,6 +888,9 @@ public class Fighter
 
     public void ApplyHit(Hitbox hit, int bonusHitstunFrames, HitResultType resultType)
     {
+        if (isDefeated)
+            return;
+
         ApplyHitstop(HitstopFrames);
         hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames + Mathf.Max(0, bonusHitstunFrames));
         blockstunFramesRemaining = 0;
@@ -879,11 +902,20 @@ public class Fighter
         lastReceivedHitLevel = hit.hitLevel;
         lastReceivedStunFrames = hitstunFramesRemaining;
         lastReceivedChipDamage = 0;
+        if (health <= 0)
+        {
+            MarkDefeated();
+            return;
+        }
+
         EnterState(FighterState.Hitstun);
     }
 
     public void ApplyBlockedHit(Hitbox hit, bool applyChipDamage, HitResultType resultType)
     {
+        if (isDefeated)
+            return;
+
         ApplyHitstop(HitstopFrames);
         blockstunFramesRemaining = Mathf.Max(1, hit.blockstunFrames);
         hitstunFramesRemaining = 0;
@@ -896,11 +928,20 @@ public class Fighter
         lastReceivedHitLevel = hit.hitLevel;
         lastReceivedStunFrames = blockstunFramesRemaining;
         lastReceivedChipDamage = chipDamage;
+        if (health <= 0)
+        {
+            MarkDefeated();
+            return;
+        }
+
         EnterState(FighterState.Blockstun);
     }
 
     public void ApplyParry(int defenderHitstopFrames, int lockoutFrames)
     {
+        if (isDefeated)
+            return;
+
         ApplyHitstop(defenderHitstopFrames);
         hitstunFramesRemaining = 0;
         blockstunFramesRemaining = 0;
@@ -1071,7 +1112,7 @@ public class Fighter
 
     public bool CanPerformParryNow()
     {
-        return EnableParry && parryWindowFramesRemaining > 0;
+        return !isDefeated && EnableParry && parryWindowFramesRemaining > 0;
     }
 
     public bool IsCrouchingGuard()
@@ -1115,6 +1156,7 @@ public class Fighter
             lightPressBufferFramesRemaining,
             mediumPressBufferFramesRemaining,
             heavyPressBufferFramesRemaining,
+            isDefeated,
             renderSnapshot,
             attackController.CaptureSnapshot(),
             movementController.CaptureSnapshot(),
@@ -1158,6 +1200,7 @@ public class Fighter
         lightPressBufferFramesRemaining = snapshot.lightPressBufferFramesRemaining;
         mediumPressBufferFramesRemaining = snapshot.mediumPressBufferFramesRemaining;
         heavyPressBufferFramesRemaining = snapshot.heavyPressBufferFramesRemaining;
+        isDefeated = snapshot.isDefeated;
         renderSnapshot = snapshot.renderSnapshot;
         attackController.RestoreSnapshot(snapshot.attackSnapshot);
         movementController.RestoreSnapshot(snapshot.movementSnapshot);
@@ -1178,6 +1221,20 @@ public class Fighter
         Light,
         Medium,
         Heavy,
+    }
+
+    private void MarkDefeated()
+    {
+        isDefeated = true;
+        health = 0;
+        hitstopFramesRemaining = 0;
+        hitstunFramesRemaining = 0;
+        blockstunFramesRemaining = 0;
+        hasPendingProjectileSpawn = false;
+        velocity = Vector2.zero;
+        movementController.ClearLandingRecovery();
+        attackController.EndAttack();
+        EnterState(FighterState.Knockdown);
     }
 
 }

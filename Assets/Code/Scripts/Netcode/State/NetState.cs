@@ -57,6 +57,7 @@ public struct NetFighterState
     public int lightPressBufferFramesRemaining;
     public int mediumPressBufferFramesRemaining;
     public int heavyPressBufferFramesRemaining;
+    public bool isDefeated;
     public NetPendingProjectileRequestState pendingProjectileRequest;
 
     public int renderVisualState;
@@ -124,12 +125,20 @@ public struct NetProjectileState
 
 public struct NetState
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public int stateVersion;
     public int frame;
     public int nextProjectileId;
     public int randomSeed;
+    public int roundPhase;
+    public int lastRoundResult;
+    public int lastRoundEndType;
+    public int matchWinner;
+    public int player1RoundWins;
+    public int player2RoundWins;
+    public int roundNumber;
+    public int phaseFramesRemaining;
     public int roundTimerFramesRemaining;
     public bool roundTimerEnabled;
     public float previousPlayer1X;
@@ -146,6 +155,14 @@ public struct NetState
             frame = 0,
             nextProjectileId = 1,
             randomSeed = 0,
+            roundPhase = (int)RoundPhase.Fighting,
+            lastRoundResult = (int)RoundResult.None,
+            lastRoundEndType = (int)RoundEndType.None,
+            matchWinner = (int)MatchWinner.None,
+            player1RoundWins = 0,
+            player2RoundWins = 0,
+            roundNumber = 1,
+            phaseFramesRemaining = 0,
             roundTimerFramesRemaining = 0,
             roundTimerEnabled = false,
             projectiles = System.Array.Empty<NetProjectileState>()

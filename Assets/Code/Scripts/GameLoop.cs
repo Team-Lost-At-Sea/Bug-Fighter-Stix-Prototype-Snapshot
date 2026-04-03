@@ -12,6 +12,9 @@ public class GameLoop : MonoBehaviour
     public FighterView player1View;
     public FighterView player2View;
 
+    [SerializeField]
+    private MatchHudController matchHud;
+
     [Header("Character Selection")]
     [SerializeField]
     private CharacterDefinition player1Character;
@@ -144,6 +147,11 @@ public class GameLoop : MonoBehaviour
         simulation.Initialize(player1Config, player2Config, player1Name, player2Name);
         InitializeSession();
         presenter.Initialize(simulation, player1View, player2View);
+        if (matchHud == null)
+            matchHud = FindFirstObjectByType<MatchHudController>();
+        if (matchHud == null)
+            matchHud = new GameObject("MatchHud").AddComponent<MatchHudController>();
+        matchHud.Initialize(matchConfig);
     }
 
     void Update()
@@ -168,6 +176,7 @@ public class GameLoop : MonoBehaviour
 
         // Render after simulation updates
         presenter.Render(simulation);
+        matchHud?.Render(simulation);
     }
 
     private void OnDisable()
@@ -384,6 +393,7 @@ public class GameLoop : MonoBehaviour
         accumulator = 0f;
         GameInput.Instance?.ClearBufferedInputState();
         presenter.Render(simulation);
+        matchHud?.Render(simulation);
         Debug.Log("Save state restored.");
     }
 

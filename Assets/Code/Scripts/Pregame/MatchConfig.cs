@@ -63,6 +63,12 @@ public class MatchConfig : ScriptableObject
     [Min(1)]
     public int roundTimerSeconds = 99;
 
+    [Min(1)]
+    public int roundOverFreezeFrames = 90;
+
+    [Min(1)]
+    public int matchOverFreezeFrames = 180;
+
     public float FixedDt => 1f / Mathf.Max(1, ticksPerSecond);
 
     private void OnValidate()
@@ -72,6 +78,8 @@ public class MatchConfig : ScriptableObject
         roundStartHealth = Mathf.Max(1, roundStartHealth);
         startingSuperMeter = Mathf.Max(0, startingSuperMeter);
         roundTimerSeconds = Mathf.Max(1, roundTimerSeconds);
+        roundOverFreezeFrames = Mathf.Max(1, roundOverFreezeFrames);
+        matchOverFreezeFrames = Mathf.Max(1, matchOverFreezeFrames);
         counterHitBonusHitstunFrames = Mathf.Max(0, counterHitBonusHitstunFrames);
         parryActiveWindowFrames = Mathf.Max(1, parryActiveWindowFrames);
         parryWhiffLockoutFrames = Mathf.Max(0, parryWhiffLockoutFrames);

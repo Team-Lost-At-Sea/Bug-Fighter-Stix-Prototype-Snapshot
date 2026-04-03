@@ -6,7 +6,7 @@ cpu takeover
 standing heavy punch on Casanova needs more recovery frames in frame data
 timer UI
 health UI
-stage select UI with cursor
+DONE stage select UI with cursor
 
 visual confirmation in champ select
 backdashs/fw dash

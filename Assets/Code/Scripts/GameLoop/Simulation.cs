@@ -98,6 +98,16 @@ public class Simulation : ISimulationCore
     {
         public readonly int simulationFrame;
         public readonly int nextProjectileId;
+        public readonly int roundTimerFramesRemaining;
+        public readonly bool roundTimerEnabled;
+        public readonly RoundPhase roundPhase;
+        public readonly RoundResult lastRoundResult;
+        public readonly RoundEndType lastRoundEndType;
+        public readonly MatchWinner matchWinner;
+        public readonly int player1RoundWins;
+        public readonly int player2RoundWins;
+        public readonly int roundNumber;
+        public readonly int phaseFramesRemaining;
         public readonly float previousPlayer1X;
         public readonly float previousPlayer2X;
         public readonly Fighter.Snapshot player1Snapshot;
@@ -107,6 +117,16 @@ public class Simulation : ISimulationCore
         public StateSnapshot(
             int simulationFrame,
             int nextProjectileId,
+            int roundTimerFramesRemaining,
+            bool roundTimerEnabled,
+            RoundPhase roundPhase,
+            RoundResult lastRoundResult,
+            RoundEndType lastRoundEndType,
+            MatchWinner matchWinner,
+            int player1RoundWins,
+            int player2RoundWins,
+            int roundNumber,
+            int phaseFramesRemaining,
             float previousPlayer1X,
             float previousPlayer2X,
             Fighter.Snapshot player1Snapshot,
@@ -116,6 +136,16 @@ public class Simulation : ISimulationCore
         {
             this.simulationFrame = simulationFrame;
             this.nextProjectileId = nextProjectileId;
+            this.roundTimerFramesRemaining = roundTimerFramesRemaining;
+            this.roundTimerEnabled = roundTimerEnabled;
+            this.roundPhase = roundPhase;
+            this.lastRoundResult = lastRoundResult;
+            this.lastRoundEndType = lastRoundEndType;
+            this.matchWinner = matchWinner;
+            this.player1RoundWins = player1RoundWins;
+            this.player2RoundWins = player2RoundWins;
+            this.roundNumber = roundNumber;
+            this.phaseFramesRemaining = phaseFramesRemaining;
             this.previousPlayer1X = previousPlayer1X;
             this.previousPlayer2X = previousPlayer2X;
             this.player1Snapshot = player1Snapshot;
@@ -166,6 +196,25 @@ public class Simulation : ISimulationCore
     private readonly int parryWhiffLockoutFrames;
     private readonly bool verboseCombatDebugLogs;
     private readonly int roundStartHealth;
+    private readonly bool useRoundTimer;
+    private readonly int roundTimerDurationFrames;
+    private readonly int roundOverFreezeFrames;
+    private readonly int matchOverFreezeFrames;
+    private const int RoundsToWin = 2;
+    private FighterConfig player1Config;
+    private FighterConfig player2Config;
+    private string player1Name = "Player1";
+    private string player2Name = "Player2";
+    private int roundTimerFramesRemaining;
+    private bool roundTimerEnabled;
+    private RoundPhase roundPhase = RoundPhase.Fighting;
+    private RoundResult lastRoundResult = RoundResult.None;
+    private RoundEndType lastRoundEndType = RoundEndType.None;
+    private MatchWinner matchWinner = MatchWinner.None;
+    private int player1RoundWins;
+    private int player2RoundWins;
+    private int roundNumber = 1;
+    private int phaseFramesRemaining;
     private CombatInteractionSnapshot latestCombatInteraction;
     
     public IReadOnlyList<Projectile> ActiveProjectiles => projectiles;
@@ -173,6 +222,17 @@ public class Simulation : ISimulationCore
     public Fighter Player2 => player2;
     public int CurrentFrame => simulationFrame;
     public CombatInteractionSnapshot LatestCombatInteraction => latestCombatInteraction;
+    public int CurrentRoundNumber => roundNumber;
+    public int Player1RoundWins => player1RoundWins;
+    public int Player2RoundWins => player2RoundWins;
+    public RoundPhase RoundPhase => roundPhase;
+    public RoundResult LastRoundResult => lastRoundResult;
+    public RoundEndType LastRoundEndType => lastRoundEndType;
+    public MatchWinner MatchWinner => matchWinner;
+    public int RoundTimerFramesRemaining => roundTimerFramesRemaining;
+    public bool IsMatchOver => roundPhase == RoundPhase.MatchOver;
+    public bool IsRoundTimerEnabled => roundTimerEnabled;
+    public int RoundStartHealth => roundStartHealth;
 
     public Simulation(MatchConfig config = null)
     {
@@ -195,6 +255,10 @@ public class Simulation : ISimulationCore
             parryWhiffLockoutFrames = Mathf.Max(0, config.parryWhiffLockoutFrames);
             verboseCombatDebugLogs = config.verboseCombatDebugLogs;
             roundStartHealth = Mathf.Max(1, config.roundStartHealth);
+            useRoundTimer = config.useRoundTimer;
+            roundTimerDurationFrames = Mathf.Max(1, config.roundTimerSeconds) * SimulationTime.TicksPerSecond;
+            roundOverFreezeFrames = config.roundOverFreezeFrames > 0 ? config.roundOverFreezeFrames : 90;
+            matchOverFreezeFrames = config.matchOverFreezeFrames > 0 ? config.matchOverFreezeFrames : 180;
         }
         else
         {
@@ -215,6 +279,10 @@ public class Simulation : ISimulationCore
             parryWhiffLockoutFrames = 12;
             verboseCombatDebugLogs = false;
             roundStartHealth = 100;
+            useRoundTimer = true;
+            roundTimerDurationFrames = 99 * SimulationTime.TicksPerSecond;
+            roundOverFreezeFrames = 90;
+            matchOverFreezeFrames = 180;
         }
     }
 
@@ -225,44 +293,47 @@ public class Simulation : ISimulationCore
         string player2Name = "Player2"
     )
     {
-        int startHealth = roundStartHealth;
-
+        this.player1Config = player1Config;
+        this.player2Config = player2Config;
+        this.player1Name = string.IsNullOrWhiteSpace(player1Name) ? "Player1" : player1Name;
+        this.player2Name = string.IsNullOrWhiteSpace(player2Name) ? "Player2" : player2Name;
         Fighter.EnableParry = enableParry;
         Fighter.ParryActiveWindowFrames = parryActiveWindowFrames;
         Fighter.ParryWhiffLockoutFrames = parryWhiffLockoutFrames;
-
-        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name, startHealth);
-        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name, startHealth);
-
-        player1.SetOpponent(player2);
-        player2.SetOpponent(player1);
-        previousPlayer1X = player1.Position.x;
-        previousPlayer2X = player2.Position.x;
-        pendingPlayer1Packets.Clear();
-        pendingPlayer2Packets.Clear();
-        latestCombatInteraction = default;
-
-        ClearProjectiles();
+        ResetEntireMatch();
     }
 
     public void Tick(FrameInput frameInput)
     {
+        if (player1 == null || player2 == null)
+            return;
+
         previousPlayer1X = player1.Position.x;
         previousPlayer2X = player2.Position.x;
 
-        // Update each fighter with their input
-        player1.Tick(frameInput.player1);
-        player2.Tick(frameInput.player2);
+        if (roundPhase == RoundPhase.Fighting)
+        {
+            player1.Tick(frameInput.player1);
+            player2.Tick(frameInput.player2);
 
-        SpawnPendingProjectiles();
-        UpdateProjectiles();
+            SpawnPendingProjectiles();
+            UpdateProjectiles();
+            ResolveHitDetection();
+            ResolvePushboxes();
+            ClampToStage(player1);
+            ClampToStage(player2);
+            ResolveBackwalkTether();
 
-        // Simulation-specific logic
-        ResolveHitDetection();
-        ResolvePushboxes(); // Prevent overlapping
-        ClampToStage(player1);
-        ClampToStage(player2);
-        ResolveBackwalkTether();
+            if (roundTimerEnabled && roundTimerFramesRemaining > 0)
+                roundTimerFramesRemaining--;
+
+            EvaluateRoundEnd();
+        }
+        else
+        {
+            AdvanceRoundFlow();
+        }
+
         simulationFrame = frameInput.frameIndex > simulationFrame
             ? frameInput.frameIndex
             : simulationFrame + 1;
@@ -306,12 +377,140 @@ public class Simulation : ISimulationCore
         return true;
     }
 
+    private void EvaluateRoundEnd()
+    {
+        bool player1Dead = player1.IsDefeated || player1.Health <= 0;
+        bool player2Dead = player2.IsDefeated || player2.Health <= 0;
+        if (player1Dead || player2Dead)
+        {
+            if (player1Dead && player2Dead)
+                ResolveRoundEnd(RoundResult.Draw, RoundEndType.Draw);
+            else if (player1Dead)
+                ResolveRoundEnd(RoundResult.Player2Win, RoundEndType.KO);
+            else
+                ResolveRoundEnd(RoundResult.Player1Win, RoundEndType.KO);
+
+            return;
+        }
+
+        if (!roundTimerEnabled || roundTimerFramesRemaining > 0)
+            return;
+
+        if (player1.Health > player2.Health)
+            ResolveRoundEnd(RoundResult.Player1Win, RoundEndType.TimeOut);
+        else if (player2.Health > player1.Health)
+            ResolveRoundEnd(RoundResult.Player2Win, RoundEndType.TimeOut);
+        else
+            ResolveRoundEnd(RoundResult.Draw, RoundEndType.Draw);
+    }
+
+    private void ResolveRoundEnd(RoundResult result, RoundEndType endType)
+    {
+        if (roundPhase != RoundPhase.Fighting)
+            return;
+
+        lastRoundResult = result;
+        lastRoundEndType = endType;
+        roundPhase = RoundPhase.RoundOverFreeze;
+        phaseFramesRemaining = roundOverFreezeFrames;
+
+        if (result == RoundResult.Player1Win)
+            player1RoundWins++;
+        else if (result == RoundResult.Player2Win)
+            player2RoundWins++;
+
+        if (player1RoundWins >= RoundsToWin)
+            matchWinner = MatchWinner.Player1;
+        else if (player2RoundWins >= RoundsToWin)
+            matchWinner = MatchWinner.Player2;
+        else
+            matchWinner = MatchWinner.None;
+    }
+
+    private void AdvanceRoundFlow()
+    {
+        if (phaseFramesRemaining > 0)
+        {
+            phaseFramesRemaining--;
+            return;
+        }
+
+        if (roundPhase == RoundPhase.RoundOverFreeze)
+        {
+            if (matchWinner == MatchWinner.None)
+                StartNextRound();
+            else
+                EnterMatchOverPhase();
+            return;
+        }
+
+        if (roundPhase == RoundPhase.MatchOver)
+            ResetEntireMatch();
+    }
+
+    private void StartNextRound()
+    {
+        roundNumber = Mathf.Max(1, roundNumber + 1);
+        BeginRound();
+    }
+
+    private void EnterMatchOverPhase()
+    {
+        roundPhase = RoundPhase.MatchOver;
+        phaseFramesRemaining = matchOverFreezeFrames;
+    }
+
+    private void BeginRound()
+    {
+        if (player1Config == null || player2Config == null)
+            return;
+
+        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name, roundStartHealth);
+        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name, roundStartHealth);
+        player1.SetOpponent(player2);
+        player2.SetOpponent(player1);
+        previousPlayer1X = player1.Position.x;
+        previousPlayer2X = player2.Position.x;
+        latestCombatInteraction = default;
+
+        ClearTransientStateForRoundStart();
+        lastRoundResult = RoundResult.None;
+        lastRoundEndType = RoundEndType.None;
+        roundTimerEnabled = useRoundTimer;
+        roundTimerFramesRemaining = roundTimerEnabled ? roundTimerDurationFrames : 0;
+        roundPhase = RoundPhase.Fighting;
+        phaseFramesRemaining = 0;
+    }
+
+    private void ResetEntireMatch()
+    {
+        pendingPlayer1Packets.Clear();
+        pendingPlayer2Packets.Clear();
+        player1RoundWins = 0;
+        player2RoundWins = 0;
+        roundNumber = 1;
+        matchWinner = MatchWinner.None;
+        lastRoundResult = RoundResult.None;
+        lastRoundEndType = RoundEndType.None;
+        BeginRound();
+    }
+
     public int ComputeDeterminismHash()
     {
         unchecked
         {
             int hash = 17;
             hash = HashInt(hash, simulationFrame);
+            hash = HashInt(hash, (int)roundPhase);
+            hash = HashInt(hash, (int)lastRoundResult);
+            hash = HashInt(hash, (int)lastRoundEndType);
+            hash = HashInt(hash, (int)matchWinner);
+            hash = HashInt(hash, player1RoundWins);
+            hash = HashInt(hash, player2RoundWins);
+            hash = HashInt(hash, roundNumber);
+            hash = HashInt(hash, phaseFramesRemaining);
+            hash = HashInt(hash, roundTimerFramesRemaining);
+            hash = HashInt(hash, roundTimerEnabled ? 1 : 0);
             hash = HashFighterState(hash, player1, 1);
             hash = HashFighterState(hash, player2, 2);
             hash = HashInt(hash, projectiles.Count);
@@ -350,6 +549,16 @@ public class Simulation : ISimulationCore
         state.stateVersion = NetState.CurrentVersion;
         state.frame = snapshot.simulationFrame;
         state.nextProjectileId = snapshot.nextProjectileId;
+        state.roundPhase = (int)snapshot.roundPhase;
+        state.lastRoundResult = (int)snapshot.lastRoundResult;
+        state.lastRoundEndType = (int)snapshot.lastRoundEndType;
+        state.matchWinner = (int)snapshot.matchWinner;
+        state.player1RoundWins = snapshot.player1RoundWins;
+        state.player2RoundWins = snapshot.player2RoundWins;
+        state.roundNumber = snapshot.roundNumber;
+        state.phaseFramesRemaining = snapshot.phaseFramesRemaining;
+        state.roundTimerFramesRemaining = snapshot.roundTimerFramesRemaining;
+        state.roundTimerEnabled = snapshot.roundTimerEnabled;
         state.previousPlayer1X = snapshot.previousPlayer1X;
         state.previousPlayer2X = snapshot.previousPlayer2X;
         state.player1 = CaptureNetFighterState(snapshot.player1Snapshot, 1);
@@ -426,6 +635,16 @@ public class Simulation : ISimulationCore
         RestoreState(new StateSnapshot(
             state.frame,
             Mathf.Max(1, state.nextProjectileId),
+            Mathf.Max(0, state.roundTimerFramesRemaining),
+            state.roundTimerEnabled,
+            (RoundPhase)state.roundPhase,
+            (RoundResult)state.lastRoundResult,
+            (RoundEndType)state.lastRoundEndType,
+            (MatchWinner)state.matchWinner,
+            Mathf.Max(0, state.player1RoundWins),
+            Mathf.Max(0, state.player2RoundWins),
+            Mathf.Max(1, state.roundNumber),
+            Mathf.Max(0, state.phaseFramesRemaining),
             state.previousPlayer1X,
             state.previousPlayer2X,
             player1Snapshot,
@@ -462,6 +681,16 @@ public class Simulation : ISimulationCore
         return new StateSnapshot(
             simulationFrame,
             nextProjectileId,
+            roundTimerFramesRemaining,
+            roundTimerEnabled,
+            roundPhase,
+            lastRoundResult,
+            lastRoundEndType,
+            matchWinner,
+            player1RoundWins,
+            player2RoundWins,
+            roundNumber,
+            phaseFramesRemaining,
             previousPlayer1X,
             previousPlayer2X,
             player1.CaptureSnapshot(),
@@ -474,6 +703,16 @@ public class Simulation : ISimulationCore
     {
         simulationFrame = snapshot.simulationFrame;
         nextProjectileId = snapshot.nextProjectileId;
+        roundTimerFramesRemaining = snapshot.roundTimerFramesRemaining;
+        roundTimerEnabled = snapshot.roundTimerEnabled;
+        roundPhase = snapshot.roundPhase;
+        lastRoundResult = snapshot.lastRoundResult;
+        lastRoundEndType = snapshot.lastRoundEndType;
+        matchWinner = snapshot.matchWinner;
+        player1RoundWins = snapshot.player1RoundWins;
+        player2RoundWins = snapshot.player2RoundWins;
+        roundNumber = snapshot.roundNumber;
+        phaseFramesRemaining = snapshot.phaseFramesRemaining;
         previousPlayer1X = snapshot.previousPlayer1X;
         previousPlayer2X = snapshot.previousPlayer2X;
         pendingPlayer1Packets.Clear();
@@ -585,6 +824,9 @@ public class Simulation : ISimulationCore
         if (attacker == null || defender == null)
             return;
 
+        if (attacker.IsDefeated || defender.IsDefeated)
+            return;
+
         if (!attacker.HasActiveUnspentHitbox)
             return;
 
@@ -667,6 +909,9 @@ public class Simulation : ISimulationCore
             if (defender == null)
                 continue;
 
+            if (defender.IsDefeated)
+                continue;
+
             if (!projectile.CurrentBox.Overlaps(defender.CurrentHurtbox))
                 continue;
 
@@ -687,6 +932,9 @@ public class Simulation : ISimulationCore
         {
             PendingHitEvent hitEvent = pendingHitEvents[i];
             if (hitEvent.attacker == null || hitEvent.defender == null)
+                continue;
+
+            if (hitEvent.attacker.IsDefeated || hitEvent.defender.IsDefeated)
                 continue;
 
             if (!hitEvent.hitbox.active)
@@ -852,13 +1100,11 @@ public class Simulation : ISimulationCore
         }
     }
 
-    private void ClearProjectiles()
+    private void ClearTransientStateForRoundStart()
     {
+        pendingHitEvents.Clear();
         projectiles.Clear();
-        pendingPlayer1Packets.Clear();
-        pendingPlayer2Packets.Clear();
         nextProjectileId = 1;
-        simulationFrame = 0;
     }
 
     private void ClampToStage(Fighter fighter)
@@ -998,6 +1244,7 @@ public class Simulation : ISimulationCore
             lightPressBufferFramesRemaining = snapshot.lightPressBufferFramesRemaining,
             mediumPressBufferFramesRemaining = snapshot.mediumPressBufferFramesRemaining,
             heavyPressBufferFramesRemaining = snapshot.heavyPressBufferFramesRemaining,
+            isDefeated = snapshot.isDefeated,
             pendingProjectileRequest = pendingProjectileRequest,
 
             renderVisualState = (int)snapshot.renderSnapshot.visualState,
@@ -1128,6 +1375,7 @@ public class Simulation : ISimulationCore
             state.lightPressBufferFramesRemaining,
             state.mediumPressBufferFramesRemaining,
             state.heavyPressBufferFramesRemaining,
+            state.isDefeated,
             new FighterRenderSnapshot(
                 (FighterVisualState)state.renderVisualState,
                 (MoveType)state.renderMoveType,
@@ -1184,6 +1432,7 @@ public class Simulation : ISimulationCore
         hash = HashInt(hash, fighter.HitstunFramesRemaining);
         hash = HashInt(hash, fighter.BlockstunFramesRemaining);
         hash = HashInt(hash, fighter.Health);
+        hash = HashInt(hash, fighter.IsDefeated ? 1 : 0);
         hash = HashInt(hash, (int)fighter.LastReceivedHitResult);
         hash = HashInt(hash, (int)fighter.LastReceivedHitLevel);
         return hash;

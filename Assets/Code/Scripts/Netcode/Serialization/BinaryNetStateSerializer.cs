@@ -33,6 +33,14 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.frame);
         writer.Write(state.nextProjectileId);
         writer.Write(state.randomSeed);
+        writer.Write(state.roundPhase);
+        writer.Write(state.lastRoundResult);
+        writer.Write(state.lastRoundEndType);
+        writer.Write(state.matchWinner);
+        writer.Write(state.player1RoundWins);
+        writer.Write(state.player2RoundWins);
+        writer.Write(state.roundNumber);
+        writer.Write(state.phaseFramesRemaining);
         writer.Write(state.roundTimerFramesRemaining);
         writer.Write(state.roundTimerEnabled);
         writer.Write(state.previousPlayer1X);
@@ -54,8 +62,32 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.frame = reader.ReadInt32();
         state.nextProjectileId = reader.ReadInt32();
         state.randomSeed = reader.ReadInt32();
-        state.roundTimerFramesRemaining = reader.ReadInt32();
-        state.roundTimerEnabled = reader.ReadBoolean();
+        if (state.stateVersion >= 4)
+        {
+            state.roundPhase = reader.ReadInt32();
+            state.lastRoundResult = reader.ReadInt32();
+            state.lastRoundEndType = reader.ReadInt32();
+            state.matchWinner = reader.ReadInt32();
+            state.player1RoundWins = reader.ReadInt32();
+            state.player2RoundWins = reader.ReadInt32();
+            state.roundNumber = reader.ReadInt32();
+            state.phaseFramesRemaining = reader.ReadInt32();
+            state.roundTimerFramesRemaining = reader.ReadInt32();
+            state.roundTimerEnabled = reader.ReadBoolean();
+        }
+        else
+        {
+            state.roundPhase = (int)RoundPhase.Fighting;
+            state.lastRoundResult = (int)RoundResult.None;
+            state.lastRoundEndType = (int)RoundEndType.None;
+            state.matchWinner = (int)MatchWinner.None;
+            state.player1RoundWins = 0;
+            state.player2RoundWins = 0;
+            state.roundNumber = 1;
+            state.phaseFramesRemaining = 0;
+            state.roundTimerFramesRemaining = reader.ReadInt32();
+            state.roundTimerEnabled = reader.ReadBoolean();
+        }
         state.previousPlayer1X = reader.ReadSingle();
         state.previousPlayer2X = reader.ReadSingle();
         state.player1 = ReadFighterState(reader, state.stateVersion);
@@ -105,6 +137,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.lightPressBufferFramesRemaining);
         writer.Write(state.mediumPressBufferFramesRemaining);
         writer.Write(state.heavyPressBufferFramesRemaining);
+        writer.Write(state.isDefeated);
         WritePendingProjectileRequest(writer, state.pendingProjectileRequest);
 
         writer.Write(state.renderVisualState);
@@ -209,6 +242,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         state.lightPressBufferFramesRemaining = reader.ReadInt32();
         state.mediumPressBufferFramesRemaining = reader.ReadInt32();
         state.heavyPressBufferFramesRemaining = reader.ReadInt32();
+        state.isDefeated = stateVersion >= 4 ? reader.ReadBoolean() : state.health <= 0;
         state.pendingProjectileRequest = ReadPendingProjectileRequest(reader, stateVersion);
 
         state.renderVisualState = reader.ReadInt32();

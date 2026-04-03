@@ -24,3 +24,5 @@ MonoBehaviour:
   startingSuperMeter: 3
   useRoundTimer: 1
   roundTimerSeconds: 99
+  roundOverFreezeFrames: 90
+  matchOverFreezeFrames: 180
