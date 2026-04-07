@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HP_Bar_Borders
+  m_Name: Border
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -61,7 +61,7 @@ AnimationClip:
     - time: 3.1666667
       value: {fileID: -475677847, guid: f34cc6ce90444fb48b538b356f6aec76, type: 3}
     attribute: m_Sprite
-    path: UserInterFaceHealthbar_0
+    path: ImageHolder
     classID: 114
     script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
     flags: 2
@@ -73,7 +73,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 891418387
+      path: 3404040809
       attribute: 2015549526
       script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
       typeID: 114

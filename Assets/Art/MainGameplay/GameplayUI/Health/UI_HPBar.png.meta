@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_0
+      name: UI_HPBar_0
       rect:
         serializedVersion: 2
         x: 0
@@ -125,14 +125,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 32f567dd84aecdf4ebf875ea03bd99c6
-      internalID: -1468711319
+      spriteID: 3c878f238ce1b4d499dc0b6cb11b9829
+      internalID: -1304890199
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_1
+      name: UI_HPBar_1
       rect:
         serializedVersion: 2
         x: 70
@@ -147,14 +147,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5b1054db79999ba4c8d4257824cc77ac
-      internalID: -1694668104
+      spriteID: c2ac481b283855649aea6368d76758b3
+      internalID: 55196222
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_2
+      name: UI_HPBar_2
       rect:
         serializedVersion: 2
         x: 140
@@ -169,14 +169,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e7db0ad3f362bb74ca7fb83a0aceaf58
-      internalID: -724420171
+      spriteID: 742a414a0cc8015448f6dc1bcf7f8f0b
+      internalID: -1758190045
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_3
+      name: UI_HPBar_3
       rect:
         serializedVersion: 2
         x: 0
@@ -191,14 +191,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 980a5646fd5999c4dac211289124fae7
-      internalID: 301583706
+      spriteID: ffcf8638faab84e4187d18e5b86f3f38
+      internalID: -1479018558
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_4
+      name: UI_HPBar_4
       rect:
         serializedVersion: 2
         x: 70
@@ -213,14 +213,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5dcf7b5807afe54469977ccf41ce7edb
-      internalID: 1718719467
+      spriteID: 8d38af07fccf9634a95946cf59ce41a4
+      internalID: -1419281528
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_5
+      name: UI_HPBar_5
       rect:
         serializedVersion: 2
         x: 140
@@ -235,14 +235,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 823f94482c0aa014c8698cad728841a3
-      internalID: -625605807
+      spriteID: b3ae0cb53c3bb26439fb2086e5e2aecb
+      internalID: 64876621
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_6
+      name: UI_HPBar_6
       rect:
         serializedVersion: 2
         x: 0
@@ -257,14 +257,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9aace3afecdaf6b4a9e361293538ba83
-      internalID: 340019858
+      spriteID: fe88aee5b573a3349bdcf2844bf8c6b2
+      internalID: -204330855
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_7
+      name: UI_HPBar_7
       rect:
         serializedVersion: 2
         x: 70
@@ -279,14 +279,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3be3aa46e881a6a44b16f26ef2edfeac
-      internalID: -1207397102
+      spriteID: 7d879d2c9f37f36439a734321203edaa
+      internalID: -1487830012
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_8
+      name: UI_HPBar_8
       rect:
         serializedVersion: 2
         x: 140
@@ -301,14 +301,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 097e549f32770be4fa397081389206b0
-      internalID: -120741605
+      spriteID: 8f226a070ed50c64dbdd7115cee37fc2
+      internalID: 607893773
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_9
+      name: UI_HPBar_9
       rect:
         serializedVersion: 2
         x: 0
@@ -323,14 +323,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0ef4b86ec0b22f2408e698993f1c099d
-      internalID: 1315489087
+      spriteID: 6abd2720049ad1445a61cadcfb20fc3b
+      internalID: -406284184
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_10
+      name: UI_HPBar_10
       rect:
         serializedVersion: 2
         x: 70
@@ -345,14 +345,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 64696fb36e051834e8ad77e7221fa555
-      internalID: -1131841236
+      spriteID: 58bc1358c182c2545a0a03f20c4eecff
+      internalID: -118998484
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_11
+      name: UI_HPBar_11
       rect:
         serializedVersion: 2
         x: 140
@@ -367,14 +367,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 67f70831c3f751d4481786e5bcf88698
-      internalID: -577183987
+      spriteID: 42a96316f757c3745b3b95e753f89de9
+      internalID: -841411609
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_12
+      name: UI_HPBar_12
       rect:
         serializedVersion: 2
         x: 0
@@ -389,14 +389,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 25179d10ec4e4ee4b96ff1876ed3ec54
-      internalID: 1029228453
+      spriteID: aa8ffb95b8f9f4341b3c8a81b4045aa2
+      internalID: -1558756449
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_13
+      name: UI_HPBar_13
       rect:
         serializedVersion: 2
         x: 70
@@ -411,14 +411,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b17a3711ef091643bbcbd6fafa09caf
-      internalID: -26668761
+      spriteID: 0d5f9b3009403ca45b1855ad0bc9e6b1
+      internalID: 910935553
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_14
+      name: UI_HPBar_14
       rect:
         serializedVersion: 2
         x: 140
@@ -433,14 +433,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 87f27f17e8a1a244ca8b824d2425b1ee
-      internalID: -330375480
+      spriteID: 309e1a7ad3a803541a4f64c433f44828
+      internalID: -1016037276
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_15
+      name: UI_HPBar_15
       rect:
         serializedVersion: 2
         x: 0
@@ -455,14 +455,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 574723d2e5e551c4ba048e9beadc190f
-      internalID: 1100872454
+      spriteID: e41c5a6be89bbc543bd2c83a4bd5539f
+      internalID: -806951525
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_16
+      name: UI_HPBar_16
       rect:
         serializedVersion: 2
         x: 70
@@ -477,14 +477,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 227e01229b21f144d98e585552302bd0
-      internalID: -985953833
+      spriteID: 967395ea57ae1f34fb9e18b6af4571be
+      internalID: 1246674025
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_17
+      name: UI_HPBar_17
       rect:
         serializedVersion: 2
         x: 140
@@ -499,14 +499,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8e35ecbb62350a846b2724314cd8dd0e
-      internalID: -959312412
+      spriteID: ff52b6cd6a200904e88969b4db908052
+      internalID: 1556543598
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_18
+      name: UI_HPBar_18
       rect:
         serializedVersion: 2
         x: 0
@@ -521,14 +521,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d7aa712d926f8e14c903fffcbff96f1c
-      internalID: 1179067463
+      spriteID: 6010e8303c9f45a408719b9a0321c3ea
+      internalID: 726741925
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UserInterFaceHealthbar_19
+      name: UI_HPBar_19
       rect:
         serializedVersion: 2
         x: 70
@@ -543,8 +543,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0e4d80e1b411ebb4a9474a0c855dfc08
-      internalID: -475677847
+      spriteID: a0a4b06f1c0af89468047cc34abdbe3b
+      internalID: -2022182455
       vertices: []
       indices: 
       edges: []
@@ -565,26 +565,26 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":7.0},"gridSpriteSize":{"x":70.0,"y":25.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      UserInterFaceHealthbar_0: -1468711319
-      UserInterFaceHealthbar_1: -1694668104
-      UserInterFaceHealthbar_10: -1131841236
-      UserInterFaceHealthbar_11: -577183987
-      UserInterFaceHealthbar_12: 1029228453
-      UserInterFaceHealthbar_13: -26668761
-      UserInterFaceHealthbar_14: -330375480
-      UserInterFaceHealthbar_15: 1100872454
-      UserInterFaceHealthbar_16: -985953833
-      UserInterFaceHealthbar_17: -959312412
-      UserInterFaceHealthbar_18: 1179067463
-      UserInterFaceHealthbar_19: -475677847
-      UserInterFaceHealthbar_2: -724420171
-      UserInterFaceHealthbar_3: 301583706
-      UserInterFaceHealthbar_4: 1718719467
-      UserInterFaceHealthbar_5: -625605807
-      UserInterFaceHealthbar_6: 340019858
-      UserInterFaceHealthbar_7: -1207397102
-      UserInterFaceHealthbar_8: -120741605
-      UserInterFaceHealthbar_9: 1315489087
+      UI_HPBar_0: -1304890199
+      UI_HPBar_1: 55196222
+      UI_HPBar_10: -118998484
+      UI_HPBar_11: -841411609
+      UI_HPBar_12: -1558756449
+      UI_HPBar_13: 910935553
+      UI_HPBar_14: -1016037276
+      UI_HPBar_15: -806951525
+      UI_HPBar_16: 1246674025
+      UI_HPBar_17: 1556543598
+      UI_HPBar_18: 726741925
+      UI_HPBar_19: -2022182455
+      UI_HPBar_2: -1758190045
+      UI_HPBar_3: -1479018558
+      UI_HPBar_4: -1419281528
+      UI_HPBar_5: 64876621
+      UI_HPBar_6: -204330855
+      UI_HPBar_7: -1487830012
+      UI_HPBar_8: 607893773
+      UI_HPBar_9: -406284184
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
