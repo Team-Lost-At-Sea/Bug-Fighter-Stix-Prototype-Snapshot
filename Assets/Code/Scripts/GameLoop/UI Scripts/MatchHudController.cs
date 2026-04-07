@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public sealed class MatchHudController : MonoBehaviour
 {
+    private static Sprite fallbackHudSprite;
+
     [Header("Health")]
     [SerializeField]
     private Image player1HealthFill;
@@ -27,15 +29,16 @@ public sealed class MatchHudController : MonoBehaviour
     [SerializeField]
     private TMP_Text player2ResultLabel;
 
-    private int maxHealth = 100;
+    private int maxHealth = 1000;
     private bool useRoundTimer = true;
     private bool initialized;
 
     public void Initialize(MatchConfig matchConfig)
     {
-        maxHealth = matchConfig != null ? Mathf.Max(1, matchConfig.roundStartHealth) : 100;
+        maxHealth = matchConfig != null ? Mathf.Max(1, matchConfig.roundStartHealth) : 1000;
         useRoundTimer = matchConfig == null || matchConfig.useRoundTimer;
         EnsureHudReferences();
+        ConfigureHealthFillImages();
         initialized = true;
         HideOutcomeLabels();
     }
@@ -49,6 +52,7 @@ public sealed class MatchHudController : MonoBehaviour
             Initialize(null);
 
         EnsureHudReferences();
+        ConfigureHealthFillImages();
         float maxHealthSafe = Mathf.Max(1f, maxHealth);
         if (player1HealthFill != null)
             player1HealthFill.fillAmount = Mathf.Clamp01(simulation.Player1.Health / maxHealthSafe);
@@ -145,16 +149,25 @@ public sealed class MatchHudController : MonoBehaviour
 
     private void EnsureHudReferences()
     {
-        if (player1HealthFill != null
+        bool allAssigned = player1HealthFill != null
             && player2HealthFill != null
             && timerLabel != null
             && roundScoreLabel != null
             && centerBannerLabel != null
             && player1ResultLabel != null
-            && player2ResultLabel != null)
-        {
+            && player2ResultLabel != null;
+        if (allAssigned)
             return;
-        }
+
+        bool anyAssigned = player1HealthFill != null
+            || player2HealthFill != null
+            || timerLabel != null
+            || roundScoreLabel != null
+            || centerBannerLabel != null
+            || player1ResultLabel != null
+            || player2ResultLabel != null;
+        if (anyAssigned)
+            return;
 
         GameObject root = new GameObject("MatchHudCanvas");
         Canvas canvas = root.AddComponent<Canvas>();
@@ -178,6 +191,7 @@ public sealed class MatchHudController : MonoBehaviour
         GameObject backgroundObject = new GameObject(player1Side ? "P1HealthBackground" : "P2HealthBackground");
         backgroundObject.transform.SetParent(root, false);
         Image backgroundImage = backgroundObject.AddComponent<Image>();
+        EnsureImageSprite(backgroundImage);
         backgroundImage.color = new Color(0.08f, 0.08f, 0.08f, 0.9f);
         RectTransform backgroundRect = backgroundImage.rectTransform;
         backgroundRect.anchorMin = player1Side ? new Vector2(0f, 1f) : new Vector2(1f, 1f);
@@ -189,6 +203,7 @@ public sealed class MatchHudController : MonoBehaviour
         GameObject fillObject = new GameObject(player1Side ? "P1HealthFill" : "P2HealthFill");
         fillObject.transform.SetParent(backgroundObject.transform, false);
         fillImage = fillObject.AddComponent<Image>();
+        EnsureImageSprite(fillImage);
         fillImage.color = player1Side ? new Color(0.08f, 0.82f, 0.18f, 1f) : new Color(0.8f, 0.2f, 0.2f, 1f);
         fillImage.type = Image.Type.Filled;
         fillImage.fillMethod = Image.FillMethod.Horizontal;
@@ -199,6 +214,42 @@ public sealed class MatchHudController : MonoBehaviour
         fillRect.anchorMax = new Vector2(1f, 1f);
         fillRect.offsetMin = new Vector2(2f, 2f);
         fillRect.offsetMax = new Vector2(-2f, -2f);
+    }
+
+    private void ConfigureHealthFillImages()
+    {
+        ConfigureHealthFillImage(player1HealthFill, true);
+        ConfigureHealthFillImage(player2HealthFill, false);
+    }
+
+    private static void ConfigureHealthFillImage(Image fillImage, bool player1Side)
+    {
+        if (fillImage == null)
+            return;
+
+        EnsureImageSprite(fillImage);
+        fillImage.type = Image.Type.Filled;
+        fillImage.fillMethod = Image.FillMethod.Horizontal;
+        fillImage.fillOrigin = player1Side ? 0 : 1;
+    }
+
+    private static void EnsureImageSprite(Image image)
+    {
+        if (image == null || image.sprite != null)
+            return;
+
+        if (fallbackHudSprite == null)
+        {
+            Texture2D texture = Texture2D.whiteTexture;
+            fallbackHudSprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f),
+                100f
+            );
+        }
+
+        image.sprite = fallbackHudSprite;
     }
 
     private static TMP_Text CreateLabel(

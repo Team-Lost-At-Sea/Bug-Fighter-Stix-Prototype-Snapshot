@@ -53,7 +53,20 @@ public class MatchConfig : ScriptableObject
 
     [Header("Round")]
     [Min(1)]
-    public int roundStartHealth = 100;
+    public int roundStartHealth = 1000;
+
+    [Header("Damage Override")]
+    [Tooltip("When enabled, Light/Medium/Heavy move damage is globally overridden for quick balance tests.")]
+    public bool enableGlobalDamageOverride = false;
+
+    [Min(0)]
+    public int lightOverrideDamage = 50;
+
+    [Min(0)]
+    public int mediumOverrideDamage = 100;
+
+    [Min(0)]
+    public int heavyOverrideDamage = 150;
 
     [Min(0)]
     public int startingSuperMeter = 0;
@@ -76,6 +89,9 @@ public class MatchConfig : ScriptableObject
         ticksPerSecond = Mathf.Max(1, ticksPerSecond);
         hitstopFrames = Mathf.Max(0, hitstopFrames);
         roundStartHealth = Mathf.Max(1, roundStartHealth);
+        lightOverrideDamage = Mathf.Max(0, lightOverrideDamage);
+        mediumOverrideDamage = Mathf.Max(0, mediumOverrideDamage);
+        heavyOverrideDamage = Mathf.Max(0, heavyOverrideDamage);
         startingSuperMeter = Mathf.Max(0, startingSuperMeter);
         roundTimerSeconds = Mathf.Max(1, roundTimerSeconds);
         roundOverFreezeFrames = Mathf.Max(1, roundOverFreezeFrames);

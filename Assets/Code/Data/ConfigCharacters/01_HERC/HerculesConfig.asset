@@ -44,12 +44,20 @@ MonoBehaviour:
   fireballLightStateName: s_LP
   fireballMediumStateName: s_MP
   fireballHeavyStateName: s_HP
+  dragonPunchLightStateName: s_LP
+  dragonPunchMediumStateName: s_MP
+  dragonPunchHeavyStateName: s_HP
   standingLightAttackData:
     startupFrames: 3
     activeFrames: 2
     recoveryFrames: 13
     damage: 0
     hitstunFrames: 14
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 3, y: 5}
     hitboxSize: {x: 2, y: 2}
   standingMediumAttackData:
@@ -58,6 +66,11 @@ MonoBehaviour:
     recoveryFrames: 18
     damage: 0
     hitstunFrames: 2
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 2.27, y: 2.86}
     hitboxSize: {x: 5, y: 2}
   standingHeavyAttackData:
@@ -66,6 +79,11 @@ MonoBehaviour:
     recoveryFrames: 26
     damage: 0
     hitstunFrames: 30
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 5, y: 3.62}
     hitboxSize: {x: 10.4, y: 5}
   crouchingLightAttackData:
@@ -74,6 +92,11 @@ MonoBehaviour:
     recoveryFrames: 13
     damage: 0
     hitstunFrames: 15
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 2, y: 4.65}
     hitboxSize: {x: 3.2, y: 3}
   crouchingMediumAttackData:
@@ -82,6 +105,11 @@ MonoBehaviour:
     recoveryFrames: 13
     damage: 0
     hitstunFrames: 15
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 3, y: 1.44}
     hitboxSize: {x: 3, y: 3}
   crouchingHeavyAttackData:
@@ -90,6 +118,11 @@ MonoBehaviour:
     recoveryFrames: 13
     damage: 0
     hitstunFrames: 15
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 3, y: 4}
     hitboxSize: {x: 2.5, y: 6}
   jumpingLightAttackData:
@@ -98,6 +131,11 @@ MonoBehaviour:
     recoveryFrames: 18
     damage: 0
     hitstunFrames: 20
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 2.5, y: 3.22}
     hitboxSize: {x: 2, y: 2}
   jumpingMediumAttackData:
@@ -106,14 +144,24 @@ MonoBehaviour:
     recoveryFrames: 4
     damage: 0
     hitstunFrames: 28
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 2.73, y: 3.85}
     hitboxSize: {x: 2, y: 3}
   jumpingHeavyAttackData:
-    startupFrames: 14
-    activeFrames: 16
+    startupFrames: 17
+    activeFrames: 13
     recoveryFrames: 10
     damage: 0
     hitstunFrames: 38
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 5, y: 5}
   fireballLightAttackData:
@@ -122,6 +170,11 @@ MonoBehaviour:
     recoveryFrames: 0
     damage: 0
     hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 0, y: 0}
   fireballMediumAttackData:
@@ -130,6 +183,11 @@ MonoBehaviour:
     recoveryFrames: 0
     damage: 0
     hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 0, y: 0}
   fireballHeavyAttackData:
@@ -138,6 +196,50 @@ MonoBehaviour:
     recoveryFrames: 0
     damage: 0
     hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  dragonPunchLightAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  dragonPunchMediumAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
+  dragonPunchHeavyAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 0, y: 0}
   fireballProjectileSprite: {fileID: 0}

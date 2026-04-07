@@ -12,8 +12,8 @@ public static class NetStateMigrator
         {
             state.player1.blockstunFramesRemaining = 0;
             state.player2.blockstunFramesRemaining = 0;
-            state.player1.health = state.player1.health <= 0 ? 100 : state.player1.health;
-            state.player2.health = state.player2.health <= 0 ? 100 : state.player2.health;
+            state.player1.health = state.player1.health <= 0 ? 1000 : state.player1.health;
+            state.player2.health = state.player2.health <= 0 ? 1000 : state.player2.health;
         }
 
         if (state.stateVersion < 4)

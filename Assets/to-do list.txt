@@ -1,12 +1,12 @@
 to-do list
 
-jasper anims
+Jasper hit and block anim
 blocking
 cpu takeover
-standing heavy punch on Casanova needs more recovery frames in frame data
 timer UI
-health UI
-DONE stage select UI with cursor
+stage select fly cursor
+Health UI doesn't line up with the bar
+Artificial Mid-screen corner is not aligned with view perspective
 
 visual confirmation in champ select
 backdashs/fw dash

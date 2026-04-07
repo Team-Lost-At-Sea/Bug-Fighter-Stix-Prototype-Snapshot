@@ -224,7 +224,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
             state.parryLastMoveXSign = 0;
             state.parryWindowFramesRemaining = 0;
             state.parryLockoutFramesRemaining = 0;
-            state.health = 100;
+            state.health = 1000;
             state.totalDamageTaken = 0;
             state.totalChipDamageTaken = 0;
             state.lastReceivedHitResult = (int)HitResultType.None;

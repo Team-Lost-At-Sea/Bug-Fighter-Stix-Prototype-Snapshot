@@ -20,7 +20,11 @@ MonoBehaviour:
   stageRight: 45
   enableBackwalkTether: 1
   maxBackwalkSeparation: 40
-  roundStartHealth: 100
+  roundStartHealth: 1000
+  enableGlobalDamageOverride: 1
+  lightOverrideDamage: 50
+  mediumOverrideDamage: 100
+  heavyOverrideDamage: 150
   startingSuperMeter: 3
   useRoundTimer: 1
   roundTimerSeconds: 99

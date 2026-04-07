@@ -183,6 +183,10 @@ public class Fighter
     private Vector2 velocity;
     private readonly FighterConfig config;
     private readonly string debugName;
+    private readonly bool enableGlobalDamageOverride;
+    private readonly int lightOverrideDamage;
+    private readonly int mediumOverrideDamage;
+    private readonly int heavyOverrideDamage;
     private Fighter opponent;
 
     private bool isGrounded = true;
@@ -227,13 +231,26 @@ public class Fighter
 
     private FighterRenderSnapshot renderSnapshot;
 
-    public Fighter(FighterConfig config, Vector2 startPosition, string debugName, int startHealth = 100)
+    public Fighter(
+        FighterConfig config,
+        Vector2 startPosition,
+        string debugName,
+        int startHealth = 1000,
+        bool enableGlobalDamageOverride = false,
+        int lightOverrideDamage = 50,
+        int mediumOverrideDamage = 100,
+        int heavyOverrideDamage = 150
+    )
     {
         if (config == null)
             throw new ArgumentNullException(nameof(config));
 
         this.config = config;
         this.debugName = string.IsNullOrWhiteSpace(debugName) ? "UnknownFighter" : debugName;
+        this.enableGlobalDamageOverride = enableGlobalDamageOverride;
+        this.lightOverrideDamage = Mathf.Max(0, lightOverrideDamage);
+        this.mediumOverrideDamage = Mathf.Max(0, mediumOverrideDamage);
+        this.heavyOverrideDamage = Mathf.Max(0, heavyOverrideDamage);
         position = startPosition;
         velocity = Vector2.zero;
         health = Mathf.Max(1, startHealth);
@@ -733,12 +750,28 @@ public class Fighter
 
     private AttackData ResolveAttackData(MoveType moveType)
     {
-        return attackController.ResolveAttackData(moveType, config, facingRight);
+        return attackController.ResolveAttackData(
+            moveType,
+            config,
+            facingRight,
+            enableGlobalDamageOverride,
+            lightOverrideDamage,
+            mediumOverrideDamage,
+            heavyOverrideDamage
+        );
     }
 
     public AttackData ResolveAttackDataForNetState(MoveType moveType, bool forFacingRight)
     {
-        return attackController.ResolveAttackData(moveType, config, forFacingRight);
+        return attackController.ResolveAttackData(
+            moveType,
+            config,
+            forFacingRight,
+            enableGlobalDamageOverride,
+            lightOverrideDamage,
+            mediumOverrideDamage,
+            heavyOverrideDamage
+        );
     }
 
     private MoveType ResolveMoveType(AttackStrength strength, InputFrame input)
@@ -845,7 +878,7 @@ public class Fighter
             velocity: new Vector2(config.fireballProjectileSpeedPerFrame * direction, 0f),
             halfSize: config.fireballProjectileHalfSize,
             lifetimeFrames: config.fireballProjectileLifetimeFrames,
-            damage: config.fireballProjectileDamage,
+            damage: ResolveDamageForMoveType(moveType, config.fireballProjectileDamage),
             hitstunFrames: config.fireballProjectileHitstunFrames,
             blockstunFrames: Mathf.Max(1, config.fireballProjectileHitstunFrames - 2),
             blockPushback: 0.6f,
@@ -854,6 +887,36 @@ public class Fighter
             hitLevel: HitLevel.Mid
         );
         hasPendingProjectileSpawn = true;
+    }
+
+    private int ResolveDamageForMoveType(MoveType moveType, int fallbackDamage)
+    {
+        if (!enableGlobalDamageOverride)
+            return Mathf.Max(0, fallbackDamage);
+
+        switch (moveType)
+        {
+            case MoveType.StandingLight:
+            case MoveType.CrouchingLight:
+            case MoveType.JumpingLight:
+            case MoveType.FireballLight:
+            case MoveType.DragonPunchLight:
+                return lightOverrideDamage;
+            case MoveType.StandingMedium:
+            case MoveType.CrouchingMedium:
+            case MoveType.JumpingMedium:
+            case MoveType.FireballMedium:
+            case MoveType.DragonPunchMedium:
+                return mediumOverrideDamage;
+            case MoveType.StandingHeavy:
+            case MoveType.CrouchingHeavy:
+            case MoveType.JumpingHeavy:
+            case MoveType.FireballHeavy:
+            case MoveType.DragonPunchHeavy:
+                return heavyOverrideDamage;
+            default:
+                return Mathf.Max(0, fallbackDamage);
+        }
     }
 
     public bool TryConsumeProjectileSpawnRequest(out ProjectileSpawnRequest request)

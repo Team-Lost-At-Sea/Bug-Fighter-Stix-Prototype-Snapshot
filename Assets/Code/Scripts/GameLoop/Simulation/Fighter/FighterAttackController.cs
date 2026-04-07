@@ -39,14 +39,38 @@ public sealed class FighterAttackController
         return true;
     }
 
-    public AttackData ResolveAttackData(MoveType moveType, FighterConfig config, bool facingRight)
+    public AttackData ResolveAttackData(
+        MoveType moveType,
+        FighterConfig config,
+        bool facingRight,
+        bool enableGlobalDamageOverride,
+        int lightOverrideDamage,
+        int mediumOverrideDamage,
+        int heavyOverrideDamage
+    )
     {
         AttackData configuredAttack = config.GetAttackData(moveType);
         if (configuredAttack != null)
+        {
+            if (
+                enableGlobalDamageOverride
+                && TryResolveOverrideDamage(
+                    moveType,
+                    lightOverrideDamage,
+                    mediumOverrideDamage,
+                    heavyOverrideDamage,
+                    out int overrideDamage
+                )
+            )
+            {
+                return CloneAttackDataWithDamage(configuredAttack, overrideDamage);
+            }
+
             return configuredAttack;
+        }
 
         AttackTiming timing = GetDefaultTiming(moveType);
-        return new AttackData
+        AttackData fallback = new AttackData
         {
             startupFrames = timing.startupFrames,
             activeFrames = timing.activeFrames,
@@ -61,6 +85,22 @@ public sealed class FighterAttackController
             hitboxOffset = new Vector2(facingRight ? 0.9f : -0.9f, 0.9f),
             hitboxSize = new Vector2(1.0f, 0.8f),
         };
+
+        if (
+            enableGlobalDamageOverride
+            && TryResolveOverrideDamage(
+                moveType,
+                lightOverrideDamage,
+                mediumOverrideDamage,
+                heavyOverrideDamage,
+                out int fallbackOverrideDamage
+            )
+        )
+        {
+            fallback.damage = fallbackOverrideDamage;
+        }
+
+        return fallback;
     }
 
     public AttackUpdateOutcome Update(FighterState state, Vector2 position, bool facingRight)
@@ -196,6 +236,65 @@ public sealed class FighterAttackController
             default:
                 return new AttackTiming(0, 0, 0);
         }
+    }
+
+    private static bool TryResolveOverrideDamage(
+        MoveType moveType,
+        int lightOverrideDamage,
+        int mediumOverrideDamage,
+        int heavyOverrideDamage,
+        out int damage
+    )
+    {
+        switch (moveType)
+        {
+            case MoveType.StandingLight:
+            case MoveType.CrouchingLight:
+            case MoveType.JumpingLight:
+            case MoveType.FireballLight:
+            case MoveType.DragonPunchLight:
+                damage = Mathf.Max(0, lightOverrideDamage);
+                return true;
+            case MoveType.StandingMedium:
+            case MoveType.CrouchingMedium:
+            case MoveType.JumpingMedium:
+            case MoveType.FireballMedium:
+            case MoveType.DragonPunchMedium:
+                damage = Mathf.Max(0, mediumOverrideDamage);
+                return true;
+            case MoveType.StandingHeavy:
+            case MoveType.CrouchingHeavy:
+            case MoveType.JumpingHeavy:
+            case MoveType.FireballHeavy:
+            case MoveType.DragonPunchHeavy:
+                damage = Mathf.Max(0, heavyOverrideDamage);
+                return true;
+            default:
+                damage = 0;
+                return false;
+        }
+    }
+
+    private static AttackData CloneAttackDataWithDamage(AttackData source, int damage)
+    {
+        if (source == null)
+            return null;
+
+        return new AttackData
+        {
+            startupFrames = source.startupFrames,
+            activeFrames = source.activeFrames,
+            recoveryFrames = source.recoveryFrames,
+            damage = Mathf.Max(0, damage),
+            hitstunFrames = source.hitstunFrames,
+            blockstunFrames = source.blockstunFrames,
+            blockPushback = source.blockPushback,
+            chipDamage = source.chipDamage,
+            attackerBlockstopFrames = source.attackerBlockstopFrames,
+            hitLevel = source.hitLevel,
+            hitboxOffset = source.hitboxOffset,
+            hitboxSize = source.hitboxSize
+        };
     }
 
     private readonly struct AttackTiming

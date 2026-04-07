@@ -196,6 +196,10 @@ public class Simulation : ISimulationCore
     private readonly int parryWhiffLockoutFrames;
     private readonly bool verboseCombatDebugLogs;
     private readonly int roundStartHealth;
+    private readonly bool enableGlobalDamageOverride;
+    private readonly int lightOverrideDamage;
+    private readonly int mediumOverrideDamage;
+    private readonly int heavyOverrideDamage;
     private readonly bool useRoundTimer;
     private readonly int roundTimerDurationFrames;
     private readonly int roundOverFreezeFrames;
@@ -255,6 +259,10 @@ public class Simulation : ISimulationCore
             parryWhiffLockoutFrames = Mathf.Max(0, config.parryWhiffLockoutFrames);
             verboseCombatDebugLogs = config.verboseCombatDebugLogs;
             roundStartHealth = Mathf.Max(1, config.roundStartHealth);
+            enableGlobalDamageOverride = config.enableGlobalDamageOverride;
+            lightOverrideDamage = Mathf.Max(0, config.lightOverrideDamage);
+            mediumOverrideDamage = Mathf.Max(0, config.mediumOverrideDamage);
+            heavyOverrideDamage = Mathf.Max(0, config.heavyOverrideDamage);
             useRoundTimer = config.useRoundTimer;
             roundTimerDurationFrames = Mathf.Max(1, config.roundTimerSeconds) * SimulationTime.TicksPerSecond;
             roundOverFreezeFrames = config.roundOverFreezeFrames > 0 ? config.roundOverFreezeFrames : 90;
@@ -278,7 +286,11 @@ public class Simulation : ISimulationCore
             parryActiveWindowFrames = 3;
             parryWhiffLockoutFrames = 12;
             verboseCombatDebugLogs = false;
-            roundStartHealth = 100;
+            roundStartHealth = 1000;
+            enableGlobalDamageOverride = false;
+            lightOverrideDamage = 50;
+            mediumOverrideDamage = 100;
+            heavyOverrideDamage = 150;
             useRoundTimer = true;
             roundTimerDurationFrames = 99 * SimulationTime.TicksPerSecond;
             roundOverFreezeFrames = 90;
@@ -465,8 +477,26 @@ public class Simulation : ISimulationCore
         if (player1Config == null || player2Config == null)
             return;
 
-        player1 = new Fighter(player1Config, new Vector2(-fighterStartPositionOffset, 0f), player1Name, roundStartHealth);
-        player2 = new Fighter(player2Config, new Vector2(fighterStartPositionOffset, 0f), player2Name, roundStartHealth);
+        player1 = new Fighter(
+            player1Config,
+            new Vector2(-fighterStartPositionOffset, 0f),
+            player1Name,
+            roundStartHealth,
+            enableGlobalDamageOverride,
+            lightOverrideDamage,
+            mediumOverrideDamage,
+            heavyOverrideDamage
+        );
+        player2 = new Fighter(
+            player2Config,
+            new Vector2(fighterStartPositionOffset, 0f),
+            player2Name,
+            roundStartHealth,
+            enableGlobalDamageOverride,
+            lightOverrideDamage,
+            mediumOverrideDamage,
+            heavyOverrideDamage
+        );
         player1.SetOpponent(player2);
         player2.SetOpponent(player1);
         previousPlayer1X = player1.Position.x;
