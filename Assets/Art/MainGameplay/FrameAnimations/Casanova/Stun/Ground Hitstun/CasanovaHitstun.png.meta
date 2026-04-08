@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: afd6e3bd29110fa4a9c0d1d53d128aab
+guid: 2bb6ee09dcb3f124b9fd90fca52c282f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,17 +93,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesHitstun_0
+      name: CasanovaHitstun_0
       rect:
         serializedVersion: 2
-        x: 81
-        y: 315
-        width: 136
-        height: 278
+        x: 82
+        y: 298
+        width: 86
+        height: 157
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b0ecd77c2fddf374fbd13b8c6f65c543
-      internalID: 1347905880
+      spriteID: f57a027bbb2846745a52c94a39974e51
+      internalID: 2092363418
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesHitstun_1
+      name: CasanovaHitstun_1
       rect:
         serializedVersion: 2
-        x: 79
-        y: 15
-        width: 138
-        height: 276
+        x: 81
+        y: 48
+        width: 86
+        height: 157
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,8 +147,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 25af495982a575e48ac3240211eab47e
-      internalID: 972629019
+      spriteID: 05cdeae14ba369b49a1a7d4faa91c9f0
+      internalID: -646699789
       vertices: []
       indices: 
       edges: []
@@ -152,10 +165,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesHitstun_0: 1347905880
-      HerculesHitstun_1: 972629019
+      CasanovaHitstun_0: 2092363418
+      CasanovaHitstun_1: -646699789
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

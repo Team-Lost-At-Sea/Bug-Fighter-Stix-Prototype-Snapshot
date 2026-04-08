@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HERC_stun_Hitstun
+  m_Name: CASA_stun_Hitstun
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,17 +21,15 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 1347905880, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
-    - time: 0.06666667
-      value: {fileID: 972629019, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
-    - time: 0.13333334
-      value: {fileID: 1347905880, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
+      value: {fileID: 2092363418, guid: 2bb6ee09dcb3f124b9fd90fca52c282f, type: 3}
+    - time: 0.05
+      value: {fileID: -646699789, guid: 2bb6ee09dcb3f124b9fd90fca52c282f, type: 3}
     attribute: m_Sprite
     path: Sprite_Holder
     classID: 212
     script: {fileID: 0}
     flags: 2
-  m_SampleRate: 60
+  m_SampleRate: 20
   m_WrapMode: 0
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -48,15 +46,14 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 1347905880, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
-    - {fileID: 972629019, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
-    - {fileID: 1347905880, guid: 971725fe856252445ba2d36ddcfa282e, type: 3}
+    - {fileID: 2092363418, guid: 2bb6ee09dcb3f124b9fd90fca52c282f, type: 3}
+    - {fileID: -646699789, guid: 2bb6ee09dcb3f124b9fd90fca52c282f, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.15
+    m_StopTime: 0.1
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
