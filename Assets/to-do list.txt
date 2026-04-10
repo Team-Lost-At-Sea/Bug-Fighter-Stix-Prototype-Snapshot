@@ -27,6 +27,8 @@ Scratch tickets
 
 monetization:
 
-base game free + online package is paid (online play, online friend lobbies)
+base game cheap
 
 DLC can be unlocked for free
+
+Manual pay-only to obtain DLC period, can be earned for free after a couple months after release
