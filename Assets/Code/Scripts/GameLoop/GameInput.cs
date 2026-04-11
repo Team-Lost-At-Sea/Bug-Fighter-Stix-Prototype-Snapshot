@@ -15,6 +15,7 @@ public class GameInput : MonoBehaviour
     private const string INVERT_Y_PREF_KEY = "input.invert_y";
 
     private InputSystem_Actions inputActions;
+    private InputAction recordingAction;
 
     // Simple queue of inputs for the next simulation ticks
     private Queue<InputFrame> inputBuffer = new Queue<InputFrame>();
@@ -120,6 +121,9 @@ public class GameInput : MonoBehaviour
 
         inputActions = new InputSystem_Actions();
         inputActions.Enable();
+        recordingAction = inputActions.asset.FindAction("Gameplay/P1_Recording", throwIfNotFound: false);
+        if (recordingAction == null)
+            Debug.LogWarning("GameInput: Gameplay/P1_Recording action not found. Recording controls will be unavailable.");
 
         int defaultValue = invertYDefault ? 1 : 0;
         invertYEnabled = PlayerPrefs.GetInt(INVERT_Y_PREF_KEY, defaultValue) == 1;
@@ -229,10 +233,26 @@ public class GameInput : MonoBehaviour
 
     public FrameInputPacket ConsumeNextPlayerPacket(int frameIndex, int playerId = 1)
     {
-        InputFrame input = playerId == 2 && enableLocalPlayer2Input
-            ? ConsumeNextPlayer2Input()
-            : ConsumeNextPlayer1Input();
-        return InputPacketCodec.Encode(input, frameIndex, playerId, 0);
+        InputFrame input = ConsumeNextPlayerInputFrame(playerId);
+        return EncodeInputFrameToPacket(input, frameIndex, playerId, 0);
+    }
+
+    public InputFrame ConsumeNextPlayerInputFrame(int playerId)
+    {
+        if (playerId == 2)
+            return enableLocalPlayer2Input ? ConsumeNextPlayer2Input() : InputFrame.Neutral;
+
+        return ConsumeNextPlayer1Input();
+    }
+
+    public FrameInputPacket EncodeInputFrameToPacket(InputFrame input, int frameIndex, int playerId, uint sequence = 0)
+    {
+        return InputPacketCodec.Encode(input, frameIndex, playerId, sequence);
+    }
+
+    public bool IsRecordingButtonHeld()
+    {
+        return recordingAction != null && recordingAction.IsPressed();
     }
 
     /// <summary>

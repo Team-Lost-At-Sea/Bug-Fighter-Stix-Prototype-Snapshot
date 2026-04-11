@@ -59,6 +59,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "P1_Recording",
+                    "type": "Button",
+                    "id": "08f9337c-2a4f-4fe6-b3b4-0f4f7a2afaa4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -499,6 +508,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "P1_Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f55f532-4885-4f5d-b255-586dc61017dd",
+                    "path": "<Keyboard>/equals",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "P1_Recording",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

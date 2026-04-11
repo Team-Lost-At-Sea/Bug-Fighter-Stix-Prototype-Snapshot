@@ -2255,6 +2255,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fighter2
       objectReference: {fileID: 0}
+    - target: {fileID: 3320946833487319169, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
+      propertyPath: fighterShadow
+      value: 
+      objectReference: {fileID: 1735706160}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2845,7 +2849,7 @@ MonoBehaviour:
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1739284738}
   matchHud: {fileID: 0}
-  player1Character: {fileID: 11400000, guid: d023ae2a265ef3249b150e145b877e36, type: 2}
+  player1Character: {fileID: 11400000, guid: db4823dd2fac5bf44bfa56bd7bc84566, type: 2}
   player2Character: {fileID: 11400000, guid: fc069ae876ad6154797dacf66328731a, type: 2}
   hitstopFrames: 6
   showCombatDebugHud: 1
@@ -2867,6 +2871,7 @@ MonoBehaviour:
   simulatedReorderChance: 0
   useLocalP2PacketStream: 1
   recordReplayPackets: 1
+  clearRecordingHoldDurationSeconds: 1
 --- !u!1 &1145705755
 GameObject:
   m_ObjectHideFlags: 0
@@ -4730,6 +4735,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1735706160 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 800952157492546797, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
+  m_PrefabInstance: {fileID: 810143032}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c15693a260c65c4c964c5e6f78c9b34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1739284738 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3320946833487319169, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}

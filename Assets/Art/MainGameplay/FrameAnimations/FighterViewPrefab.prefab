@@ -48,6 +48,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 28ed3548accdf77498e32e830c777c82, type: 2}
   depth: 0
   animator: {fileID: 1071053576676423226}
+  fighterShadow: {fileID: 800952157492546797}
   hurtboxColor: {r: 0, g: 1, b: 0, a: 0.75}
   blockingHurtboxColor: {r: 0.05, g: 0.2, b: 0.6, a: 0.75}
   hitboxColor: {r: 1, g: 0, b: 0, a: 0.75}
@@ -99,6 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fighterRoot: {fileID: 2287060288388628142}
+  maxScale: 1
   minScale: 0.2
   maxHeight: 5
 --- !u!1 &3609953636594254423
@@ -357,7 +359,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1105404331
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 834580643, guid: e185dbf071b603449bf03f6337df8c51, type: 3}

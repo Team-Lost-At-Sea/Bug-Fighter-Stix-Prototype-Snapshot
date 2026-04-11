@@ -145,6 +145,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""P1_Recording"",
+                    ""type"": ""Button"",
+                    ""id"": ""08f9337c-2a4f-4fe6-b3b4-0f4f7a2afaa4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -585,6 +594,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""P1_Menu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1f55f532-4885-4f5d-b255-586dc61017dd"",
+                    ""path"": ""<Keyboard>/equals"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""P1_Recording"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1198,6 +1218,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Gameplay_P1_MediumAttack = m_Gameplay.FindAction("P1_MediumAttack", throwIfNotFound: true);
         m_Gameplay_P1_HeavyAttack = m_Gameplay.FindAction("P1_HeavyAttack", throwIfNotFound: true);
         m_Gameplay_P1_Menu = m_Gameplay.FindAction("P1_Menu", throwIfNotFound: true);
+        m_Gameplay_P1_Recording = m_Gameplay.FindAction("P1_Recording", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1298,6 +1319,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_P1_MediumAttack;
     private readonly InputAction m_Gameplay_P1_HeavyAttack;
     private readonly InputAction m_Gameplay_P1_Menu;
+    private readonly InputAction m_Gameplay_P1_Recording;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -1333,6 +1355,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/P1_Menu".
         /// </summary>
         public InputAction @P1_Menu => m_Wrapper.m_Gameplay_P1_Menu;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/P1_Recording".
+        /// </summary>
+        public InputAction @P1_Recording => m_Wrapper.m_Gameplay_P1_Recording;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1377,6 +1403,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @P1_Menu.started += instance.OnP1_Menu;
             @P1_Menu.performed += instance.OnP1_Menu;
             @P1_Menu.canceled += instance.OnP1_Menu;
+            @P1_Recording.started += instance.OnP1_Recording;
+            @P1_Recording.performed += instance.OnP1_Recording;
+            @P1_Recording.canceled += instance.OnP1_Recording;
         }
 
         /// <summary>
@@ -1406,6 +1435,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @P1_Menu.started -= instance.OnP1_Menu;
             @P1_Menu.performed -= instance.OnP1_Menu;
             @P1_Menu.canceled -= instance.OnP1_Menu;
+            @P1_Recording.started -= instance.OnP1_Recording;
+            @P1_Recording.performed -= instance.OnP1_Recording;
+            @P1_Recording.canceled -= instance.OnP1_Recording;
         }
 
         /// <summary>
@@ -1759,6 +1791,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnP1_Menu(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "P1_Recording" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnP1_Recording(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

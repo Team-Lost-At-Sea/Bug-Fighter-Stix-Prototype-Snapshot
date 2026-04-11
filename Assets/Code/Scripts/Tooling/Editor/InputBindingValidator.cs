@@ -31,7 +31,14 @@ public static class InputBindingValidator
         List<string> errors = new List<string>();
         foreach (InputAction action in gameplay.actions)
         {
-            CountBindings(action, out int gamepadCount, out int keyboardCount);
+            CountBindings(
+                action,
+                out int gamepadCount,
+                out int keyboardCount,
+                out List<string> gamepadBindingDetails,
+                out List<string> keyboardBindingDetails,
+                out List<string> unclassifiedBindingDetails
+            );
 
             bool valid =
                 (gamepadCount == 1 && keyboardCount == 1)
@@ -40,7 +47,10 @@ public static class InputBindingValidator
             if (!valid)
             {
                 errors.Add(
-                    $"- {action.name}: Gamepad={gamepadCount}, Keyboard={keyboardCount} (expected 1+1 or 2+2)"
+                    $"- {action.name}: Gamepad={gamepadCount}, Keyboard={keyboardCount} (expected 1+1 or 2+2)\n" +
+                    $"    Gamepad matches: {FormatDetailList(gamepadBindingDetails)}\n" +
+                    $"    Keyboard matches: {FormatDetailList(keyboardBindingDetails)}\n" +
+                    $"    Unclassified: {FormatDetailList(unclassifiedBindingDetails)}"
                 );
             }
         }
@@ -58,10 +68,20 @@ public static class InputBindingValidator
         Debug.LogError(builder.ToString());
     }
 
-    private static void CountBindings(InputAction action, out int gamepadCount, out int keyboardCount)
+    private static void CountBindings(
+        InputAction action,
+        out int gamepadCount,
+        out int keyboardCount,
+        out List<string> gamepadBindingDetails,
+        out List<string> keyboardBindingDetails,
+        out List<string> unclassifiedBindingDetails
+    )
     {
         gamepadCount = 0;
         keyboardCount = 0;
+        gamepadBindingDetails = new List<string>();
+        keyboardBindingDetails = new List<string>();
+        unclassifiedBindingDetails = new List<string>();
 
         IReadOnlyList<InputBinding> bindings = action.bindings;
         for (int i = 0; i < bindings.Count; i++)
@@ -74,29 +94,70 @@ public static class InputBindingValidator
             {
                 bool compositeGamepad = false;
                 bool compositeKeyboard = false;
+                List<string> parts = new List<string>();
 
                 int partIndex = i + 1;
                 while (partIndex < bindings.Count && bindings[partIndex].isPartOfComposite)
                 {
                     InputBinding part = bindings[partIndex];
+                    parts.Add(DescribeBinding(partIndex, part));
                     compositeGamepad |= IsGamepadBinding(part);
                     compositeKeyboard |= IsKeyboardBinding(part);
                     partIndex++;
                 }
 
+                string compositeHeader = $"[{i}] composite '{binding.name}'";
+                string compositeDescription = parts.Count > 0
+                    ? $"{compositeHeader} parts={string.Join(", ", parts)}"
+                    : $"{compositeHeader} (no parts)";
+
                 if (compositeGamepad)
+                {
                     gamepadCount++;
+                    gamepadBindingDetails.Add(compositeDescription);
+                }
                 if (compositeKeyboard)
+                {
                     keyboardCount++;
+                    keyboardBindingDetails.Add(compositeDescription);
+                }
+                if (!compositeGamepad && !compositeKeyboard)
+                    unclassifiedBindingDetails.Add(compositeDescription);
 
                 continue;
             }
 
-            if (IsGamepadBinding(binding))
+            bool matchesGamepad = IsGamepadBinding(binding);
+            bool matchesKeyboard = IsKeyboardBinding(binding);
+            string detail = DescribeBinding(i, binding);
+            if (matchesGamepad)
+            {
                 gamepadCount++;
-            if (IsKeyboardBinding(binding))
+                gamepadBindingDetails.Add(detail);
+            }
+            if (matchesKeyboard)
+            {
                 keyboardCount++;
+                keyboardBindingDetails.Add(detail);
+            }
+            if (!matchesGamepad && !matchesKeyboard)
+                unclassifiedBindingDetails.Add(detail);
         }
+    }
+
+    private static string DescribeBinding(int index, InputBinding binding)
+    {
+        string path = string.IsNullOrEmpty(binding.path) ? "<empty>" : binding.path;
+        string groups = string.IsNullOrEmpty(binding.groups) ? "<none>" : binding.groups;
+        return $"[{index}] path='{path}' groups='{groups}'";
+    }
+
+    private static string FormatDetailList(List<string> details)
+    {
+        if (details == null || details.Count == 0)
+            return "<none>";
+
+        return string.Join(" | ", details);
     }
 
     private static bool IsGamepadBinding(InputBinding binding)

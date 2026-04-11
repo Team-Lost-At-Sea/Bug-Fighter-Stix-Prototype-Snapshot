@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum BlockstunParticlePreset
+{
+    None,
+    ShieldPulse,
+    GuardSparks,
+    HitMist
+}
+
 [CreateAssetMenu(menuName = "Fighter/Fighter Config")]
 public class FighterConfig : ScriptableObject
 {
@@ -76,6 +84,32 @@ public class FighterConfig : ScriptableObject
     public int fireballProjectileLifetimeFrames = 120;
     public int fireballProjectileDamage = 7;
     public int fireballProjectileHitstunFrames = 16;
+
+    [Header("Blockstun Effect")]
+    [Tooltip("Animator-driven effect prefab shown while this fighter is in blockstun.")]
+    public GameObject blockstunEffectPrefab;
+    [Tooltip("Local offset from fighter feet where the blockstun effect is centered.")]
+    public Vector2 blockstunEffectOffsetFromFeet = new Vector2(0f, 1f);
+    [Tooltip("Multiplier applied to the instantiated effect's default local scale.")]
+    public Vector3 blockstunEffectScaleMultiplier = Vector3.one;
+    [Min(1)]
+    [Tooltip("Playback speed reference: speed = referenceFrames / lastReceivedStunFrames.")]
+    public int blockstunEffectReferenceFrames = 20;
+    [Min(0f)]
+    public float blockstunEffectMinSpeed = 0.2f;
+    [Min(0f)]
+    public float blockstunEffectMaxSpeed = 3f;
+    [Tooltip("Debug toggle: keeps the blockshield animation always visible to help tune offset/scale.")]
+    public bool previewBlockshieldAnim = false;
+
+    [Header("Blockstun Particle Supplement")]
+    [Tooltip("Optional particle effect prefab layered on top of blockstun animator effect.")]
+    public GameObject blockstunParticlePrefab;
+    public Vector2 blockstunParticleOffsetFromFeet = new Vector2(0f, 1f);
+    public Vector3 blockstunParticleScaleMultiplier = Vector3.one;
+    public BlockstunParticlePreset blockstunParticlePreset = BlockstunParticlePreset.ShieldPulse;
+    [Tooltip("Extra multiplier applied after blockstun speed scaling.")]
+    public float blockstunParticleSpeedMultiplier = 1f;
 
     public AttackData GetAttackData(MoveType moveType)
     {

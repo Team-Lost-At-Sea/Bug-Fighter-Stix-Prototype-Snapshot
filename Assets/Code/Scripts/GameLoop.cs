@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -5,6 +6,15 @@ public class GameLoop : MonoBehaviour
 {
     public const int TICKS_PER_SECOND = 60;
     public const float FIXED_DT = 1f / TICKS_PER_SECOND;
+
+    public enum RecordingPlaybackState
+    {
+        RecordingSlotAvailable,
+        Standby,
+        ActiveRecording,
+        PlaybackReady,
+        PlaybackActive
+    }
 
     private float accumulator;
 
@@ -98,6 +108,11 @@ public class GameLoop : MonoBehaviour
     [SerializeField]
     private bool recordReplayPackets = true;
 
+    [Header("Recording Playback")]
+    [SerializeField]
+    [Min(0.1f)]
+    private float clearRecordingHoldDurationSeconds = 1f;
+
     private Simulation simulation;
     private readonly MatchPresenter presenter = new MatchPresenter();
     private bool hasSavedState;
@@ -111,9 +126,16 @@ public class GameLoop : MonoBehaviour
     private uint localInputSequence;
     private float flashTimeRemaining;
     private Color activeFlashColor;
+    private RecordingPlaybackState recordingState = RecordingPlaybackState.RecordingSlotAvailable;
+    private readonly List<InputFrame> recordedPlayer2Frames = new List<InputFrame>(2048);
+    private int playbackCursor;
+    private bool recordingButtonHeldLastFrame;
+    private float recordingButtonHoldTime;
+    private bool recordingClearedByHoldThisPress;
 
     public Simulation ActiveSimulation => simulation;
     public RollbackMetrics CurrentRollbackMetrics => matchSession != null ? matchSession.Metrics : default;
+    public RecordingPlaybackState CurrentRecordingState => recordingState;
 
     void Start()
     {
@@ -159,6 +181,7 @@ public class GameLoop : MonoBehaviour
         if (simulation == null)
             return;
 
+        HandleRecordingInput();
         HandleSaveStateInput();
         if (flashTimeRemaining > 0f)
             flashTimeRemaining = Mathf.Max(0f, flashTimeRemaining - Time.unscaledDeltaTime);
@@ -189,6 +212,7 @@ public class GameLoop : MonoBehaviour
         if (flashTimeRemaining <= 0f)
         {
             DrawCombatDebugHud();
+            DrawRecordingIndicator();
             return;
         }
 
@@ -205,6 +229,7 @@ public class GameLoop : MonoBehaviour
         }
 
         DrawCombatDebugHud();
+        DrawRecordingIndicator();
     }
 
     private void DrawCombatDebugHud()
@@ -301,8 +326,7 @@ public class GameLoop : MonoBehaviour
         if (useLocalP2PacketStream)
         {
             int nextFrame = simulation.CurrentFrame + 1;
-            FrameInputPacket player1Packet = ConsumeLocalPacket(nextFrame, 1);
-            FrameInputPacket player2Packet = ConsumeLocalPacket(nextFrame, 2);
+            BuildLocalPacketsForFrame(nextFrame, out FrameInputPacket player1Packet, out FrameInputPacket player2Packet);
             simulation.Tick(player1Packet);
             simulation.Tick(player2Packet);
 
@@ -330,6 +354,54 @@ public class GameLoop : MonoBehaviour
         int nextFrameIndex = simulation.CurrentFrame + 1;
         FrameInput frameInput = GameInput.Instance.ConsumeNextFrameInput(nextFrameIndex);
         simulation.Tick(frameInput);
+    }
+
+    private void BuildLocalPacketsForFrame(int nextFrame, out FrameInputPacket player1Packet, out FrameInputPacket player2Packet)
+    {
+        if (GameInput.Instance == null)
+        {
+            player1Packet = FrameInputPacket.Neutral(nextFrame, 1, localInputSequence++);
+            player2Packet = FrameInputPacket.Neutral(nextFrame, 2, localInputSequence++);
+            return;
+        }
+
+        InputFrame livePlayer1 = GameInput.Instance.ConsumeNextPlayerInputFrame(1);
+        InputFrame livePlayer2 = GameInput.Instance.ConsumeNextPlayerInputFrame(2);
+        InputFrame finalPlayer1 = livePlayer1;
+        InputFrame finalPlayer2 = livePlayer2;
+
+        switch (recordingState)
+        {
+            case RecordingPlaybackState.Standby:
+                finalPlayer1 = InputFrame.Neutral;
+                finalPlayer2 = livePlayer1;
+                break;
+            case RecordingPlaybackState.ActiveRecording:
+                finalPlayer1 = InputFrame.Neutral;
+                finalPlayer2 = livePlayer1;
+                recordedPlayer2Frames.Add(finalPlayer2);
+                break;
+            case RecordingPlaybackState.PlaybackActive:
+                finalPlayer1 = livePlayer1;
+                if (playbackCursor < recordedPlayer2Frames.Count)
+                {
+                    finalPlayer2 = recordedPlayer2Frames[playbackCursor];
+                    playbackCursor++;
+                    if (playbackCursor >= recordedPlayer2Frames.Count)
+                        StopPlaybackInternal();
+                }
+                else
+                {
+                    finalPlayer2 = InputFrame.Neutral;
+                    StopPlaybackInternal();
+                }
+                break;
+            case RecordingPlaybackState.PlaybackReady:
+                break;
+        }
+
+        player1Packet = GameInput.Instance.EncodeInputFrameToPacket(finalPlayer1, nextFrame, 1, localInputSequence++);
+        player2Packet = GameInput.Instance.EncodeInputFrameToPacket(finalPlayer2, nextFrame, 2, localInputSequence++);
     }
 
     private FrameInputPacket ConsumeLocalPacket(int nextFrame, int playerId)
@@ -366,11 +438,40 @@ public class GameLoop : MonoBehaviour
         saveStateButtonHeldLastFrame = isHeld;
     }
 
+    private void HandleRecordingInput()
+    {
+        bool isHeld = IsRecordingButtonHeld();
+        if (isHeld)
+        {
+            recordingButtonHoldTime += Time.unscaledDeltaTime;
+            if (!recordingClearedByHoldThisPress && recordingButtonHoldTime >= clearRecordingHoldDurationSeconds)
+            {
+                ResetRecordingSystem();
+                recordingClearedByHoldThisPress = true;
+            }
+        }
+        else
+        {
+            if (recordingButtonHeldLastFrame && !recordingClearedByHoldThisPress)
+                HandleRecordingButtonTap();
+
+            recordingButtonHoldTime = 0f;
+            recordingClearedByHoldThisPress = false;
+        }
+
+        recordingButtonHeldLastFrame = isHeld;
+    }
+
     private bool IsSaveStateButtonHeld()
     {
         bool keyboardHeld = Keyboard.current != null && Keyboard.current.backspaceKey.isPressed;
         bool gamepadHeld = Gamepad.current != null && Gamepad.current.selectButton.isPressed;
         return keyboardHeld || gamepadHeld;
+    }
+
+    private bool IsRecordingButtonHeld()
+    {
+        return GameInput.Instance != null && GameInput.Instance.IsRecordingButtonHeld();
     }
 
     private void ToggleSaveOrRestore()
@@ -388,6 +489,11 @@ public class GameLoop : MonoBehaviour
             Debug.Log("Save state captured.");
             return;
         }
+
+        if (recordingState == RecordingPlaybackState.Standby || recordingState == RecordingPlaybackState.ActiveRecording)
+            ResetRecordingSystem();
+        else if (recordingState == RecordingPlaybackState.PlaybackActive)
+            StopPlaybackInternal();
 
         simulation.RestoreNetState(savedState);
         accumulator = 0f;
@@ -411,5 +517,74 @@ public class GameLoop : MonoBehaviour
     {
         activeFlashColor = color;
         flashTimeRemaining = Mathf.Max(0.01f, saveStateFlashDurationSeconds);
+    }
+
+    private void HandleRecordingButtonTap()
+    {
+        if (!useLocalP2PacketStream)
+        {
+            Debug.LogWarning("Recording playback requires Use Local P2 Packet Stream.");
+            return;
+        }
+
+        switch (recordingState)
+        {
+            case RecordingPlaybackState.RecordingSlotAvailable:
+                recordingState = RecordingPlaybackState.Standby;
+                GameInput.Instance?.ClearBufferedInputState();
+                Debug.Log("Recording standby: P1 input now controls P2.");
+                break;
+            case RecordingPlaybackState.Standby:
+                recordedPlayer2Frames.Clear();
+                recordingState = RecordingPlaybackState.ActiveRecording;
+                Debug.Log("Recording started.");
+                break;
+            case RecordingPlaybackState.ActiveRecording:
+                recordingState = RecordingPlaybackState.PlaybackReady;
+                playbackCursor = 0;
+                GameInput.Instance?.ClearBufferedInputState();
+                Debug.Log($"Recording stopped. Frames captured: {recordedPlayer2Frames.Count}.");
+                break;
+            case RecordingPlaybackState.PlaybackReady:
+                if (recordedPlayer2Frames.Count == 0)
+                    return;
+
+                recordingState = RecordingPlaybackState.PlaybackActive;
+                playbackCursor = 0;
+                GameInput.Instance?.ClearBufferedInputState();
+                Debug.Log("Playback started.");
+                break;
+            case RecordingPlaybackState.PlaybackActive:
+                break;
+        }
+    }
+
+    private void StopPlaybackInternal()
+    {
+        if (recordingState == RecordingPlaybackState.PlaybackActive)
+            recordingState = RecordingPlaybackState.PlaybackReady;
+        playbackCursor = 0;
+    }
+
+    private void ResetRecordingSystem()
+    {
+        recordingState = RecordingPlaybackState.RecordingSlotAvailable;
+        recordedPlayer2Frames.Clear();
+        StopPlaybackInternal();
+        GameInput.Instance?.ClearBufferedInputState();
+        Debug.Log("Recording reset. Slot available.");
+    }
+
+    private void DrawRecordingIndicator()
+    {
+        if (recordingState != RecordingPlaybackState.ActiveRecording)
+            return;
+
+        Color previousColor = GUI.color;
+        GUI.color = Color.red;
+        const float size = 10f;
+        const float margin = 12f;
+        GUI.DrawTexture(new Rect(Screen.width - margin - size, margin, size, size), Texture2D.whiteTexture);
+        GUI.color = previousColor;
     }
 }

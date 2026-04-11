@@ -54,6 +54,17 @@ public class FighterView : MonoBehaviour
     private uint lastAnimationSerial;
     private FighterVisualState lastLoggedVisualState = FighterVisualState.None;
     private int lastLoggedVisualHash = -1;
+    private GameObject blockstunEffectInstance;
+    private Transform blockstunEffectTransform;
+    private Animator blockstunEffectAnimator;
+    private Vector3 blockstunEffectBaseLocalScale = Vector3.one;
+    private GameObject blockstunParticleInstance;
+    private Transform blockstunParticleTransform;
+    private Vector3 blockstunParticleBaseLocalScale = Vector3.one;
+    private ParticleSystem[] blockstunParticleSystems;
+    private bool wasInBlockstunLastFrame;
+    private bool loggedMissingBlockstunAnimator;
+    private bool loggedMissingBlockstunParticles;
 
     public FighterConfig Config => config;
 
@@ -75,12 +86,17 @@ public class FighterView : MonoBehaviour
 
         if (fighterShadow != null)
             fighterShadow.ApplyPresentationConfig(characterDefinition.presentationConfig);
+
+        ResetBlockstunEffectInstance();
+        ResetBlockstunParticleInstance();
     }
 
     public void Initialize(Fighter fighter)
     {
         this.fighter = fighter;
         EnsureBoxVisuals();
+        EnsureBlockstunEffectInstance();
+        EnsureBlockstunParticleInstance();
 
         if (config == null)
         {
@@ -114,6 +130,8 @@ public class FighterView : MonoBehaviour
     private void Start()
     {
         EnsureBoxVisuals();
+        EnsureBlockstunEffectInstance();
+        EnsureBlockstunParticleInstance();
         hurtboxVisual.SetVisible(false);
         hitboxVisual.SetVisible(false);
     }
@@ -134,6 +152,7 @@ public class FighterView : MonoBehaviour
         SetPosition(fighter.Position);
         SetFacing(fighter.FacingRight);
         UpdateBoxVisuals();
+        UpdateBlockstunEffect();
     }
 
     private void CacheAnimationHashes()
@@ -365,6 +384,240 @@ public class FighterView : MonoBehaviour
         {
             hurtboxVisual.SetVisible(false);
             hitboxVisual.SetVisible(false);
+        }
+    }
+
+    private void UpdateBlockstunEffect()
+    {
+        bool previewAlwaysVisible = config != null && config.previewBlockshieldAnim;
+        bool inBlockstun = fighter.CurrentState == FighterState.Blockstun;
+        bool showShieldEffect = previewAlwaysVisible || inBlockstun;
+        if (!showShieldEffect)
+        {
+            if (blockstunEffectInstance != null && blockstunEffectInstance.activeSelf)
+                blockstunEffectInstance.SetActive(false);
+            if (blockstunParticleInstance != null && blockstunParticleInstance.activeSelf)
+                blockstunParticleInstance.SetActive(false);
+            wasInBlockstunLastFrame = false;
+            return;
+        }
+
+        EnsureBlockstunEffectInstance();
+        if (blockstunEffectInstance == null || blockstunEffectTransform == null)
+            return;
+
+        blockstunEffectTransform.localPosition = new Vector3(
+            config.blockstunEffectOffsetFromFeet.x,
+            config.blockstunEffectOffsetFromFeet.y,
+            0f
+        );
+        blockstunEffectTransform.localScale = Vector3.Scale(
+            blockstunEffectBaseLocalScale,
+            config.blockstunEffectScaleMultiplier
+        );
+
+        if (!blockstunEffectInstance.activeSelf)
+            blockstunEffectInstance.SetActive(true);
+
+        UpdateBlockstunParticleTransform();
+        // Particle supplement stays tied to real gameplay blockstun only; preview mode is for shield alignment.
+        if (inBlockstun)
+        {
+            UpdateBlockstunParticleTransform();
+            if (blockstunParticleInstance != null && !blockstunParticleInstance.activeSelf)
+                blockstunParticleInstance.SetActive(true);
+        }
+        else if (blockstunParticleInstance != null && blockstunParticleInstance.activeSelf)
+        {
+            blockstunParticleInstance.SetActive(false);
+        }
+
+        if (!wasInBlockstunLastFrame)
+            OnBlockstunEnter(previewAlwaysVisible);
+
+        wasInBlockstunLastFrame = true;
+    }
+
+    private void OnBlockstunEnter(bool previewAlwaysVisible)
+    {
+        float speed;
+        if (previewAlwaysVisible)
+        {
+            speed = 1f;
+        }
+        else
+        {
+            int stunFrames = Mathf.Max(1, fighter.LastReceivedStunFrames);
+            float referenceFrames = Mathf.Max(1, config.blockstunEffectReferenceFrames);
+            speed = referenceFrames / stunFrames;
+            float minSpeed = Mathf.Max(0f, config.blockstunEffectMinSpeed);
+            float maxSpeed = Mathf.Max(minSpeed, config.blockstunEffectMaxSpeed);
+            speed = Mathf.Clamp(speed, minSpeed, maxSpeed);
+        }
+
+        if (blockstunEffectAnimator == null)
+        {
+            if (!loggedMissingBlockstunAnimator && blockstunEffectInstance != null)
+            {
+                loggedMissingBlockstunAnimator = true;
+                Debug.LogWarning(
+                    $"FighterView '{name}' blockstun effect prefab has no Animator. Assign an Animator-driven effect prefab.",
+                    this
+                );
+            }
+        }
+        else
+        {
+            blockstunEffectAnimator.speed = speed;
+            blockstunEffectAnimator.Play(0, 0, 0f);
+        }
+
+        if (!previewAlwaysVisible)
+            ConfigureAndPlayBlockstunParticles(speed);
+    }
+
+    private void EnsureBlockstunEffectInstance()
+    {
+        if (blockstunEffectInstance != null)
+            return;
+
+        if (config == null || config.blockstunEffectPrefab == null)
+            return;
+
+        blockstunEffectInstance = Instantiate(config.blockstunEffectPrefab, transform);
+        blockstunEffectInstance.name = $"{config.blockstunEffectPrefab.name}_Blockstun";
+        blockstunEffectTransform = blockstunEffectInstance.transform;
+        blockstunEffectBaseLocalScale = blockstunEffectTransform.localScale;
+        blockstunEffectAnimator = blockstunEffectInstance.GetComponentInChildren<Animator>(true);
+        loggedMissingBlockstunAnimator = false;
+        blockstunEffectInstance.SetActive(false);
+    }
+
+    private void ResetBlockstunEffectInstance()
+    {
+        if (blockstunEffectInstance != null)
+            Destroy(blockstunEffectInstance);
+
+        blockstunEffectInstance = null;
+        blockstunEffectTransform = null;
+        blockstunEffectAnimator = null;
+        blockstunEffectBaseLocalScale = Vector3.one;
+        wasInBlockstunLastFrame = false;
+        loggedMissingBlockstunAnimator = false;
+    }
+
+    private void UpdateBlockstunParticleTransform()
+    {
+        EnsureBlockstunParticleInstance();
+        if (blockstunParticleInstance == null || blockstunParticleTransform == null)
+            return;
+
+        blockstunParticleTransform.localPosition = new Vector3(
+            config.blockstunParticleOffsetFromFeet.x,
+            config.blockstunParticleOffsetFromFeet.y,
+            0f
+        );
+        blockstunParticleTransform.localScale = Vector3.Scale(
+            blockstunParticleBaseLocalScale,
+            config.blockstunParticleScaleMultiplier
+        );
+    }
+
+    private void EnsureBlockstunParticleInstance()
+    {
+        if (blockstunParticleInstance != null)
+            return;
+
+        if (config == null || config.blockstunParticlePrefab == null)
+            return;
+
+        blockstunParticleInstance = Instantiate(config.blockstunParticlePrefab, transform);
+        blockstunParticleInstance.name = $"{config.blockstunParticlePrefab.name}_BlockstunParticles";
+        blockstunParticleTransform = blockstunParticleInstance.transform;
+        blockstunParticleBaseLocalScale = blockstunParticleTransform.localScale;
+        blockstunParticleSystems = blockstunParticleInstance.GetComponentsInChildren<ParticleSystem>(true);
+        loggedMissingBlockstunParticles = false;
+        blockstunParticleInstance.SetActive(false);
+    }
+
+    private void ResetBlockstunParticleInstance()
+    {
+        if (blockstunParticleInstance != null)
+            Destroy(blockstunParticleInstance);
+
+        blockstunParticleInstance = null;
+        blockstunParticleTransform = null;
+        blockstunParticleBaseLocalScale = Vector3.one;
+        blockstunParticleSystems = null;
+        loggedMissingBlockstunParticles = false;
+    }
+
+    private void ConfigureAndPlayBlockstunParticles(float baseBlockstunSpeed)
+    {
+        EnsureBlockstunParticleInstance();
+        if (blockstunParticleInstance == null)
+            return;
+
+        if (blockstunParticleSystems == null || blockstunParticleSystems.Length == 0)
+        {
+            if (!loggedMissingBlockstunParticles)
+            {
+                loggedMissingBlockstunParticles = true;
+                Debug.LogWarning(
+                    $"FighterView '{name}' blockstun particle prefab has no ParticleSystem components.",
+                    this
+                );
+            }
+            return;
+        }
+
+        float speed = baseBlockstunSpeed * Mathf.Max(0f, config.blockstunParticleSpeedMultiplier);
+        for (int i = 0; i < blockstunParticleSystems.Length; i++)
+        {
+            ParticleSystem ps = blockstunParticleSystems[i];
+            if (ps == null)
+                continue;
+
+            ApplyBlockstunParticlePreset(ps, config.blockstunParticlePreset);
+            ParticleSystem.MainModule main = ps.main;
+            main.simulationSpeed = speed;
+            ps.Clear(true);
+            ps.Play(true);
+        }
+    }
+
+    private static void ApplyBlockstunParticlePreset(ParticleSystem ps, BlockstunParticlePreset preset)
+    {
+        ParticleSystem.MainModule main = ps.main;
+        ParticleSystem.EmissionModule emission = ps.emission;
+
+        switch (preset)
+        {
+            case BlockstunParticlePreset.ShieldPulse:
+                main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.65f);
+                main.startSpeed = new ParticleSystem.MinMaxCurve(0.08f, 0.35f);
+                main.startSize = new ParticleSystem.MinMaxCurve(0.3f, 0.65f);
+                main.startColor = new Color(0.2f, 0.95f, 1f, 0.35f);
+                emission.rateOverTime = 36f;
+                break;
+            case BlockstunParticlePreset.GuardSparks:
+                main.startLifetime = new ParticleSystem.MinMaxCurve(0.12f, 0.24f);
+                main.startSpeed = new ParticleSystem.MinMaxCurve(1.8f, 3.2f);
+                main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.18f);
+                main.startColor = new Color(1f, 0.92f, 0.45f, 0.8f);
+                emission.rateOverTime = 70f;
+                break;
+            case BlockstunParticlePreset.HitMist:
+                main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 0.9f);
+                main.startSpeed = new ParticleSystem.MinMaxCurve(0.05f, 0.18f);
+                main.startSize = new ParticleSystem.MinMaxCurve(0.45f, 0.9f);
+                main.startColor = new Color(0.75f, 0.8f, 1f, 0.22f);
+                emission.rateOverTime = 22f;
+                break;
+            case BlockstunParticlePreset.None:
+            default:
+                emission.rateOverTime = 0f;
+                break;
         }
     }
 }
