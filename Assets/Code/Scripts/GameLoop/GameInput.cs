@@ -417,10 +417,13 @@ public class GameInput : MonoBehaviour
 
     private void ApplyInputMode()
     {
-        if (menuController == null || inputActions == null)
+        if (inputActions == null)
             return;
 
-        MenuOptionsController.InputMode mode = menuController.CurrentInputMode;
+        MenuOptionsController.InputMode mode = menuController != null
+            ? menuController.CurrentInputMode
+            : MenuOptionsController.InputMode.Auto;
+
         if (hasAppliedInputMode && mode == lastInputMode)
             return;
 
@@ -440,8 +443,65 @@ public class GameInput : MonoBehaviour
                 break;
         }
 
+        ApplyPlayerOneDeviceScope(mode);
         lastInputMode = mode;
         hasAppliedInputMode = true;
+    }
+
+    private void ApplyPlayerOneDeviceScope(MenuOptionsController.InputMode mode)
+    {
+        if (inputActions == null)
+            return;
+
+        if (!enableLocalPlayer2Input)
+        {
+            inputActions.devices = null;
+            return;
+        }
+
+        List<InputDevice> allowedDevices = new List<InputDevice>(3);
+
+        switch (mode)
+        {
+            case MenuOptionsController.InputMode.Gamepad:
+                AddPrimaryGamepad(allowedDevices);
+                break;
+            case MenuOptionsController.InputMode.Keyboard:
+                AddKeyboardAndMouse(allowedDevices);
+                break;
+            default:
+                AddKeyboardAndMouse(allowedDevices);
+                AddPrimaryGamepad(allowedDevices);
+                break;
+        }
+
+        inputActions.devices = allowedDevices.Count > 0
+            ? allowedDevices.ToArray()
+            : System.Array.Empty<InputDevice>();
+    }
+
+    private static void AddKeyboardAndMouse(List<InputDevice> allowedDevices)
+    {
+        if (Keyboard.current != null)
+            allowedDevices.Add(Keyboard.current);
+
+        if (Mouse.current != null)
+            allowedDevices.Add(Mouse.current);
+    }
+
+    private static void AddPrimaryGamepad(List<InputDevice> allowedDevices)
+    {
+        Gamepad primaryGamepad = GetPrimaryGamepad();
+        if (primaryGamepad != null)
+            allowedDevices.Add(primaryGamepad);
+    }
+
+    private static Gamepad GetPrimaryGamepad()
+    {
+        if (Gamepad.all.Count < 1)
+            return null;
+
+        return Gamepad.all[0];
     }
 
     private void OnGUI()

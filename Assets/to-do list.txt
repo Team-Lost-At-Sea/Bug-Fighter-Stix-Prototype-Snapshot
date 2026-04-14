@@ -1,10 +1,8 @@
 to-do list
 
-Jasper hit and block anim
-blocking
-cpu takeover
+Stays moving while in blockstun or hitstun, urgent bug
+Recording playback records true-worldspace direction instead of relative direction
 timer UI
-stage select fly cursor
 Health UI doesn't line up with the bar
 Artificial Mid-screen corner is not aligned with view perspective
 

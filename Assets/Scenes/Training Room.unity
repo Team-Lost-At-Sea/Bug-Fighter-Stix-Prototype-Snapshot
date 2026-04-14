@@ -2210,7 +2210,7 @@ PrefabInstance:
     - target: {fileID: 1071053576676423226, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: d43f68b67666655468e09486f92d1afe, type: 2}
+      objectReference: {fileID: 9100000, guid: bf6e29a48185c7340ade5553b077884c, type: 2}
     - target: {fileID: 2287060288388628142, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -2255,10 +2255,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Fighter2
       objectReference: {fileID: 0}
-    - target: {fileID: 3320946833487319169, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
-      propertyPath: fighterShadow
-      value: 
-      objectReference: {fileID: 1735706160}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2856,11 +2852,8 @@ MonoBehaviour:
   matchConfig: {fileID: 11400000, guid: b11369e8a9bb7f04da7f293888cfbb67, type: 2}
   battleMusicSource: {fileID: 2044221613}
   fallbackBattleMusic: {fileID: 0}
-  clearSaveHoldDurationSeconds: 1
   saveStateFlashDurationSeconds: 0.12
   saveStateFlashMaxAlpha: 0.6
-  saveStateFlashColor: {r: 0, g: 1, b: 0, a: 1}
-  clearStateFlashColor: {r: 1, g: 0, b: 0, a: 1}
   useRollbackSession: 1
   rollbackInputDelayFrames: 2
   rollbackWindowFrames: 240
@@ -2871,7 +2864,21 @@ MonoBehaviour:
   simulatedReorderChance: 0
   useLocalP2PacketStream: 1
   recordReplayPackets: 1
-  clearRecordingHoldDurationSeconds: 1
+  trainingModeFeature:
+    clearSaveHoldDurationSeconds: 1
+    saveStateFlashColor: {r: 0, g: 1, b: 0, a: 1}
+    clearStateFlashColor: {r: 1, g: 0, b: 0, a: 1}
+    clearRecordingHoldDurationSeconds: 1
+    enableFlashForRecordingStandby: 1
+    recordingStandbyFlashColor: {r: 0, g: 0, b: 1, a: 1}
+    enableFlashForRecordingActive: 1
+    recordingActiveFlashColor: {r: 0, g: 1, b: 0.98244786, a: 1}
+    enableFlashForRecordingPlaybackReady: 0
+    recordingPlaybackReadyFlashColor: {r: 1, g: 0.8576898, b: 0, a: 1}
+    enableFlashForRecordingPlaybackActive: 0
+    recordingPlaybackActiveFlashColor: {r: 1, g: 0, b: 0.9946847, a: 1}
+    enableFlashForRecordingReset: 1
+    recordingResetFlashColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &1145705755
 GameObject:
   m_ObjectHideFlags: 0
@@ -4735,17 +4742,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1735706160 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 800952157492546797, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
-  m_PrefabInstance: {fileID: 810143032}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c15693a260c65c4c964c5e6f78c9b34, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1739284738 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3320946833487319169, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}

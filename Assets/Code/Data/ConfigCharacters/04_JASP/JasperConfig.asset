@@ -250,3 +250,15 @@ MonoBehaviour:
   fireballProjectileLifetimeFrames: 120
   fireballProjectileDamage: 7
   fireballProjectileHitstunFrames: 16
+  blockstunEffectPrefab: {fileID: 4579160665603559197, guid: 82534d18202044b4cb99bd61e1f70c8d, type: 3}
+  blockstunEffectOffsetFromFeet: {x: -0.16, y: 3}
+  blockstunEffectScaleMultiplier: {x: 0.44, y: 0.66, z: 1}
+  blockstunEffectReferenceFrames: 20
+  blockstunEffectMinSpeed: 0.2
+  blockstunEffectMaxSpeed: 3
+  previewBlockshieldAnim: 0
+  blockstunParticlePrefab: {fileID: 0}
+  blockstunParticleOffsetFromFeet: {x: 0, y: 1}
+  blockstunParticleScaleMultiplier: {x: 1, y: 1, z: 1}
+  blockstunParticlePreset: 1
+  blockstunParticleSpeedMultiplier: 1

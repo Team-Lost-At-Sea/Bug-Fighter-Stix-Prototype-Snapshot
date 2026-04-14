@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f3cd81d66974cf5b107637ca35d0833, type: 3}
+  m_Name: InputBindingPolicy
+  m_EditorClassIdentifier: Assembly-CSharp::InputBindingPolicy
+  actions:
+  - actionMapName: Gameplay
+    actionName: P1_MoveX
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_MoveY
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_LightAttack
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_MediumAttack
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_HeavyAttack
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_Menu
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 1
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_Recording
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 0
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1
