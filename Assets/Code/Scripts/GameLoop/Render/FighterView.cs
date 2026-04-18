@@ -171,6 +171,7 @@ public class FighterView : MonoBehaviour
         CacheVisualStateHash(FighterVisualState.Hitstun);
         CacheVisualStateHash(FighterVisualState.Blockstun);
         CacheVisualStateHash(FighterVisualState.Knockdown);
+        CacheVisualStateHash(FighterVisualState.Backdash);
 
         CacheMoveHash(MoveType.StandingLight);
         CacheMoveHash(MoveType.StandingMedium);
@@ -187,6 +188,7 @@ public class FighterView : MonoBehaviour
         CacheMoveHash(MoveType.DragonPunchLight);
         CacheMoveHash(MoveType.DragonPunchMedium);
         CacheMoveHash(MoveType.DragonPunchHeavy);
+        CacheMoveHash(MoveType.DownDownCharge);
     }
 
     private void CacheVisualStateHash(FighterVisualState visualState)
@@ -289,6 +291,7 @@ public class FighterView : MonoBehaviour
             case FighterVisualState.Hitstun:
             case FighterVisualState.Blockstun:
             case FighterVisualState.Knockdown:
+            case FighterVisualState.Backdash:
                 return GetVisualStateHash(snapshot.visualState);
             case FighterVisualState.Attacking:
                 return GetMoveHash(snapshot.moveType);

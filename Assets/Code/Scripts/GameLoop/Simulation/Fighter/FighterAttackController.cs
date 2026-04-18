@@ -228,6 +228,7 @@ public sealed class FighterAttackController
             case MoveType.StandingHeavy:
             case MoveType.CrouchingHeavy:
             case MoveType.JumpingHeavy:
+            case MoveType.DownDownCharge:
                 return new AttackTiming(16, 5, 24);
             case MoveType.FireballHeavy:
                 return new AttackTiming(14, 0, 22);
@@ -267,6 +268,7 @@ public sealed class FighterAttackController
             case MoveType.JumpingHeavy:
             case MoveType.FireballHeavy:
             case MoveType.DragonPunchHeavy:
+            case MoveType.DownDownCharge:
                 damage = Mathf.Max(0, heavyOverrideDamage);
                 return true;
             default:

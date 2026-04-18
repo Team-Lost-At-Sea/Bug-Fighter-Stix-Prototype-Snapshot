@@ -2210,7 +2210,7 @@ PrefabInstance:
     - target: {fileID: 1071053576676423226, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: bf6e29a48185c7340ade5553b077884c, type: 2}
+      objectReference: {fileID: 9100000, guid: e8239c0aa29465a448fd608f8c415781, type: 2}
     - target: {fileID: 2287060288388628142, guid: 19ab6d63d16a9a14c91ebcdfc1b027ee, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -2845,13 +2845,13 @@ MonoBehaviour:
   player1View: {fileID: 1520451130}
   player2View: {fileID: 1739284738}
   matchHud: {fileID: 0}
-  player1Character: {fileID: 11400000, guid: db4823dd2fac5bf44bfa56bd7bc84566, type: 2}
+  player1Character: {fileID: 11400000, guid: e101e9f3cff079447bf20d15bb8ce90d, type: 2}
   player2Character: {fileID: 11400000, guid: fc069ae876ad6154797dacf66328731a, type: 2}
   hitstopFrames: 6
   showCombatDebugHud: 1
   matchConfig: {fileID: 11400000, guid: b11369e8a9bb7f04da7f293888cfbb67, type: 2}
   battleMusicSource: {fileID: 2044221613}
-  fallbackBattleMusic: {fileID: 0}
+  fallbackBattleMusic: {fileID: 8300000, guid: fe52847158d78de4385f5b3b0b22c09f, type: 3}
   saveStateFlashDurationSeconds: 0.12
   saveStateFlashMaxAlpha: 0.6
   useRollbackSession: 1
@@ -3531,7 +3531,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1352814665
 Transform:
   m_ObjectHideFlags: 0

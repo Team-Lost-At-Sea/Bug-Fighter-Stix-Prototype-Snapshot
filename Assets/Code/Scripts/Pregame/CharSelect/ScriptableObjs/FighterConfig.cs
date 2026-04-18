@@ -15,6 +15,10 @@ public class FighterConfig : ScriptableObject
     public float moveSpeed = 6f;
     public float jumpForce = 12f;
     public float jumpHorizontalBoostScale = 2f;
+    public int backdashDurationFrames = 12;
+    public int backdashRecoveryFrames = 20;
+    public float backdashSpeedMultiplier = 2.5f;
+    public int backdashInputWindowFrames = 8;
     public float gravity = -30f;
 
     [Header("Advanced")]
@@ -40,6 +44,7 @@ public class FighterConfig : ScriptableObject
     public string hitstunStateName = "Hitstun";
     public string blockstunStateName = "Blockstun";
     public string knockdownStateName = "Knockdown";
+    public string backdashStateName = "Backdash";
 
     [Header("Move Animations")]
     public string standingLightStateName = "s_LP";
@@ -57,8 +62,10 @@ public class FighterConfig : ScriptableObject
     public string dragonPunchLightStateName = "s_LP";
     public string dragonPunchMediumStateName = "s_MP";
     public string dragonPunchHeavyStateName = "s_HP";
+    public string downDownChargeStateName = "DownDownCharge";
 
     [Header("Shared Moves")]
+    public bool enableDownDownCharge = false;
     public AttackData standingLightAttackData;
     public AttackData standingMediumAttackData;
     public AttackData standingHeavyAttackData;
@@ -74,6 +81,7 @@ public class FighterConfig : ScriptableObject
     public AttackData dragonPunchLightAttackData;
     public AttackData dragonPunchMediumAttackData;
     public AttackData dragonPunchHeavyAttackData;
+    public AttackData downDownChargeAttackData;
 
     [Header("Fireball Projectile")]
     public Sprite fireballProjectileSprite;
@@ -145,6 +153,8 @@ public class FighterConfig : ScriptableObject
                 return dragonPunchMediumAttackData;
             case MoveType.DragonPunchHeavy:
                 return dragonPunchHeavyAttackData;
+            case MoveType.DownDownCharge:
+                return downDownChargeAttackData;
             default:
                 return null;
         }
@@ -176,6 +186,8 @@ public class FighterConfig : ScriptableObject
                 return blockstunStateName;
             case FighterVisualState.Knockdown:
                 return knockdownStateName;
+            case FighterVisualState.Backdash:
+                return backdashStateName;
             default:
                 return null;
         }
@@ -215,6 +227,8 @@ public class FighterConfig : ScriptableObject
                 return dragonPunchMediumStateName;
             case MoveType.DragonPunchHeavy:
                 return dragonPunchHeavyStateName;
+            case MoveType.DownDownCharge:
+                return downDownChargeStateName;
             default:
                 return null;
         }

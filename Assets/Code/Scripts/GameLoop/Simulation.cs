@@ -1044,6 +1044,9 @@ public class Simulation : ISimulationCore
         if (!defender.IsHoldingBlockInput)
             return false;
 
+        if (!defender.CanCurrentlyBlock)
+            return false;
+
         if (hitbox.hitLevel == HitLevel.Unblockable)
             return false;
 
@@ -1176,8 +1179,12 @@ public class Simulation : ISimulationCore
 
         // Retreating means increasing separation: left fighter moving left, right fighter
         // moving right. Undo only that retreat delta so the opponent is not dragged.
-        float leftRetreatDelta = Mathf.Max(0f, leftPreviousX - leftFighter.Position.x);
-        float rightRetreatDelta = Mathf.Max(0f, rightFighter.Position.x - rightPreviousX);
+        float leftRetreatDelta = leftFighter.CurrentState == FighterState.Backdash
+            ? 0f
+            : Mathf.Max(0f, leftPreviousX - leftFighter.Position.x);
+        float rightRetreatDelta = rightFighter.CurrentState == FighterState.Backdash
+            ? 0f
+            : Mathf.Max(0f, rightFighter.Position.x - rightPreviousX);
 
         if (leftRetreatDelta > 0f)
         {

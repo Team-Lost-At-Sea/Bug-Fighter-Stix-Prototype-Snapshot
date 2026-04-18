@@ -1,5 +1,7 @@
 to-do list
 
+Grabs
+Hercules Input + animation (no effect yet)
 Stays moving while in blockstun or hitstun, urgent bug
 Recording playback records true-worldspace direction instead of relative direction
 timer UI

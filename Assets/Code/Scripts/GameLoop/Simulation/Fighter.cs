@@ -313,10 +313,23 @@ public class Fighter
         }
         else
         {
-            HandleJumpStartup(input);
-            HandleMovement(input);
-            HandleAttacks(input);
-            UpdateAttackDataAttack(input);
+            bool startedBackdash = TryStartBackdash();
+            if (startedBackdash)
+            {
+                // The transition frame locks actions; movement begins on the next tick.
+            }
+            else if (state == FighterState.Backdash || state == FighterState.BackdashRecovery)
+            {
+                HandleBackdash();
+            }
+            else
+            {
+                HandleJumpStartup(input);
+                HandleMovement(input);
+                HandleAttacks(input);
+                UpdateAttackDataAttack(input);
+            }
+
             movementController.ApplyGravity(isGrounded, ref velocity, config);
             movementController.Integrate(ref position, velocity);
             ResolveGroundContact();
@@ -545,6 +558,50 @@ public class Fighter
             StartJumpStartup(input.moveX);
     }
 
+    private bool TryStartBackdash()
+    {
+        if (!isGrounded || state != FighterState.NeutralGround)
+            return false;
+
+        if (!HasBackdashInput())
+            return false;
+
+        EnterState(FighterState.Backdash);
+        velocity.x = 0f;
+        return true;
+    }
+
+    private bool HasBackdashInput()
+    {
+        return ContainsHeldDirectionNeutralDirectionInput(4, config.backdashInputWindowFrames);
+    }
+
+    private void HandleBackdash()
+    {
+        if (state == FighterState.Backdash)
+        {
+            int durationFrames = Mathf.Max(1, config.backdashDurationFrames);
+            if (stateFrame >= durationFrames)
+            {
+                velocity.x = 0f;
+                EnterState(FighterState.BackdashRecovery);
+                return;
+            }
+
+            int backDirection = facingRight ? -1 : 1;
+            velocity.x = backDirection * config.moveSpeed * Mathf.Max(0f, config.backdashSpeedMultiplier);
+            return;
+        }
+
+        if (state == FighterState.BackdashRecovery)
+        {
+            velocity.x = 0f;
+            int recoveryFrames = Mathf.Max(0, config.backdashRecoveryFrames);
+            if (stateFrame >= recoveryFrames)
+                EnterState(FighterState.NeutralGround);
+        }
+    }
+
     private void StartJumpStartup(float moveX)
     {
         if (!isGrounded || state == FighterState.JumpStartup)
@@ -603,6 +660,14 @@ public class Fighter
         if (!isGrounded || !input.HasAttackPress)
             return false;
 
+        if (TryResolveDownDownCharge(input, out moveType))
+        {
+            if (LogSpecialInputReads)
+                Debug.Log($"[SpecialInput] DownDownCharge read: {moveType}");
+
+            return true;
+        }
+
         if (ContainsDragonPunchForward(dragonPunchWindow))
         {
             moveType = ResolveDragonPunchMoveType(input);
@@ -629,6 +694,20 @@ public class Fighter
         return moveType != MoveType.None;
     }
 
+    private bool TryResolveDownDownCharge(InputFrame input, out MoveType moveType)
+    {
+        moveType = MoveType.None;
+
+        if (!config.enableDownDownCharge || !input.HasAttackPress)
+            return false;
+
+        if (!ContainsDownDownChargeInput(config.backdashInputWindowFrames, 4))
+            return false;
+
+        moveType = MoveType.DownDownCharge;
+        return true;
+    }
+
     private MoveType ResolveDragonPunchMoveType(InputFrame input)
     {
         if (input.punchLightPressed)
@@ -646,6 +725,93 @@ public class Fighter
         // Search backward from the attack-press frame and require
         // 6 <- 3 <- 2 <- 6 (equivalent to 6236 in forward time).
         return ContainsMotionSequence(maxFrames, 6, 3, 2, 6);
+    }
+
+    private bool ContainsHeldDirectionNeutralDirectionInput(int direction, int maxHoldFrames)
+    {
+        int maxFrames = Mathf.Max(1, maxHoldFrames);
+        if (inputHistory.Count < 3)
+            return false;
+
+        if (inputHistory.GetRecent(0).relativeDirection != direction)
+            return false;
+
+        int cursor = 1;
+        if (cursor >= inputHistory.Count || inputHistory.GetRecent(cursor).relativeDirection != 5)
+            return false;
+
+        int neutralFrames = 0;
+        while (cursor < inputHistory.Count && inputHistory.GetRecent(cursor).relativeDirection == 5)
+        {
+            neutralFrames++;
+            if (neutralFrames > maxFrames)
+                return false;
+
+            cursor++;
+        }
+
+        if (cursor >= inputHistory.Count || inputHistory.GetRecent(cursor).relativeDirection != direction)
+            return false;
+
+        int firstDirectionFrames = 0;
+        while (cursor < inputHistory.Count && inputHistory.GetRecent(cursor).relativeDirection == direction)
+        {
+            firstDirectionFrames++;
+            if (firstDirectionFrames > maxFrames)
+                return false;
+
+            cursor++;
+        }
+
+        return true;
+    }
+
+    private bool ContainsDownDownChargeInput(int maxHoldFrames, int punchBufferFrames)
+    {
+        int punchSearchCount = Mathf.Min(inputHistory.Count - 1, Mathf.Max(0, punchBufferFrames));
+        for (int secondDownFramesAgo = 0; secondDownFramesAgo <= punchSearchCount; secondDownFramesAgo++)
+        {
+            if (TryMatchDownDownChargeSequence(secondDownFramesAgo, maxHoldFrames))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool TryMatchDownDownChargeSequence(int secondDownFramesAgo, int maxHoldFrames)
+    {
+        int maxFrames = Mathf.Max(1, maxHoldFrames);
+        if (inputHistory.GetRecent(secondDownFramesAgo).relativeDirection != 2)
+            return false;
+
+        int cursor = secondDownFramesAgo + 1;
+        if (cursor >= inputHistory.Count || inputHistory.GetRecent(cursor).relativeDirection != 5)
+            return false;
+
+        int neutralFrames = 0;
+        while (cursor < inputHistory.Count && inputHistory.GetRecent(cursor).relativeDirection == 5)
+        {
+            neutralFrames++;
+            if (neutralFrames > maxFrames)
+                return false;
+
+            cursor++;
+        }
+
+        if (cursor >= inputHistory.Count || inputHistory.GetRecent(cursor).relativeDirection != 2)
+            return false;
+
+        int firstDownFrames = 0;
+        while (cursor < inputHistory.Count && inputHistory.GetRecent(cursor).relativeDirection == 2)
+        {
+            firstDownFrames++;
+            if (firstDownFrames > maxFrames)
+                return false;
+
+            cursor++;
+        }
+
+        return true;
     }
 
     private bool ContainsQuarterCircleForward(int maxFrames)
@@ -913,6 +1079,7 @@ public class Fighter
             case MoveType.JumpingHeavy:
             case MoveType.FireballHeavy:
             case MoveType.DragonPunchHeavy:
+            case MoveType.DownDownCharge:
                 return heavyOverrideDamage;
             default:
                 return Mathf.Max(0, fallbackDamage);
@@ -958,6 +1125,8 @@ public class Fighter
         hitstunFramesRemaining = Mathf.Max(1, hit.hitstunFrames + Mathf.Max(0, bonusHitstunFrames));
         blockstunFramesRemaining = 0;
         attackController.EndAttack();
+        if (state == FighterState.Backdash || state == FighterState.BackdashRecovery)
+            velocity.x = 0f;
         int damageApplied = Mathf.Max(0, hit.damage);
         health = Mathf.Max(0, health - damageApplied);
         totalDamageTaken += damageApplied;

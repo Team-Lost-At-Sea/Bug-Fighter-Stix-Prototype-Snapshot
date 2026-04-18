@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 771a2ea7b5206384dbf28357da8f28e8
+guid: 414e2a8a140a9b34e8641f051d5299cd
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,17 +93,30 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesWalkBackwards_0
+      name: LilacBackdash_0
       rect:
         serializedVersion: 2
-        x: 81
-        y: 615
-        width: 154
-        height: 278
+        x: 63
+        y: 764
+        width: 89
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +125,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0a37cdbe7e5fcc34992e47afe23d5f44
-      internalID: -779049932
+      spriteID: aa71bfdaaca56fd4d98993616febf9b6
+      internalID: 1109965223
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_1
+      name: LilacBackdash_1
       rect:
         serializedVersion: 2
-        x: 381
-        y: 617
-        width: 156
-        height: 276
+        x: 313
+        y: 764
+        width: 119
+        height: 210
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +147,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0c8902ab232b54c4f9a2f54cfd8ac69d
-      internalID: 1277417102
+      spriteID: dd3d5d45504f1f44a9cd3d1f0c3b736b
+      internalID: 2076022238
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_2
+      name: LilacBackdash_2
       rect:
         serializedVersion: 2
-        x: 681
-        y: 614
-        width: 156
-        height: 279
+        x: 563
+        y: 764
+        width: 119
+        height: 208
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,20 +169,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2a4f22ef88f9d0b4eb9537c3cd63d035
-      internalID: -266995976
+      spriteID: 5c41b9acdd73b3e448aff4cf36ca5941
+      internalID: -1732066197
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_3
+      name: LilacBackdash_3
       rect:
         serializedVersion: 2
-        x: 81
-        y: 314
-        width: 161
-        height: 277
+        x: 70
+        y: 515
+        width: 119
+        height: 202
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -178,20 +191,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b5fa504a406315347bc58c264631a0ba
-      internalID: -763067604
+      spriteID: cadf41e5b6ec7ea489da93cb203918e0
+      internalID: 809198805
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_4
+      name: LilacBackdash_4
       rect:
         serializedVersion: 2
-        x: 381
-        y: 314
-        width: 154
-        height: 277
+        x: 313
+        y: 519
+        width: 119
+        height: 202
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,20 +213,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: af10eeb2eab98984e9576dd6b22e1888
-      internalID: -1353869215
+      spriteID: 91588fc220ccaec47a9380c2fc5dacc3
+      internalID: 2049653443
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_5
+      name: LilacBackdash_5
       rect:
         serializedVersion: 2
-        x: 681
-        y: 314
-        width: 158
-        height: 279
+        x: 563
+        y: 521
+        width: 119
+        height: 200
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -222,20 +235,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 733f0d19d6e40dd4cb43dfbdf8144838
-      internalID: -85705051
+      spriteID: c4218d8d0b1696942814b1094b6aee9e
+      internalID: 343540562
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_6
+      name: LilacBackdash_6
       rect:
         serializedVersion: 2
-        x: 81
-        y: 14
-        width: 153
-        height: 279
+        x: 63
+        y: 271
+        width: 119
+        height: 200
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -244,20 +257,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 54140e874e00a3146af0d01530bcdb2e
-      internalID: 1172487768
+      spriteID: 0d85af8d9eae06f468fdb276943bfa9a
+      internalID: -778008306
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_7
+      name: LilacBackdash_7
       rect:
         serializedVersion: 2
-        x: 381
-        y: 14
-        width: 153
-        height: 279
+        x: 313
+        y: 271
+        width: 119
+        height: 200
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -266,20 +279,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a1f3edc1d6359b14fa018e8bc6941b8a
-      internalID: -1816758016
+      spriteID: 5180cec51d17b1347b2e5cb1e4478850
+      internalID: 809080133
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkBackwards_8
+      name: LilacBackdash_8
       rect:
         serializedVersion: 2
-        x: 681
-        y: 14
-        width: 155
-        height: 277
+        x: 563
+        y: 271
+        width: 119
+        height: 200
       alignment: 7
       pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -288,8 +301,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2a86c35464fb538449669ca3f9ecb65a
-      internalID: -568000921
+      spriteID: d1cefc81d4f692644b846c48b956a907
+      internalID: 1936815307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LilacBackdash_9
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 21
+        width: 119
+        height: 200
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31784ccbd1d779d488ac2e8ef793d08b
+      internalID: -1079118691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LilacBackdash_10
+      rect:
+        serializedVersion: 2
+        x: 313
+        y: 21
+        width: 119
+        height: 200
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 053e935153a8e6243863a6bbaa99ad64
+      internalID: -271904816
       vertices: []
       indices: 
       edges: []
@@ -306,17 +363,21 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.0},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":7,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesWalkBackwards_0: -779049932
-      HerculesWalkBackwards_1: 1277417102
-      HerculesWalkBackwards_2: -266995976
-      HerculesWalkBackwards_3: -763067604
-      HerculesWalkBackwards_4: -1353869215
-      HerculesWalkBackwards_5: -85705051
-      HerculesWalkBackwards_6: 1172487768
-      HerculesWalkBackwards_7: -1816758016
-      HerculesWalkBackwards_8: -568000921
+      LilacBackdash_0: 1109965223
+      LilacBackdash_1: 2076022238
+      LilacBackdash_10: -271904816
+      LilacBackdash_2: -1732066197
+      LilacBackdash_3: 809198805
+      LilacBackdash_4: 2049653443
+      LilacBackdash_5: 343540562
+      LilacBackdash_6: -778008306
+      LilacBackdash_7: 809080133
+      LilacBackdash_8: 1936815307
+      LilacBackdash_9: -1079118691
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

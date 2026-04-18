@@ -15,6 +15,10 @@ MonoBehaviour:
   moveSpeed: 6
   jumpForce: 65
   jumpHorizontalBoostScale: 2
+  backdashDurationFrames: 12
+  backdashRecoveryFrames: 20
+  backdashSpeedMultiplier: 2.5
+  backdashInputWindowFrames: 8
   gravity: -160
   maxFallSpeed: -400
   groundFriction: 9999
@@ -32,6 +36,7 @@ MonoBehaviour:
   hitstunStateName: Hitstun
   blockstunStateName: Blockstun
   knockdownStateName: Knockdown
+  backdashStateName: Backdash
   standingLightStateName: s_LP
   standingMediumStateName: s_MP
   standingHeavyStateName: s_HP
@@ -47,6 +52,8 @@ MonoBehaviour:
   dragonPunchLightStateName: DP
   dragonPunchMediumStateName: DP
   dragonPunchHeavyStateName: DP
+  downDownChargeStateName: DownDownCharge
+  enableDownDownCharge: 0
   standingLightAttackData:
     startupFrames: 3
     activeFrames: 2
@@ -242,6 +249,19 @@ MonoBehaviour:
     hitLevel: 0
     hitboxOffset: {x: 2, y: 6}
     hitboxSize: {x: 3, y: 7}
+  downDownChargeAttackData:
+    startupFrames: 0
+    activeFrames: 0
+    recoveryFrames: 0
+    damage: 0
+    hitstunFrames: 0
+    blockstunFrames: 0
+    blockPushback: 0.45
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
+    hitboxOffset: {x: 0, y: 0}
+    hitboxSize: {x: 0, y: 0}
   fireballProjectileSprite: {fileID: -990202917, guid: 5fc625e09ee099746a2340f5aae789bf, type: 3}
   fireballProjectileTint: {r: 1, g: 1, b: 1, a: 1}
   fireballSpawnOffset: {x: 1, y: 6}

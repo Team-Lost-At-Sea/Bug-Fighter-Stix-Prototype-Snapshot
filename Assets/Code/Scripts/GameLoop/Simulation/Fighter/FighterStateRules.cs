@@ -15,6 +15,8 @@ public static class FighterStateRules
             return true;
         if (state == FighterState.LandingRecovery)
             return true;
+        if (state == FighterState.Backdash || state == FighterState.BackdashRecovery)
+            return true;
         if (IsAttackState(state))
             return isGrounded;
         if (state == FighterState.Hitstun || state == FighterState.Blockstun || state == FighterState.Knockdown)

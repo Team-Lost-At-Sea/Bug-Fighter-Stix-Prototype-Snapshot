@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 447e52cd4da8be94eadcf39d24e1e058
+guid: 860a8f4608d229d45aded5dfcd18f6ef
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -93,335 +93,326 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HerculesWalkForward_0
+      name: HerculesAegisElytra_0
       rect:
         serializedVersion: 2
-        x: 81
-        y: 915
-        width: 153
-        height: 278
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 0
+        y: 900
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3306b3459c25e4046a1af8c327a0dc15
-      internalID: -1287675630
+      spriteID: fa0976b474792f241a6ff93bb8e1bf61
+      internalID: -1166945030
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_1
+      name: HerculesAegisElytra_1
       rect:
         serializedVersion: 2
-        x: 381
-        y: 917
-        width: 153
-        height: 276
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 300
+        y: 900
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a7de86c4368cbbd45a3d2d233ab97c3c
-      internalID: 401976699
+      spriteID: 33fd084384ff7994ea5a6a9019d9afa9
+      internalID: -2073935672
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_2
+      name: HerculesAegisElytra_2
       rect:
         serializedVersion: 2
-        x: 681
-        y: 917
-        width: 153
-        height: 276
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 600
+        y: 900
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c413ef64a73c1bf4688763ec5be025fe
-      internalID: 1492433789
+      spriteID: 823df4bee42a48548bcf5af8de78e460
+      internalID: -2000714413
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_3
+      name: HerculesAegisElytra_3
       rect:
         serializedVersion: 2
-        x: 981
-        y: 917
-        width: 153
-        height: 276
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 900
+        y: 900
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e92f0e61dadcd1d4db9c4dac92547c36
-      internalID: 1920987459
+      spriteID: 00041977f5686684394af38744180497
+      internalID: 265186180
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_4
+      name: HerculesAegisElytra_4
       rect:
         serializedVersion: 2
-        x: 81
-        y: 617
-        width: 153
-        height: 276
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 0
+        y: 600
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 867e22277d2472d4ab970f5a1519066f
-      internalID: -1190260284
+      spriteID: a42d817c1bde8e841bb9b162df01518b
+      internalID: 95148115
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_5
+      name: HerculesAegisElytra_5
       rect:
         serializedVersion: 2
-        x: 381
-        y: 615
-        width: 153
-        height: 278
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 300
+        y: 600
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4633f190d3dc9784dba6d6607e3a059e
-      internalID: -2140334609
+      spriteID: 3b7700aeb98e0244ba56df0584a33bae
+      internalID: 1799098883
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_6
+      name: HerculesAegisElytra_6
       rect:
         serializedVersion: 2
-        x: 681
-        y: 617
-        width: 153
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 600
+        y: 600
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0e4819cf7bf589a4691ccac1c425156d
-      internalID: 597304853
+      spriteID: ddd1ed23a120e674cbb2e38a8cda9ab4
+      internalID: 1819548023
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_7
+      name: HerculesAegisElytra_7
       rect:
         serializedVersion: 2
-        x: 981
-        y: 617
-        width: 153
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 900
+        y: 600
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b31938185dcf18449a37865dec3505bf
-      internalID: 1726720705
+      spriteID: b4b386d9347fd0f48ac30760886a9dd4
+      internalID: 1319117868
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_8
+      name: HerculesAegisElytra_8
       rect:
         serializedVersion: 2
-        x: 81
-        y: 315
-        width: 138
-        height: 278
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 0
+        y: 300
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e9eacca32069e9740aef9d3e41a75e5e
-      internalID: -1777317744
+      spriteID: 2fba1455179a93444925173ae6f9258f
+      internalID: -1078241535
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_9
+      name: HerculesAegisElytra_9
       rect:
         serializedVersion: 2
-        x: 381
-        y: 318
-        width: 153
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 300
+        y: 300
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 424bb500a0e16bf4e8f018d4f5871ba6
-      internalID: 88009847
+      spriteID: c60959766fe8b7748b05199dacf92be2
+      internalID: -588820296
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_10
+      name: HerculesAegisElytra_10
       rect:
         serializedVersion: 2
-        x: 681
-        y: 318
-        width: 157
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 600
+        y: 300
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6853751a67e7731459ee55ce955a9206
-      internalID: 93316016
+      spriteID: 0f24bb7b787bfb64d986672e7bc33038
+      internalID: -749522455
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_11
+      name: HerculesAegisElytra_11
       rect:
         serializedVersion: 2
-        x: 981
-        y: 318
-        width: 153
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 899
+        y: 300
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c712ff2a42eae38418c39fdbabe23ed0
-      internalID: 1417573647
+      spriteID: 0416d8a91b1237540a772e7a02e87624
+      internalID: -2003852327
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_12
+      name: HerculesAegisElytra_12
       rect:
         serializedVersion: 2
-        x: 81
-        y: 15
-        width: 153
-        height: 278
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 0
+        y: 0
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ec840524398d2324bbde717dfc124f27
-      internalID: 860621853
+      spriteID: 853324e3ebd40624b8cda668e52286c5
+      internalID: -1263044321
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HerculesWalkForward_13
+      name: HerculesAegisElytra_13
       rect:
         serializedVersion: 2
-        x: 381
-        y: 17
-        width: 153
-        height: 275
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 300
+        y: 0
+        width: 300
+        height: 300
+      alignment: 9
+      pivot: {x: 0.5, y: 0.07}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 40a8cec1b261b3c428db30a648e4c48e
-      internalID: 668836185
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HerculesWalkForward_14
-      rect:
-        serializedVersion: 2
-        x: 681
-        y: 17
-        width: 153
-        height: 273
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 1df055c66384fe340a5bfd8aa0785943
-      internalID: -1760444343
+      spriteID: cdc26e0c06e14fb40a961e04f44b1588
+      internalID: -1767380733
       vertices: []
       indices: 
       edges: []
@@ -438,23 +429,24 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":4.0,"y":4.0},"gridSpriteSize":{"x":300.0,"y":300.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.07000000029802323},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":9,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      HerculesWalkForward_0: -1287675630
-      HerculesWalkForward_1: 401976699
-      HerculesWalkForward_10: 93316016
-      HerculesWalkForward_11: 1417573647
-      HerculesWalkForward_12: 860621853
-      HerculesWalkForward_13: 668836185
-      HerculesWalkForward_14: -1760444343
-      HerculesWalkForward_2: 1492433789
-      HerculesWalkForward_3: 1920987459
-      HerculesWalkForward_4: -1190260284
-      HerculesWalkForward_5: -2140334609
-      HerculesWalkForward_6: 597304853
-      HerculesWalkForward_7: 1726720705
-      HerculesWalkForward_8: -1777317744
-      HerculesWalkForward_9: 88009847
+      HerculesAegisElytra_0: -1166945030
+      HerculesAegisElytra_1: -2073935672
+      HerculesAegisElytra_10: -749522455
+      HerculesAegisElytra_11: -2003852327
+      HerculesAegisElytra_12: -1263044321
+      HerculesAegisElytra_13: -1767380733
+      HerculesAegisElytra_2: -2000714413
+      HerculesAegisElytra_3: 265186180
+      HerculesAegisElytra_4: 95148115
+      HerculesAegisElytra_5: 1799098883
+      HerculesAegisElytra_6: 1819548023
+      HerculesAegisElytra_7: 1319117868
+      HerculesAegisElytra_8: -1078241535
+      HerculesAegisElytra_9: -588820296
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

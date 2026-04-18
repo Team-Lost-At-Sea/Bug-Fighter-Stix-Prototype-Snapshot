@@ -146,6 +146,10 @@ public sealed class FighterRenderStateBuilder
             return FighterVisualState.Airborne;
         if (state == FighterState.LandingRecovery)
             return FighterVisualState.Landing;
+        if (state == FighterState.Backdash)
+            return FighterVisualState.Backdash;
+        if (state == FighterState.BackdashRecovery)
+            return FighterVisualState.Idle;
         if (
             state == FighterState.AttackStartup
             || state == FighterState.AttackActive

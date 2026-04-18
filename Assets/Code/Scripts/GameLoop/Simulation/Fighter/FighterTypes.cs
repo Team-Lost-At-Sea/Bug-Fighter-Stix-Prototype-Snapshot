@@ -11,6 +11,8 @@ public enum FighterState
     Hitstun,
     Blockstun,
     Knockdown,
+    Backdash,
+    BackdashRecovery,
 }
 
 public enum FighterVisualState
@@ -28,6 +30,7 @@ public enum FighterVisualState
     Hitstun,
     Blockstun,
     Knockdown,
+    Backdash,
 }
 
 public enum FighterAirPhase
@@ -83,6 +86,7 @@ public enum MoveType
     DragonPunchLight = 13,
     DragonPunchMedium = 14,
     DragonPunchHeavy = 15,
+    DownDownCharge = 16,
 }
 
 public static class MoveTypeExtensions
