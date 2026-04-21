@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameLoop : MonoBehaviour
@@ -91,6 +92,37 @@ public class GameLoop : MonoBehaviour
     [SerializeField]
     private bool useLocalP2PacketStream = true;
 
+    [Header("Online")]
+    [SerializeField]
+    private OnlineConnectionMode onlineConnectionMode = OnlineConnectionMode.Offline;
+
+    [SerializeField]
+    [Min(1)]
+    private int onlineSessionId = 1;
+
+    [SerializeField]
+    private bool onlineIsHost = true;
+
+    [SerializeField]
+    private int onlineLocalPlayerId = 1;
+
+    [SerializeField]
+    private string onlineRemoteAddress = "127.0.0.1";
+
+    [SerializeField]
+    [Range(1, 65535)]
+    private int onlineLocalPort = 7777;
+
+    [SerializeField]
+    [Range(1, 65535)]
+    private int onlineRemotePort = 7778;
+
+    [SerializeField]
+    private bool onlineDisableTrainingTools = true;
+
+    [SerializeField]
+    private bool onlineShowNetDebugHud = true;
+
     [Header("Replay")]
     [SerializeField]
     private bool recordReplayPackets = true;
@@ -101,6 +133,7 @@ public class GameLoop : MonoBehaviour
     private Simulation simulation;
     private readonly MatchPresenter presenter = new MatchPresenter();
     private IMatchSession matchSession;
+    private INetworkAdapter activeNetworkAdapter;
     private INetStateSerializer netStateSerializer;
     private ReplayRecorder replayRecorder;
     private uint localInputSequence;
@@ -113,7 +146,7 @@ public class GameLoop : MonoBehaviour
         ? trainingModeFeature.CurrentRecordingState
         : RecordingPlaybackState.RecordingSlotAvailable;
     public INetStateSerializer NetStateSerializer => netStateSerializer;
-    public bool UseLocalP2PacketStream => useLocalP2PacketStream;
+    public bool UseLocalP2PacketStream => !ShouldDisableTrainingToolsForOnline() && useLocalP2PacketStream;
 
     void Start()
     {
@@ -147,7 +180,8 @@ public class GameLoop : MonoBehaviour
         simulation.Initialize(player1Config, player2Config, player1Name, player2Name);
         InitializeSession();
         presenter.Initialize(simulation, player1View, player2View);
-        trainingModeFeature?.Initialize(this);
+        if (!ShouldDisableTrainingToolsForOnline())
+            trainingModeFeature?.Initialize(this);
         MusicSettings.Changed += HandleMusicSettingsChanged;
         if (matchHud == null)
             matchHud = FindFirstObjectByType<MatchHudController>();
@@ -161,7 +195,8 @@ public class GameLoop : MonoBehaviour
         if (simulation == null)
             return;
 
-        trainingModeFeature?.OnUpdate(this);
+        if (!ShouldDisableTrainingToolsForOnline())
+            trainingModeFeature?.OnUpdate(this);
         if (flashTimeRemaining > 0f)
             flashTimeRemaining = Mathf.Max(0f, flashTimeRemaining - Time.unscaledDeltaTime);
         accumulator += Time.deltaTime;
@@ -184,6 +219,7 @@ public class GameLoop : MonoBehaviour
     private void OnDisable()
     {
         trainingModeFeature?.OnDispose(this);
+        DisposeActiveNetworkAdapter();
         MusicSettings.Changed -= HandleMusicSettingsChanged;
         presenter.Dispose();
     }
@@ -193,7 +229,8 @@ public class GameLoop : MonoBehaviour
         if (flashTimeRemaining <= 0f)
         {
             DrawCombatDebugHud();
-            trainingModeFeature?.OnPostRenderGui(this);
+            if (!ShouldDisableTrainingToolsForOnline())
+                trainingModeFeature?.OnPostRenderGui(this);
             return;
         }
 
@@ -210,7 +247,8 @@ public class GameLoop : MonoBehaviour
         }
 
         DrawCombatDebugHud();
-        trainingModeFeature?.OnPostRenderGui(this);
+        if (!ShouldDisableTrainingToolsForOnline())
+            trainingModeFeature?.OnPostRenderGui(this);
     }
 
     private void DrawCombatDebugHud()
@@ -281,6 +319,8 @@ public class GameLoop : MonoBehaviour
 
     private void InitializeSession()
     {
+        DisposeActiveNetworkAdapter();
+
         if (!useRollbackSession || simulation == null)
         {
             matchSession = null;
@@ -288,20 +328,46 @@ public class GameLoop : MonoBehaviour
         }
 
         INetworkAdapter adapter = null;
-        if (simulateNetworkInEditor)
+        int localPlayerId = GetActiveLocalPlayerId();
+        if (onlineConnectionMode == OnlineConnectionMode.DirectUdp)
+        {
+            try
+            {
+                adapter = new UdpNetworkAdapter(
+                    GetOnlineSessionId(),
+                    localPlayerId,
+                    onlineRemoteAddress,
+                    onlineLocalPort,
+                    onlineRemotePort
+                );
+                activeNetworkAdapter = adapter;
+                Debug.Log(
+                    $"GameLoop: Direct UDP online session started as P{localPlayerId}. Local port {onlineLocalPort}, remote {onlineRemoteAddress}:{onlineRemotePort}, session {GetOnlineSessionId()}."
+                );
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"GameLoop: Failed to start Direct UDP online session. {exception.Message}", this);
+            }
+        }
+        else if (onlineConnectionMode == OnlineConnectionMode.LocalLoopback || simulateNetworkInEditor)
         {
             adapter = new LocalLoopbackNetworkAdapter(
-                mirrorTargetPlayerId: 2,
+                mirrorTargetPlayerId: localPlayerId == 1 ? 2 : 1,
                 baseLatencyFrames: simulatedBaseLatencyFrames,
                 maxJitterFrames: simulatedJitterFrames,
                 dropChance: simulatedDropChance,
                 reorderChance: simulatedReorderChance
             );
         }
+        else if (onlineConnectionMode == OnlineConnectionMode.Relay)
+        {
+            Debug.LogWarning("GameLoop: Relay online mode is not implemented yet. Starting rollback without a network adapter.");
+        }
 
         matchSession = new RollbackMatchSession(
             simulation,
-            localPlayerId: 1,
+            localPlayerId: localPlayerId,
             inputDelayFrames: rollbackInputDelayFrames,
             rollbackWindowFrames: rollbackWindowFrames,
             networkAdapter: adapter
@@ -313,7 +379,7 @@ public class GameLoop : MonoBehaviour
         if (simulation == null)
             return;
 
-        if (useLocalP2PacketStream)
+        if (UseLocalP2PacketStream)
         {
             int nextFrame = simulation.CurrentFrame + 1;
             BuildLocalPacketsForFrame(nextFrame, out FrameInputPacket player1Packet, out FrameInputPacket player2Packet);
@@ -332,7 +398,7 @@ public class GameLoop : MonoBehaviour
         if (matchSession != null)
         {
             int nextFrame = simulation.CurrentFrame + 1;
-            FrameInputPacket packet = ConsumeLocalPacket(nextFrame, 1);
+            FrameInputPacket packet = ConsumeLocalPacket(nextFrame, GetActiveLocalPlayerId());
             matchSession.SubmitLocalInput(packet);
             if (recordReplayPackets)
                 replayRecorder.Record(packet);
@@ -359,7 +425,8 @@ public class GameLoop : MonoBehaviour
         InputFrame livePlayer2 = GameInput.Instance.ConsumeNextPlayerInputFrame(2);
         InputFrame finalPlayer1 = livePlayer1;
         InputFrame finalPlayer2 = livePlayer2;
-        trainingModeFeature?.RewriteLocalInputs(this, livePlayer1, livePlayer2, ref finalPlayer1, ref finalPlayer2);
+        if (!ShouldDisableTrainingToolsForOnline())
+            trainingModeFeature?.RewriteLocalInputs(this, livePlayer1, livePlayer2, ref finalPlayer1, ref finalPlayer2);
 
         player1Packet = GameInput.Instance.EncodeInputFrameToPacket(finalPlayer1, nextFrame, 1, localInputSequence++);
         player2Packet = GameInput.Instance.EncodeInputFrameToPacket(finalPlayer2, nextFrame, 2, localInputSequence++);
@@ -390,5 +457,62 @@ public class GameLoop : MonoBehaviour
     {
         presenter.Render(simulation);
         matchHud?.Render(simulation);
+    }
+
+    public OnlineMatchConfig BuildOnlineMatchConfig()
+    {
+        int localPlayerId = GetOnlineLocalPlayerId();
+        return new OnlineMatchConfig
+        {
+            connectionMode = onlineConnectionMode,
+            sessionId = GetOnlineSessionId(),
+            isHost = onlineIsHost,
+            localPlayerId = localPlayerId,
+            remotePlayerId = localPlayerId == 1 ? 2 : 1,
+            remoteAddress = onlineRemoteAddress,
+            localPort = (ushort)Mathf.Clamp(onlineLocalPort, 1, 65535),
+            remotePort = (ushort)Mathf.Clamp(onlineRemotePort, 1, 65535),
+            inputDelayFrames = rollbackInputDelayFrames,
+            rollbackWindowFrames = rollbackWindowFrames,
+            allowTrainingTools = !onlineDisableTrainingTools,
+            allowLocalP2Input = !onlineDisableTrainingTools && useLocalP2PacketStream,
+            allowDebugStateMutation = !onlineDisableTrainingTools,
+            showNetDebugHud = onlineShowNetDebugHud
+        };
+    }
+
+    private int GetActiveLocalPlayerId()
+    {
+        return IsOnlineConnectionModeActive() ? GetOnlineLocalPlayerId() : 1;
+    }
+
+    private int GetOnlineLocalPlayerId()
+    {
+        return onlineLocalPlayerId == 2 ? 2 : 1;
+    }
+
+    private uint GetOnlineSessionId()
+    {
+        return (uint)Mathf.Max(1, onlineSessionId);
+    }
+
+    private bool IsOnlineConnectionModeActive()
+    {
+        return onlineConnectionMode == OnlineConnectionMode.LocalLoopback
+            || onlineConnectionMode == OnlineConnectionMode.DirectUdp
+            || onlineConnectionMode == OnlineConnectionMode.Relay;
+    }
+
+    private bool ShouldDisableTrainingToolsForOnline()
+    {
+        return onlineDisableTrainingTools && IsOnlineConnectionModeActive();
+    }
+
+    private void DisposeActiveNetworkAdapter()
+    {
+        if (activeNetworkAdapter is IDisposable disposable)
+            disposable.Dispose();
+
+        activeNetworkAdapter = null;
     }
 }

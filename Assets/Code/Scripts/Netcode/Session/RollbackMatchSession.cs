@@ -85,8 +85,11 @@ public sealed class RollbackMatchSession : IMatchSession
     private void RegisterRemoteInput(FrameInputPacket packet)
     {
         remoteInputsByFrame[packet.frame] = packet;
-        lastRemoteAuthoritativePacket = packet;
-        hasLastRemoteAuthoritativePacket = true;
+        if (!hasLastRemoteAuthoritativePacket || packet.frame >= lastRemoteAuthoritativePacket.frame)
+        {
+            lastRemoteAuthoritativePacket = packet;
+            hasLastRemoteAuthoritativePacket = true;
+        }
 
         if (!predictedRemoteInputsByFrame.TryGetValue(packet.frame, out FrameInputPacket predicted))
             return;
@@ -122,11 +125,25 @@ public sealed class RollbackMatchSession : IMatchSession
             return packet;
 
         FrameInputPacket predicted = hasLastRemoteAuthoritativePacket
-            ? lastRemoteAuthoritativePacket
+            ? BuildPredictedRemotePacket(frame)
             : FrameInputPacket.Neutral(frame, remotePlayerId);
+        predictedRemoteInputsByFrame[frame] = predicted;
+        return predicted;
+    }
+
+    private FrameInputPacket BuildPredictedRemotePacket(int frame)
+    {
+        FrameInputPacket predicted = lastRemoteAuthoritativePacket;
         predicted.frame = frame;
         predicted.playerId = remotePlayerId;
-        predictedRemoteInputsByFrame[frame] = predicted;
+
+        InputButtons buttons = (InputButtons)predicted.buttonsBitmask;
+        buttons &= ~InputButtons.PunchLightPressed;
+        buttons &= ~InputButtons.PunchMediumPressed;
+        buttons &= ~InputButtons.PunchHeavyPressed;
+        buttons &= ~InputButtons.DirtPressed;
+        predicted.buttonsBitmask = (ushort)buttons;
+
         return predicted;
     }
 

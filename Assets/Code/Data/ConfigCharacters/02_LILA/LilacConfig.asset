@@ -53,6 +53,7 @@ MonoBehaviour:
   dragonPunchMediumStateName: DP
   dragonPunchHeavyStateName: DP
   downDownChargeStateName: DownDownCharge
+  throwStateName: Throw
   enableDownDownCharge: 0
   standingLightAttackData:
     startupFrames: 3
@@ -262,6 +263,19 @@ MonoBehaviour:
     hitLevel: 0
     hitboxOffset: {x: 0, y: 0}
     hitboxSize: {x: 0, y: 0}
+  throwAttackData:
+    startupFrames: 5
+    activeFrames: 4
+    recoveryFrames: 29
+    damage: 100
+    hitstunFrames: 60
+    blockstunFrames: 180
+    blockPushback: 20
+    chipDamage: 0
+    attackerBlockstopFrames: -1
+    hitLevel: 0
+    hitboxOffset: {x: 2, y: 0}
+    hitboxSize: {x: 2, y: 0}
   fireballProjectileSprite: {fileID: -990202917, guid: 5fc625e09ee099746a2340f5aae789bf, type: 3}
   fireballProjectileTint: {r: 1, g: 1, b: 1, a: 1}
   fireballSpawnOffset: {x: 1, y: 6}

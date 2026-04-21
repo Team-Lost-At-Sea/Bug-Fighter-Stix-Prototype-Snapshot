@@ -38,10 +38,11 @@ public class NetcodeValidationHarness : MonoBehaviour
 
         bool determinismPass = RunDeterminism(report);
         bool serializationPass = RunSerializationRoundTrip(report);
+        bool inputMessagePass = RunInputMessageProtocol(report);
         bool rollbackPass = RunRollbackMismatch(report);
         bool replayPass = RunReplayVerification(report);
 
-        bool allPass = determinismPass && serializationPass && rollbackPass && replayPass;
+        bool allPass = determinismPass && serializationPass && inputMessagePass && rollbackPass && replayPass;
         report.AppendLine(allPass ? "[NetcodeValidation] PASS" : "[NetcodeValidation] FAIL");
         Debug.Log(report.ToString(), this);
     }
@@ -104,17 +105,144 @@ public class NetcodeValidationHarness : MonoBehaviour
         return true;
     }
 
+    private bool RunInputMessageProtocol(StringBuilder report)
+    {
+        InputFrame dirtInput = InputFrame.Neutral;
+        dirtInput.moveX = 1f;
+        dirtInput.moveY = -1f;
+        dirtInput.punchLight = true;
+        dirtInput.dirt = true;
+        dirtInput.punchLightPressed = true;
+        dirtInput.dirtPressed = true;
+
+        FrameInputPacket dirtPacket = InputPacketCodec.Encode(dirtInput, 24, 1, 99);
+        NetInputMessage singleMessage = new NetInputMessage
+        {
+            protocolVersion = NetInputMessage.CurrentProtocolVersion,
+            sessionId = 0x1234ABCD,
+            senderPlayerId = 1,
+            currentFrame = 24,
+            sequence = 101,
+            ackSequence = 88,
+            packets = new[] { dirtPacket }
+        };
+
+        if (!RoundTripMessage(singleMessage, out NetInputMessage singleRoundTrip))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (single packet round trip rejected)");
+            return false;
+        }
+
+        if (!MessagesEqual(singleMessage, singleRoundTrip))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (single packet changed during round trip)");
+            return false;
+        }
+
+        InputFrame decodedDirt = InputPacketCodec.Decode(singleRoundTrip.packets[0]);
+        if (!decodedDirt.dirt || !decodedDirt.dirtPressed || !decodedDirt.punchLight || !decodedDirt.punchLightPressed)
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (Dirt/LP did not survive full input path)");
+            return false;
+        }
+
+        RecentInputPacketBuffer recentBuffer = new RecentInputPacketBuffer(4);
+        for (int frame = 1; frame <= 6; frame++)
+            recentBuffer.Add(PacketForFrame(frame, 1, BuildInputForFrame(frame)));
+
+        FrameInputPacket[] recentPackets = new FrameInputPacket[NetInputMessageCodec.MaxPacketsPerMessage];
+        int recentCount = recentBuffer.CopyRecent(recentPackets);
+        if (recentCount != 4 || recentPackets[0].frame != 3 || recentPackets[3].frame != 6)
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (recent input buffer ordering/capacity)");
+            return false;
+        }
+
+        FrameInputPacket[] bundledPackets = new FrameInputPacket[recentCount];
+        for (int i = 0; i < recentCount; i++)
+            bundledPackets[i] = recentPackets[i];
+
+        NetInputMessage multiMessage = singleMessage;
+        multiMessage.currentFrame = 6;
+        multiMessage.sequence = 202;
+        multiMessage.packets = bundledPackets;
+
+        if (!RoundTripMessage(multiMessage, out NetInputMessage multiRoundTrip) || !MessagesEqual(multiMessage, multiRoundTrip))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (multi-packet round trip)");
+            return false;
+        }
+
+        NetInputMessage emptyMessage = singleMessage;
+        emptyMessage.sequence = 303;
+        emptyMessage.packets = new FrameInputPacket[0];
+        if (!RoundTripMessage(emptyMessage, out NetInputMessage emptyRoundTrip) || !MessagesEqual(emptyMessage, emptyRoundTrip))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (empty packet message round trip)");
+            return false;
+        }
+
+        byte[] validBytes = NetInputMessageCodec.Serialize(singleMessage);
+        byte[] badMagic = (byte[])validBytes.Clone();
+        badMagic[0] = 0;
+        if (NetInputMessageCodec.TryDeserialize(badMagic, out _))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (bad magic accepted)");
+            return false;
+        }
+
+        byte[] badVersion = (byte[])validBytes.Clone();
+        badVersion[2] = 0x7F;
+        if (NetInputMessageCodec.TryDeserialize(badVersion, out _))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (unsupported protocol version accepted)");
+            return false;
+        }
+
+        byte[] truncated = new byte[validBytes.Length - 1];
+        for (int i = 0; i < truncated.Length; i++)
+            truncated[i] = validBytes[i];
+        if (NetInputMessageCodec.TryDeserialize(truncated, out _))
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (truncated bytes accepted)");
+            return false;
+        }
+
+        FrameInputPacket[] oversizedPackets = new FrameInputPacket[NetInputMessageCodec.MaxPacketsPerMessage + 1];
+        NetInputMessage oversizedMessage = singleMessage;
+        oversizedMessage.packets = oversizedPackets;
+        bool oversizedRejected = false;
+        try
+        {
+            NetInputMessageCodec.Serialize(oversizedMessage);
+        }
+        catch (System.IO.InvalidDataException)
+        {
+            oversizedRejected = true;
+        }
+
+        if (!oversizedRejected)
+        {
+            report.AppendLine("- Input Message Protocol: FAIL (oversized packet bundle serialized)");
+            return false;
+        }
+
+        report.AppendLine("- Input Message Protocol: PASS (single, bundled, empty, Dirt, and malformed message checks)");
+        return true;
+    }
+
     private bool RunRollbackMismatch(StringBuilder report)
     {
         Simulation reference = CreateSimulation("RollbackRef");
         Simulation underTest = CreateSimulation("RollbackTest");
 
         ScriptedRemoteAdapter adapter = new ScriptedRemoteAdapter();
-        adapter.Schedule(PacketForFrame(48, 2, InputFrame.Neutral), deliverAtFrame: 48);
-        InputFrame lateAttack = InputFrame.Neutral;
-        lateAttack.punchLight = true;
-        lateAttack.punchLightPressed = true;
-        adapter.Schedule(PacketForFrame(60, 2, lateAttack), deliverAtFrame: 76);
+        for (int frame = 1; frame <= rollbackFrames; frame++)
+        {
+            InputFrame remote = BuildRemoteRollbackInput(frame);
+            int deliverAtFrame = frame == 60 ? 76 : frame - 1;
+            adapter.Schedule(PacketForFrame(frame, 2, remote), deliverAtFrame);
+        }
 
         RollbackMatchSession session = new RollbackMatchSession(
             underTest,
@@ -131,7 +259,7 @@ public class NetcodeValidationHarness : MonoBehaviour
             session.SubmitLocalInput(localPacket);
             session.AdvanceFrame();
 
-            InputFrame remote = frame == 60 ? lateAttack : InputFrame.Neutral;
+            InputFrame remote = BuildRemoteRollbackInput(frame);
             reference.Tick(PacketForFrame(frame, 1, local));
             reference.Tick(PacketForFrame(frame, 2, remote));
         }
@@ -223,6 +351,58 @@ public class NetcodeValidationHarness : MonoBehaviour
     private static FrameInputPacket PacketForFrame(int frame, int playerId, InputFrame input)
     {
         return InputPacketCodec.Encode(input, frame, playerId, (uint)frame);
+    }
+
+    private static InputFrame BuildRemoteRollbackInput(int frame)
+    {
+        if (frame != 60)
+            return InputFrame.Neutral;
+
+        InputFrame input = InputFrame.Neutral;
+        input.punchLight = true;
+        input.punchLightPressed = true;
+        return input;
+    }
+
+    private static bool RoundTripMessage(NetInputMessage source, out NetInputMessage roundTrip)
+    {
+        return NetInputMessageCodec.TryDeserialize(NetInputMessageCodec.Serialize(source), out roundTrip);
+    }
+
+    private static bool MessagesEqual(NetInputMessage a, NetInputMessage b)
+    {
+        if (a.protocolVersion != b.protocolVersion
+            || a.sessionId != b.sessionId
+            || a.senderPlayerId != b.senderPlayerId
+            || a.currentFrame != b.currentFrame
+            || a.sequence != b.sequence
+            || a.ackSequence != b.ackSequence)
+        {
+            return false;
+        }
+
+        int aCount = a.packets != null ? a.packets.Length : 0;
+        int bCount = b.packets != null ? b.packets.Length : 0;
+        if (aCount != bCount)
+            return false;
+
+        for (int i = 0; i < aCount; i++)
+        {
+            if (!PacketsEqual(a.packets[i], b.packets[i]))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool PacketsEqual(FrameInputPacket a, FrameInputPacket b)
+    {
+        return a.frame == b.frame
+            && a.playerId == b.playerId
+            && a.buttonsBitmask == b.buttonsBitmask
+            && a.moveX == b.moveX
+            && a.moveY == b.moveY
+            && a.sequence == b.sequence;
     }
 
     private static InputFrame BuildInputForFrame(int frame)
