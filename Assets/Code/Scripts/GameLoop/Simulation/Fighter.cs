@@ -138,11 +138,13 @@ public class Fighter
     public static int ParryActiveWindowFrames { get; set; } = 3;
     public static int ParryWhiffLockoutFrames { get; set; } = 12;
     private const int NormalInputBufferFrames = 4;
+    private const int ThrowInputWindowFrames = 3;
     private const int DebugInputHistoryDisplayLength = 30;
     private const int DebugInputFreezeFrames = 75;
     private const string DebugLightPunchColor = "#F4D03F";
     private const string DebugMediumPunchColor = "#3498DB";
     private const string DebugHeavyPunchColor = "#8E44AD";
+    private const string DebugDirtColor = "#8B5A2B";
     private const string DebugSeparatorColor = "#000000";
 
     public Vector2 Position => position;
@@ -287,7 +289,7 @@ public class Fighter
             return;
         }
 
-        hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy;
+        hadAttackInputThisTick = input.punchLight || input.punchMedium || input.punchHeavy || input.dirt;
         inputHistory.Push(input, facingRight);
         UpdateNormalPressBuffers(input);
         UpdateInputHistoryDebugDisplay(input);
@@ -385,6 +387,8 @@ public class Fighter
                 builder.Append($" <color={DebugMediumPunchColor}>MP</color>");
             if (entry.input.punchHeavyPressed)
                 builder.Append($" <color={DebugHeavyPunchColor}>HP</color>");
+            if (entry.input.dirtPressed)
+                builder.Append($" <color={DebugDirtColor}>D</color>");
         }
 
         if (builder.Length == 0)
@@ -426,6 +430,8 @@ public class Fighter
                 builder.Append($" <color={DebugMediumPunchColor}>MP</color>");
             if (entry.input.punchHeavyPressed)
                 builder.Append($" <color={DebugHeavyPunchColor}>HP</color>");
+            if (entry.input.dirtPressed)
+                builder.Append($" <color={DebugDirtColor}>D</color>");
         }
 
         if (builder.Length == 0)
@@ -516,7 +522,7 @@ public class Fighter
             return;
 
         bool holdingDown = input.moveY < 0f;
-        bool hasAttackInput = input.punchLight || input.punchMedium || input.punchHeavy;
+        bool hasAttackInput = input.punchLight || input.punchMedium || input.punchHeavy || input.dirt;
 
         // While crouching, down-hold or crouch-attack input keeps horizontal velocity locked.
         if (holdingDown && state == FighterState.Crouching)
@@ -614,10 +620,19 @@ public class Fighter
     private void HandleAttacks(InputFrame input)
     {
         if (FighterStateRules.IsAttackState(state))
+        {
+            TryMorphLightNormalIntoThrow(input);
             return;
+        }
 
         if (!CanStartAttack())
             return;
+
+        if (TryResolveThrowInput(input))
+        {
+            StartAttack(MoveType.Throw);
+            return;
+        }
 
         if (TryResolveGroundedSpecial(input, out MoveType specialMoveType))
         {
@@ -657,7 +672,7 @@ public class Fighter
         const int quarterCircleForwardWindow = 20;
         moveType = MoveType.None;
 
-        if (!isGrounded || !input.HasAttackPress)
+        if (!isGrounded || !input.HasPunchPress)
             return false;
 
         if (TryResolveDownDownCharge(input, out moveType))
@@ -698,7 +713,7 @@ public class Fighter
     {
         moveType = MoveType.None;
 
-        if (!config.enableDownDownCharge || !input.HasAttackPress)
+        if (!config.enableDownDownCharge || !input.HasPunchPress)
             return false;
 
         if (!ContainsDownDownChargeInput(config.backdashInputWindowFrames, 4))
@@ -891,6 +906,68 @@ public class Fighter
             heavyPressBufferFramesRemaining = NormalInputBufferFrames;
     }
 
+    private bool TryResolveThrowInput(InputFrame input)
+    {
+        if (!isGrounded)
+            return false;
+
+        if (!input.punchLightPressed && !input.dirtPressed)
+            return false;
+
+        return HasRecentButtonChord(
+            entry => entry.input.punchLightPressed,
+            entry => entry.input.dirtPressed,
+            ThrowInputWindowFrames
+        );
+    }
+
+    private void TryMorphLightNormalIntoThrow(InputFrame input)
+    {
+        if (!input.dirtPressed)
+            return;
+
+        if (!isGrounded)
+            return;
+
+        MoveType currentMoveType = attackController.CurrentMoveType;
+        if (currentMoveType != MoveType.StandingLight && currentMoveType != MoveType.CrouchingLight)
+            return;
+
+        if (!HasRecentButtonChord(
+            entry => entry.input.punchLightPressed,
+            entry => entry.input.dirtPressed,
+            ThrowInputWindowFrames
+        ))
+            return;
+
+        StartAttack(MoveType.Throw);
+    }
+
+    private bool HasRecentButtonChord(
+        Func<InputHistoryBuffer.HistoryEntry, bool> firstButtonPressed,
+        Func<InputHistoryBuffer.HistoryEntry, bool> secondButtonPressed,
+        int maxFrameGap
+    )
+    {
+        int maxFramesAgo = Mathf.Min(inputHistory.Count - 1, Mathf.Max(0, maxFrameGap));
+        int firstFramesAgo = -1;
+        int secondFramesAgo = -1;
+
+        for (int framesAgo = 0; framesAgo <= maxFramesAgo; framesAgo++)
+        {
+            InputHistoryBuffer.HistoryEntry entry = inputHistory.GetRecent(framesAgo);
+            if (firstFramesAgo < 0 && firstButtonPressed(entry))
+                firstFramesAgo = framesAgo;
+            if (secondFramesAgo < 0 && secondButtonPressed(entry))
+                secondFramesAgo = framesAgo;
+
+            if (firstFramesAgo >= 0 && secondFramesAgo >= 0)
+                return Mathf.Abs(firstFramesAgo - secondFramesAgo) <= maxFrameGap;
+        }
+
+        return false;
+    }
+
     private void StartAttack(MoveType moveType)
     {
         AttackData attackData = ResolveAttackData(moveType);
@@ -1081,6 +1158,8 @@ public class Fighter
             case MoveType.DragonPunchHeavy:
             case MoveType.DownDownCharge:
                 return heavyOverrideDamage;
+            case MoveType.Throw:
+                return 80;
             default:
                 return Mathf.Max(0, fallbackDamage);
         }

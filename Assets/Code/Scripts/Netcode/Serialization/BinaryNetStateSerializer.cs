@@ -162,6 +162,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(state.hitboxAttackerBlockstopFrames);
         writer.Write(state.hitboxHitLevel);
         writer.Write(state.hitboxIsProjectile);
+        writer.Write(state.hitboxIsThrow);
         writer.Write(state.hitboxActive);
         writer.Write(state.hitboxHasHit);
 
@@ -269,6 +270,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
             state.hitboxAttackerBlockstopFrames = reader.ReadInt32();
             state.hitboxHitLevel = reader.ReadInt32();
             state.hitboxIsProjectile = reader.ReadBoolean();
+            state.hitboxIsThrow = stateVersion >= 5 ? reader.ReadBoolean() : false;
         }
         else
         {
@@ -278,6 +280,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
             state.hitboxAttackerBlockstopFrames = -1;
             state.hitboxHitLevel = (int)HitLevel.Mid;
             state.hitboxIsProjectile = false;
+            state.hitboxIsThrow = false;
         }
         state.hitboxActive = reader.ReadBoolean();
         state.hitboxHasHit = reader.ReadBoolean();
@@ -299,7 +302,7 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
             historyCount = 0;
         state.inputHistoryEntries = new NetInputHistoryEntry[historyCount];
         for (int i = 0; i < historyCount; i++)
-            state.inputHistoryEntries[i] = ReadInputHistoryEntry(reader);
+            state.inputHistoryEntries[i] = ReadInputHistoryEntry(reader, stateVersion);
         state.inputHistoryNextWriteIndex = reader.ReadInt32();
         state.inputHistoryCount = reader.ReadInt32();
         return state;
@@ -420,13 +423,15 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         writer.Write(entry.input.punchLight);
         writer.Write(entry.input.punchMedium);
         writer.Write(entry.input.punchHeavy);
+        writer.Write(entry.input.dirt);
         writer.Write(entry.input.punchLightPressed);
         writer.Write(entry.input.punchMediumPressed);
         writer.Write(entry.input.punchHeavyPressed);
+        writer.Write(entry.input.dirtPressed);
         writer.Write(entry.relativeDirection);
     }
 
-    private static NetInputHistoryEntry ReadInputHistoryEntry(BinaryReader reader)
+    private static NetInputHistoryEntry ReadInputHistoryEntry(BinaryReader reader, int stateVersion)
     {
         NetInputHistoryEntry entry = default;
         InputFrame input = default;
@@ -435,9 +440,11 @@ public sealed class BinaryNetStateSerializer : INetStateSerializer
         input.punchLight = reader.ReadBoolean();
         input.punchMedium = reader.ReadBoolean();
         input.punchHeavy = reader.ReadBoolean();
+        input.dirt = stateVersion >= 5 ? reader.ReadBoolean() : false;
         input.punchLightPressed = reader.ReadBoolean();
         input.punchMediumPressed = reader.ReadBoolean();
         input.punchHeavyPressed = reader.ReadBoolean();
+        input.dirtPressed = stateVersion >= 5 ? reader.ReadBoolean() : false;
         entry.input = input;
         entry.relativeDirection = reader.ReadInt32();
         return entry;

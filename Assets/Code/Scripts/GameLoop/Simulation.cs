@@ -993,6 +993,17 @@ public class Simulation : ISimulationCore
         Fighter defender = hitEvent.defender;
         Hitbox hitbox = hitEvent.hitbox;
 
+        if (hitbox.isThrow)
+        {
+            if (!CanThrowDefender(defender))
+                return;
+
+            defender.ApplyHit(hitbox, 0, HitResultType.Throw);
+            attacker.ApplySuccessfulHitstopAsAttacker();
+            EmitCombatInteraction(attacker, defender, hitbox, HitResultType.Throw, defender.HitstunFramesRemaining, 0, 0f);
+            return;
+        }
+
         if (enableParry && defender.CanPerformParryNow() && IsParryEligible(hitbox))
         {
             defender.ApplyParry(parryDefenderHitstopFrames, parryWhiffLockoutFrames);
@@ -1029,6 +1040,30 @@ public class Simulation : ISimulationCore
         defender.ApplyHit(hitbox, counterHitBonus, onHitResult);
         attacker.ApplySuccessfulHitstopAsAttacker();
         EmitCombatInteraction(attacker, defender, hitbox, onHitResult, defender.HitstunFramesRemaining, 0, 0f);
+    }
+
+    private static bool CanThrowDefender(Fighter defender)
+    {
+        if (defender == null || defender.IsDefeated)
+            return false;
+
+        if (!defender.IsGrounded)
+            return false;
+
+        switch (defender.CurrentState)
+        {
+            case FighterState.NeutralGround:
+            case FighterState.Crouching:
+            case FighterState.LandingRecovery:
+            case FighterState.AttackStartup:
+            case FighterState.AttackActive:
+            case FighterState.AttackRecovery:
+            case FighterState.Backdash:
+            case FighterState.BackdashRecovery:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private bool IsParryEligible(Hitbox hitbox)
@@ -1306,6 +1341,7 @@ public class Simulation : ISimulationCore
             hitboxAttackerBlockstopFrames = hitbox.attackerBlockstopFrames,
             hitboxHitLevel = (int)hitbox.hitLevel,
             hitboxIsProjectile = hitbox.isProjectile,
+            hitboxIsThrow = hitbox.isThrow,
             hitboxActive = hitbox.active,
             hitboxHasHit = hitbox.hasHit,
 
@@ -1348,6 +1384,7 @@ public class Simulation : ISimulationCore
             attackerBlockstopFrames = state.hitboxAttackerBlockstopFrames,
             hitLevel = (HitLevel)state.hitboxHitLevel,
             isProjectile = state.hitboxIsProjectile,
+            isThrow = state.hitboxIsThrow,
             active = state.hitboxActive,
             hasHit = state.hitboxHasHit
         };

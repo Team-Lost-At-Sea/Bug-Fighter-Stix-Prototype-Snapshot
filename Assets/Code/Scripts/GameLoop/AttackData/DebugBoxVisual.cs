@@ -12,6 +12,7 @@ public class DebugBoxVisual : MonoBehaviour
         sprite.sprite = GetFallbackSprite();
         currentColor = color;
         sprite.color = color;
+        sprite.sortingLayerName = RenderOrder.Layers.GameplayOverlay;
         sprite.sortingOrder = RenderOrder.World.DebugBoxes;
     }
 

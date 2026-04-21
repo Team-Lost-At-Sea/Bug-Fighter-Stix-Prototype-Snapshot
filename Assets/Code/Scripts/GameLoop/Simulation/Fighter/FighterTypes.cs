@@ -87,6 +87,7 @@ public enum MoveType
     DragonPunchMedium = 14,
     DragonPunchHeavy = 15,
     DownDownCharge = 16,
+    Throw = 17,
 }
 
 public static class MoveTypeExtensions
@@ -103,5 +104,10 @@ public static class MoveTypeExtensions
         return moveType == MoveType.DragonPunchLight
             || moveType == MoveType.DragonPunchMedium
             || moveType == MoveType.DragonPunchHeavy;
+    }
+
+    public static bool IsThrow(this MoveType moveType)
+    {
+        return moveType == MoveType.Throw;
     }
 }

@@ -82,6 +82,7 @@ public struct NetFighterState
     public int hitboxAttackerBlockstopFrames;
     public int hitboxHitLevel;
     public bool hitboxIsProjectile;
+    public bool hitboxIsThrow;
     public bool hitboxActive;
     public bool hitboxHasHit;
 
@@ -125,7 +126,7 @@ public struct NetProjectileState
 
 public struct NetState
 {
-    public const int CurrentVersion = 4;
+    public const int CurrentVersion = 5;
 
     public int stateVersion;
     public int frame;

@@ -154,6 +154,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""P1_Dirt"",
+                    ""type"": ""Button"",
+                    ""id"": ""c1ffe27f-dab8-44c2-af79-276f8dbdead8"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -605,6 +614,28 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""P1_Recording"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""041b4fd3-7b13-465b-80c3-d0f477b9ebc4"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""P1_Dirt"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f6d686e5-09a8-433b-9756-0186a63b567b"",
+                    ""path"": ""<Keyboard>/j"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""P1_Dirt"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1219,6 +1250,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Gameplay_P1_HeavyAttack = m_Gameplay.FindAction("P1_HeavyAttack", throwIfNotFound: true);
         m_Gameplay_P1_Menu = m_Gameplay.FindAction("P1_Menu", throwIfNotFound: true);
         m_Gameplay_P1_Recording = m_Gameplay.FindAction("P1_Recording", throwIfNotFound: true);
+        m_Gameplay_P1_Dirt = m_Gameplay.FindAction("P1_Dirt", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1320,6 +1352,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_P1_HeavyAttack;
     private readonly InputAction m_Gameplay_P1_Menu;
     private readonly InputAction m_Gameplay_P1_Recording;
+    private readonly InputAction m_Gameplay_P1_Dirt;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -1359,6 +1392,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/P1_Recording".
         /// </summary>
         public InputAction @P1_Recording => m_Wrapper.m_Gameplay_P1_Recording;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/P1_Dirt".
+        /// </summary>
+        public InputAction @P1_Dirt => m_Wrapper.m_Gameplay_P1_Dirt;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1406,6 +1443,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @P1_Recording.started += instance.OnP1_Recording;
             @P1_Recording.performed += instance.OnP1_Recording;
             @P1_Recording.canceled += instance.OnP1_Recording;
+            @P1_Dirt.started += instance.OnP1_Dirt;
+            @P1_Dirt.performed += instance.OnP1_Dirt;
+            @P1_Dirt.canceled += instance.OnP1_Dirt;
         }
 
         /// <summary>
@@ -1438,6 +1478,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @P1_Recording.started -= instance.OnP1_Recording;
             @P1_Recording.performed -= instance.OnP1_Recording;
             @P1_Recording.canceled -= instance.OnP1_Recording;
+            @P1_Dirt.started -= instance.OnP1_Dirt;
+            @P1_Dirt.performed -= instance.OnP1_Dirt;
+            @P1_Dirt.canceled -= instance.OnP1_Dirt;
         }
 
         /// <summary>
@@ -1798,6 +1841,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnP1_Recording(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "P1_Dirt" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnP1_Dirt(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

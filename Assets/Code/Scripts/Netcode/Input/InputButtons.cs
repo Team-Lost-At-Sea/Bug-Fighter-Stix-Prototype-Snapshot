@@ -10,4 +10,6 @@ public enum InputButtons : ushort
     PunchLightPressed = 1 << 3,
     PunchMediumPressed = 1 << 4,
     PunchHeavyPressed = 1 << 5,
+    DirtHeld = 1 << 6,
+    DirtPressed = 1 << 7,
 }

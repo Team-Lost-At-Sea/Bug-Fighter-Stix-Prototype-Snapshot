@@ -400,6 +400,8 @@ public sealed class InputDisplayWidget : MonoBehaviour
                 return frame.punchMedium;
             case InputDisplayButtonSource.PunchHeavy:
                 return frame.punchHeavy;
+            case InputDisplayButtonSource.Dirt:
+                return frame.dirt;
             default:
                 return false;
         }
@@ -428,6 +430,7 @@ public enum InputDisplayButtonSource
     PunchLight = 1,
     PunchMedium = 2,
     PunchHeavy = 3,
+    Dirt = 4,
 }
 
 [System.Serializable]

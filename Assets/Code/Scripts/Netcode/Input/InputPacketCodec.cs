@@ -11,12 +11,16 @@ public static class InputPacketCodec
             buttons |= (ushort)InputButtons.PunchMediumHeld;
         if (input.punchHeavy)
             buttons |= (ushort)InputButtons.PunchHeavyHeld;
+        if (input.dirt)
+            buttons |= (ushort)InputButtons.DirtHeld;
         if (input.punchLightPressed)
             buttons |= (ushort)InputButtons.PunchLightPressed;
         if (input.punchMediumPressed)
             buttons |= (ushort)InputButtons.PunchMediumPressed;
         if (input.punchHeavyPressed)
             buttons |= (ushort)InputButtons.PunchHeavyPressed;
+        if (input.dirtPressed)
+            buttons |= (ushort)InputButtons.DirtPressed;
 
         return new FrameInputPacket
         {
@@ -39,9 +43,11 @@ public static class InputPacketCodec
             punchLight = Has(buttons, InputButtons.PunchLightHeld),
             punchMedium = Has(buttons, InputButtons.PunchMediumHeld),
             punchHeavy = Has(buttons, InputButtons.PunchHeavyHeld),
+            dirt = Has(buttons, InputButtons.DirtHeld),
             punchLightPressed = Has(buttons, InputButtons.PunchLightPressed),
             punchMediumPressed = Has(buttons, InputButtons.PunchMediumPressed),
-            punchHeavyPressed = Has(buttons, InputButtons.PunchHeavyPressed)
+            punchHeavyPressed = Has(buttons, InputButtons.PunchHeavyPressed),
+            dirtPressed = Has(buttons, InputButtons.DirtPressed)
         };
     }
 

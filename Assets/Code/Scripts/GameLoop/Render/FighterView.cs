@@ -189,6 +189,7 @@ public class FighterView : MonoBehaviour
         CacheMoveHash(MoveType.DragonPunchMedium);
         CacheMoveHash(MoveType.DragonPunchHeavy);
         CacheMoveHash(MoveType.DownDownCharge);
+        CacheMoveHash(MoveType.Throw);
     }
 
     private void CacheVisualStateHash(FighterVisualState visualState)

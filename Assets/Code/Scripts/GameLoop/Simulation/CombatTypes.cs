@@ -15,6 +15,7 @@ public enum HitResultType
     CounterHit = 3,
     CounterHitBlocked = 4,
     Parry = 5,
+    Throw = 6,
 }
 
 public enum RoundPhase

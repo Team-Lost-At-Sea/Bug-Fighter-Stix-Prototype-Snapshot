@@ -69,3 +69,11 @@ MonoBehaviour:
     requireDefaultGamepadBinding: 0
     allowRuntimeKeyboardUnbind: 1
     allowRuntimeGamepadUnbind: 1
+  - actionMapName: Gameplay
+    actionName: P1_Dirt
+    maxKeyboardBindings: 2
+    maxGamepadBindings: 2
+    requireDefaultKeyboardBinding: 1
+    requireDefaultGamepadBinding: 0
+    allowRuntimeKeyboardUnbind: 1
+    allowRuntimeGamepadUnbind: 1

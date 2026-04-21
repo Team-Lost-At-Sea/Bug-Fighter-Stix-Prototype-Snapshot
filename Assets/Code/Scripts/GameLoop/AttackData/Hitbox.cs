@@ -11,6 +11,7 @@ public struct Hitbox
     public int attackerBlockstopFrames;
     public HitLevel hitLevel;
     public bool isProjectile;
+    public bool isThrow;
     public bool active;
     public bool hasHit; // prevent multi-hits
 
@@ -22,5 +23,6 @@ public struct Hitbox
         blockPushback = 0f;
         attackerBlockstopFrames = -1;
         isProjectile = false;
+        isThrow = false;
     }
 }

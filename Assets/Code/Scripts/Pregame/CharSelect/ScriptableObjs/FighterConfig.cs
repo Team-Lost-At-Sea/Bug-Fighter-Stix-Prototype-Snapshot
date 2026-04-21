@@ -63,6 +63,7 @@ public class FighterConfig : ScriptableObject
     public string dragonPunchMediumStateName = "s_MP";
     public string dragonPunchHeavyStateName = "s_HP";
     public string downDownChargeStateName = "DownDownCharge";
+    public string throwStateName = "Throw";
 
     [Header("Shared Moves")]
     public bool enableDownDownCharge = false;
@@ -82,6 +83,7 @@ public class FighterConfig : ScriptableObject
     public AttackData dragonPunchMediumAttackData;
     public AttackData dragonPunchHeavyAttackData;
     public AttackData downDownChargeAttackData;
+    public AttackData throwAttackData;
 
     [Header("Fireball Projectile")]
     public Sprite fireballProjectileSprite;
@@ -155,6 +157,8 @@ public class FighterConfig : ScriptableObject
                 return dragonPunchHeavyAttackData;
             case MoveType.DownDownCharge:
                 return downDownChargeAttackData;
+            case MoveType.Throw:
+                return throwAttackData;
             default:
                 return null;
         }
@@ -229,6 +233,8 @@ public class FighterConfig : ScriptableObject
                 return dragonPunchHeavyStateName;
             case MoveType.DownDownCharge:
                 return downDownChargeStateName;
+            case MoveType.Throw:
+                return throwStateName;
             default:
                 return null;
         }

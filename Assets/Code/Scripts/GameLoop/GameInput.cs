@@ -64,6 +64,9 @@ public class GameInput : MonoBehaviour
 
     [SerializeField]
     private Key p2HeavyKey = Key.Numpad3;
+
+    [SerializeField]
+    private Key p2DirtKey = Key.Numpad4;
     
     [Header("References")]
     [SerializeField]
@@ -80,9 +83,11 @@ public class GameInput : MonoBehaviour
     private bool lastLightPressed;
     private bool lastMediumPressed;
     private bool lastHeavyPressed;
+    private bool lastDirtPressed;
     private bool lastP2LightPressed;
     private bool lastP2MediumPressed;
     private bool lastP2HeavyPressed;
+    private bool lastP2DirtPressed;
     private GUIStyle debugOverlayStyle;
     private InputFrame lastEnqueuedFrame = InputFrame.Neutral;
     private InputFrame lastEnqueuedPlayer2Frame = InputFrame.Neutral;
@@ -170,9 +175,11 @@ public class GameInput : MonoBehaviour
         lastLightPressed = false;
         lastMediumPressed = false;
         lastHeavyPressed = false;
+        lastDirtPressed = false;
         lastP2LightPressed = false;
         lastP2MediumPressed = false;
         lastP2HeavyPressed = false;
+        lastP2DirtPressed = false;
     }
 
     public void SetInvertYEnabled(bool enabled)
@@ -311,6 +318,7 @@ public class GameInput : MonoBehaviour
         bool lightPressed = inputActions.Gameplay.P1_LightAttack.IsPressed();
         bool mediumPressed = inputActions.Gameplay.P1_MediumAttack.IsPressed();
         bool heavyPressed = inputActions.Gameplay.P1_HeavyAttack.IsPressed();
+        bool dirtPressed = inputActions.Gameplay.P1_Dirt.IsPressed();
 
         if (rawMoveX > 0.5f)
             moveX = 1;
@@ -338,14 +346,17 @@ public class GameInput : MonoBehaviour
             punchLight = lightPressed,
             punchMedium = mediumPressed,
             punchHeavy = heavyPressed,
+            dirt = dirtPressed,
             punchLightPressed = lightPressed && !lastLightPressed,
             punchMediumPressed = mediumPressed && !lastMediumPressed,
-            punchHeavyPressed = heavyPressed && !lastHeavyPressed
+            punchHeavyPressed = heavyPressed && !lastHeavyPressed,
+            dirtPressed = dirtPressed && !lastDirtPressed
         };
 
         lastLightPressed = lightPressed;
         lastMediumPressed = mediumPressed;
         lastHeavyPressed = heavyPressed;
+        lastDirtPressed = dirtPressed;
         return frame;
     }
 
@@ -359,6 +370,7 @@ public class GameInput : MonoBehaviour
         bool lightPressed = false;
         bool mediumPressed = false;
         bool heavyPressed = false;
+        bool dirtPressed = false;
 
         Gamepad secondaryPad = GetSecondaryGamepad();
         if (secondaryPad != null)
@@ -376,9 +388,10 @@ public class GameInput : MonoBehaviour
             else if (padY < -0.5f)
                 moveY = -1;
 
-            lightPressed = secondaryPad.buttonSouth.isPressed;
+            lightPressed = secondaryPad.buttonWest.isPressed;
             mediumPressed = secondaryPad.buttonEast.isPressed;
             heavyPressed = secondaryPad.buttonNorth.isPressed;
+            dirtPressed = secondaryPad.buttonSouth.isPressed;
         }
         else if (Keyboard.current != null)
         {
@@ -395,6 +408,7 @@ public class GameInput : MonoBehaviour
             lightPressed = Keyboard.current[p2LightKey].isPressed;
             mediumPressed = Keyboard.current[p2MediumKey].isPressed;
             heavyPressed = Keyboard.current[p2HeavyKey].isPressed;
+            dirtPressed = Keyboard.current[p2DirtKey].isPressed;
         }
 
         InputFrame frame = new InputFrame
@@ -404,14 +418,17 @@ public class GameInput : MonoBehaviour
             punchLight = lightPressed,
             punchMedium = mediumPressed,
             punchHeavy = heavyPressed,
+            dirt = dirtPressed,
             punchLightPressed = lightPressed && !lastP2LightPressed,
             punchMediumPressed = mediumPressed && !lastP2MediumPressed,
-            punchHeavyPressed = heavyPressed && !lastP2HeavyPressed
+            punchHeavyPressed = heavyPressed && !lastP2HeavyPressed,
+            dirtPressed = dirtPressed && !lastP2DirtPressed
         };
 
         lastP2LightPressed = lightPressed;
         lastP2MediumPressed = mediumPressed;
         lastP2HeavyPressed = heavyPressed;
+        lastP2DirtPressed = dirtPressed;
         return frame;
     }
 
@@ -523,7 +540,7 @@ public class GameInput : MonoBehaviour
         );
         GUI.Label(
             new Rect(10f, 50f, 420f, 20f),
-            $"Press edges LP={lastCapturedFrame.punchLightPressed} MP={lastCapturedFrame.punchMediumPressed} HP={lastCapturedFrame.punchHeavyPressed}",
+            $"Press edges LP={lastCapturedFrame.punchLightPressed} MP={lastCapturedFrame.punchMediumPressed} HP={lastCapturedFrame.punchHeavyPressed} D={lastCapturedFrame.dirtPressed}",
             debugOverlayStyle
         );
         GUI.Label(
@@ -550,7 +567,8 @@ public class GameInput : MonoBehaviour
             || frame.moveY != 0
             || frame.punchLight
             || frame.punchMedium
-            || frame.punchHeavy;
+            || frame.punchHeavy
+            || frame.dirt;
 
         if (!hasAnyInput)
             return false;
@@ -565,7 +583,8 @@ public class GameInput : MonoBehaviour
             || frame.moveY != lastEnqueuedFrame.moveY
             || frame.punchLight != lastEnqueuedFrame.punchLight
             || frame.punchMedium != lastEnqueuedFrame.punchMedium
-            || frame.punchHeavy != lastEnqueuedFrame.punchHeavy;
+            || frame.punchHeavy != lastEnqueuedFrame.punchHeavy
+            || frame.dirt != lastEnqueuedFrame.dirt;
     }
 
     private bool ShouldEnqueuePlayer2Frame(InputFrame frame)
@@ -575,7 +594,8 @@ public class GameInput : MonoBehaviour
             || frame.moveY != 0
             || frame.punchLight
             || frame.punchMedium
-            || frame.punchHeavy;
+            || frame.punchHeavy
+            || frame.dirt;
 
         if (!hasAnyInput)
             return false;
@@ -590,7 +610,8 @@ public class GameInput : MonoBehaviour
             || frame.moveY != lastEnqueuedPlayer2Frame.moveY
             || frame.punchLight != lastEnqueuedPlayer2Frame.punchLight
             || frame.punchMedium != lastEnqueuedPlayer2Frame.punchMedium
-            || frame.punchHeavy != lastEnqueuedPlayer2Frame.punchHeavy;
+            || frame.punchHeavy != lastEnqueuedPlayer2Frame.punchHeavy
+            || frame.dirt != lastEnqueuedPlayer2Frame.dirt;
     }
 
     private static Gamepad GetSecondaryGamepad()

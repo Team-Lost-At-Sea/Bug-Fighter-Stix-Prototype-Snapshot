@@ -86,6 +86,18 @@ public sealed class FighterAttackController
             hitboxSize = new Vector2(1.0f, 0.8f),
         };
 
+        if (moveType.IsThrow())
+        {
+            fallback.damage = 80;
+            fallback.hitstunFrames = 18;
+            fallback.blockstunFrames = 1;
+            fallback.blockPushback = 0f;
+            fallback.chipDamage = 0;
+            fallback.hitLevel = HitLevel.Unblockable;
+            fallback.hitboxOffset = new Vector2(facingRight ? 0.55f : -0.55f, 0.9f);
+            fallback.hitboxSize = new Vector2(0.65f, 1.25f);
+        }
+
         if (
             enableGlobalDamageOverride
             && TryResolveOverrideDamage(
@@ -128,6 +140,7 @@ public sealed class FighterAttackController
                 hitbox.attackerBlockstopFrames = currentAttack.attackerBlockstopFrames;
                 hitbox.hitLevel = currentAttack.hitLevel;
                 hitbox.isProjectile = false;
+                hitbox.isThrow = currentMoveType.IsThrow();
             }
         }
 
@@ -230,6 +243,8 @@ public sealed class FighterAttackController
             case MoveType.JumpingHeavy:
             case MoveType.DownDownCharge:
                 return new AttackTiming(16, 5, 24);
+            case MoveType.Throw:
+                return new AttackTiming(5, 2, 24);
             case MoveType.FireballHeavy:
                 return new AttackTiming(14, 0, 22);
             case MoveType.DragonPunchHeavy:
